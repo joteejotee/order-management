@@ -12,7 +12,8 @@ class PenController extends Controller
     //penの全データを取得して、json形式で返す
     public function index()
     {
-        $pens = Pen::all(); //penモデルの全データを取得
+        // $pens = Pen::all(); //penモデルの全データを取得
+        $pens = Pen::paginate(4); //ページネーション
         return response()->json([ //json形式で返す
             'data' => $pens //dataに$pensを代入
         ], 200); //ステータスコード200
