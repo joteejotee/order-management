@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Http\Requests\OrderStoreRequest;
 
 class OrderController extends Controller
 {
@@ -41,9 +42,17 @@ class OrderController extends Controller
   /**
    * Store a newly created resource in storage.
    */
-  public function store(StoreOrderRequest $request)
+  public function store(OrderStoreRequest $request)
   {
-    //
+    $order = new Order();
+    $order->pen_id = $request->pen_id;
+    $order->customer_id = $request->customer_id;
+    $order->num = $request->num;
+    $order->orderday = date('Y-m-d H:i:s');
+    $order->save();
+    return response()->json([
+        'data' => $order
+    ], 201);
   }
 
   /**
