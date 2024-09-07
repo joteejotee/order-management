@@ -21,10 +21,11 @@ const Orders = () => {
     }
     const response = await fetch(url);
     const json = await response.json();
-    setOrders(json.data.data);
-    console.log(json.data.data);
-    setInfo(json.data);
+
+    setOrders(json.data);
     console.log(json.data);
+    setInfo(json.meta);
+    console.log(json.meta);
   }
 
   useEffect(() => {
@@ -93,13 +94,13 @@ const Orders = () => {
                     {order.id}
                   </th>
                   <td className="px-6 py-2">
-                    {order.customer_id}
+                    {order.customer.name}
                   </td>
                   <td className="px-6 py-2">
-                    {order.pen_id}
+                    {order.pen.name}
                   </td>
                   <td className="px-6 py-2">
-
+                    {order.pen.price}
                   </td>
                   <td className="px-6 py-2">
                     {order.num}

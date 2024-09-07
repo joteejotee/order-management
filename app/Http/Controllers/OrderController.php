@@ -14,6 +14,7 @@ class OrderController extends Controller
    */
   public function index()
   {
+    $orders = Order::paginate(4);
     $ordersQuery = Order::orderBy('id', 'desc');
     $ordersPaginator = $ordersQuery->paginate(4); // ページネーション
     $orders = OrderResource::collection($ordersPaginator->items());
