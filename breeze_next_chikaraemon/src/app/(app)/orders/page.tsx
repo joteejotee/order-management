@@ -9,52 +9,45 @@ const http = axios.create({
   withXSRFToken: true,
 });
 
-const Pens = () => {
-  const [pens, setPens] = useState([]);
+const Orders = () => {
+  const [orders, setOrders] = useState([]);
   const router = useRouter();
-  //追加
   const [info, setInfo] = useState({});
+  const url = 'http://localhost:8000/api/orders'
 
-  //引数にurl追加
-  const getPens = async (url) => {
-    //追加
+  const getOrders = async (url) => {
     if (!url) {
-      url = 'http://localhost:8000/api/pens'
+      url = 'http://localhost:8000/api/orders'
     }
     const response = await fetch(url);
     const json = await response.json();
-
-    console.log(json.data);
-
-    //変更json.data　→　json.data.data
-    setPens(json.data.data);
-    //追加
+    setOrders(json.data.data);
+    console.log(json.data.data);
     setInfo(json.data);
     console.log(json.data);
   }
 
   useEffect(() => {
-    getPens();
+    getOrders(url);
   }, []);
 
-  const deletePen = async (id: number) => {
+  const deleteOrder = async (id: number) => {
     if (confirm('削除しますか？')) {
-      http.delete(`/api/pens/${id}`).then(() => {
-        getPens();
+      http.delete(`/api/orders/${id}`).then(() => {
+        getOrders(url);
       });
     }
   }
-  //追加
   const handleNextPage = () => {
-    getPens(info.next_page_url);
+    getOrders(info.next_page_url);
   };
-  //追加
+
   const handlePreviousPage = () => {
-    getPens(info.prev_page_url);
+    getOrders(info.prev_page_url);
   };
 
   return (
-    <div className="relative overflow-x-auto">
+    <div className="relative overflow-x-auto p-5">
 
       <table className="min-w-full divide-y dark:divide-neutral-700">
         <thead>
@@ -63,44 +56,62 @@ const Pens = () => {
               ID
             </th>
             <th scope="col" className="px-6 py-4">
-              名前
+              顧客
+            </th>
+            <th scope="col" className="px-6 py-4">
+              ペン
             </th>
             <th scope="col" className="px-6 py-4">
               価格
             </th>
-            <th scope="col" className="px-3 py-4">
+            <th scope="col" className="px-6 py-4">
+              注文数
+            </th>
+            <th scope="col" className="px-6 py-4">
+              注文日
             </th>
             <th scope="col" className="px-3 py-4">
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={() => {
-                  router.push('/pens/create');
+                  router.push('/orders/create');
                 }}
               >
                 新規登録
               </button>
             </th>
+            <th scope="col" className="px-3 py-4">
+            </th>
           </tr>
         </thead>
         <tbody>
           {
-            pens.map((pen: any) => {
+            orders.map((order: any) => {
               return (
-                <tr key={pen.id} className="bg-white border-b">
+                <tr key={order.id} className="bg-white border-b">
                   <th scope="row" className="px-6 py-2">
-                    {pen.id}
+                    {order.id}
                   </th>
                   <td className="px-6 py-2">
-                    {pen.name}
+                    {order.customer_id}
                   </td>
                   <td className="px-6 py-2">
-                    {pen.price}円
+                    {order.pen_id}
+                  </td>
+                  <td className="px-6 py-2">
+
+                  </td>
+                  <td className="px-6 py-2">
+                    {order.num}
+                  </td>
+                  <td className="px-6 py-2">
+                    {order.orderday}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => {
-                        router.push(`/pens/edit/${pen.id}`);
+                        router.push(`/orders/edit/${order.id}`);
                       }}
                     >
                       編集
@@ -110,7 +121,7 @@ const Pens = () => {
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => {
-                        deletePen(pen.id);
+                        deleteOrder(order.id);
                       }}
                     >
                       削除
@@ -122,6 +133,7 @@ const Pens = () => {
           }
         </tbody>
       </table>
+
       <div className="w-1/2 items-center px-4 mt-6">
         <div className="join grid grid-cols-2">
           {info.prev_page_url ? (
@@ -145,8 +157,8 @@ const Pens = () => {
           ) : null}
         </div>
       </div>
+
     </div>
   );
-
 }
-export default Pens;
+export default Orders;

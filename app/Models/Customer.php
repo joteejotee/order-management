@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    use HasFactory;
-    public function orders()
-    {
-        // CustomerモデルからOrderモデルへのリレーションを定義
-        return $this->hasMany(Order::class);
-    }
+  use HasFactory;
+  public function orders()
+  {
+    // CustomerモデルからOrderモデルへのリレーションを定義
+    return $this->hasMany(Order::class);
+  }
 }

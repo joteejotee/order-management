@@ -8,11 +8,11 @@ use App\Models\Order;
 
 class OrderSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-        Order::factory()->count(10)->create();
-    }
+  /**
+   * Run the database seeds.
+   */
+  public function run(): void
+  {
+    Order::factory()->count(10)->create();
+  }
 }
