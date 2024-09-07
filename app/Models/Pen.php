@@ -14,6 +14,7 @@ class Pen extends Model
     ];
     public function orders()
     {
+        // PenモデルからOrderモデルへのリレーションを定義
         return $this->hasMany(Order::class);
     }
 }

@@ -10,6 +10,7 @@ class Customer extends Model
     use HasFactory;
     public function orders()
     {
+        // CustomerモデルからOrderモデルへのリレーションを定義
         return $this->hasMany(Order::class);
     }
 }
