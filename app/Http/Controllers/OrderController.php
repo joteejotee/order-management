@@ -7,6 +7,8 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Requests\OrderStoreRequest;
+use App\Models\Pen;
+use App\Models\Customer;
 
 class OrderController extends Controller
 {
@@ -36,7 +38,12 @@ class OrderController extends Controller
    */
   public function create()
   {
-    //
+    $pens = Pen::all();
+    $customers = Customer::all();
+    return response()->json([
+      'pens' => $pens,
+      'customers' => $customers,
+    ], 200);
   }
 
   /**
@@ -51,7 +58,7 @@ class OrderController extends Controller
     $order->orderday = date('Y-m-d H:i:s');
     $order->save();
     return response()->json([
-        'data' => $order
+      'data' => $order
     ], 201);
   }
 

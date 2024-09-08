@@ -14,6 +14,7 @@ Route::patch('/pens/{pen:id}', 'App\Http\Controllers\PenController@update'); //�
 Route::delete('/pens/{pen:id}', 'App\Http\Controllers\PenController@delete'); //指定のデータを削除
 
 Route::get('/orders', 'App\Http\Controllers\OrderController@index');
+Route::get('/orders/create', 'App\Http\Controllers\OrderController@create');
 Route::post('/orders', 'App\Http\Controllers\OrderController@store');
 Route::get('/orders/{order:id}', 'App\Http\Controllers\OrderController@edit');
 Route::patch('/orders/{order:id}', 'App\Http\Controllers\OrderController@update');
