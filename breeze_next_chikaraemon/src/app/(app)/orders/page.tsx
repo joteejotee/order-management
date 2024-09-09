@@ -21,11 +21,14 @@ const Orders = () => {
     }
     const response = await fetch(url);
     const json = await response.json();
-
     setOrders(json.data);
     console.log(json.data);
     setInfo(json.meta);
     console.log(json.meta);
+    //setOrders(json.data.data);
+    //console.log(json.data.data);
+    //setInfo(json.data);
+    //console.log(json.data);
   }
 
   useEffect(() => {
@@ -71,6 +74,9 @@ const Orders = () => {
             <th scope="col" className="px-6 py-4">
               注文日
             </th>
+            <th scope="col" className="px-6 py-4">
+              出荷・未出荷
+            </th>
             <th scope="col" className="px-3 py-4">
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
@@ -108,26 +114,38 @@ const Orders = () => {
                   <td className="px-6 py-2">
                     {order.orderday}
                   </td>
+                  <td className="px-6 py-2 text-center">
+                    {order.shipping === 0 ? (
+                      <span>未</span>
+                    ) : order.shipping === 1 ? (
+                      <span>出荷済</span>
+                    ) : null}
+                  </td>
                   <td className="px-3 py-2 text-right">
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        router.push(`/orders/edit/${order.id}`);
-                      }}
-                    >
-                      編集
-                    </button>
+                    {order.shipping === 0 ? (
+                      <button
+                        className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                        onClick={() => {
+                          router.push(`/orders/edit/${order.id}`);
+                        }}
+                      >
+                        編集
+                      </button>
+                    ) : null}
                   </td>
                   <td className="px-3 py-2">
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        deleteOrder(order.id);
-                      }}
-                    >
-                      削除
-                    </button>
+                    {order.shipping === 0 ? (
+                      <button
+                        className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                        onClick={() => {
+                          deleteOrder(order.id);
+                        }}
+                      >
+                        削除
+                      </button>
+                    ) : null}
                   </td>
+
                 </tr>
               )
             })

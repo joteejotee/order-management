@@ -20,6 +20,7 @@ class OrderResource extends JsonResource
       'orderday' => $this->orderday,
       'customer' => CustomerResource::make($this->customer),
       'pen' => PenResource::make($this->pen),
+      'shipping' => $this->shipping,
     ];
   }
 }
