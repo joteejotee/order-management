@@ -73,17 +73,28 @@ class OrderController extends Controller
   /**
    * Show the form for editing the specified resource.
    */
-  public function edit(Order $order)
+  public function edit($id)
   {
-    //
+    $pens = Pen::all();
+    $customers = Customer::all();
+    $order = Order::find($id);
+    return response()->json([
+      'data' => $order,
+      'pens' => $pens,
+      'customers' => $customers,
+    ], 200);
   }
 
   /**
    * Update the specified resource in storage.
    */
-  public function update(UpdateOrderRequest $request, Order $order)
+  public function update(OrderStoreRequest $request, Order $order)
   {
-    //
+    $order->fill($request->all());
+    $order->save();
+    return response()->json([
+      'data' => $order
+    ], 200);
   }
 
   /**
@@ -92,5 +103,12 @@ class OrderController extends Controller
   public function destroy(Order $order)
   {
     //
+  }
+  public function delete(Order $order)
+  {
+    $order->delete();
+    return response()->json([
+      'message' => '注文を削除しました'
+    ], 200);
   }
 }
