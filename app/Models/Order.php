@@ -17,6 +17,9 @@ class Order extends Model
     // このcustomer_idは、Customerモデルのidを参照する
     'customer_id',
 
+    // このpen_idは、Penモデルのidを参照する
+    'pen_id',
+
     // このnumは、注文数を表す
     'num',
 

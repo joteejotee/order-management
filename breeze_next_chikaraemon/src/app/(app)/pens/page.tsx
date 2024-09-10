@@ -62,10 +62,10 @@ const Pens = () => {
             <th scope="col" className="px-6 py-4">
               ID
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               名前
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               価格
             </th>
             <th scope="col" className="px-3 py-4">

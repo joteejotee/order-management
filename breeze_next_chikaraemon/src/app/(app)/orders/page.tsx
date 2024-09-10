@@ -50,6 +50,14 @@ const Orders = () => {
     getOrders(info.prev_page_url);
   };
 
+  const shipOrder = async (id: number) => {
+    http.put(`/api/orders/${id}`).then(() => {
+      getOrders(url);
+    }).catch(function (error) {
+      console.log(error);
+    });
+  }
+
   return (
     <div className="relative overflow-x-auto p-5">
 
@@ -59,19 +67,19 @@ const Orders = () => {
             <th scope="col" className="px-6 py-4">
               ID
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               顧客
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               ペン
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               価格
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               注文数
             </th>
-            <th scope="col" className="px-6 py-4">
+            <th scope="col" className="px-6 py-4 text-left">
               注文日
             </th>
             <th scope="col" className="px-6 py-4">
@@ -116,7 +124,14 @@ const Orders = () => {
                   </td>
                   <td className="px-6 py-2 text-center">
                     {order.shipping === 0 ? (
-                      <span>未</span>
+                      <button
+                        className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:pointer-events-none"
+                        onClick={() => {
+                          shipOrder(order.id);
+                        }}
+                      >
+                        未
+                      </button>
                     ) : order.shipping === 1 ? (
                       <span>出荷済</span>
                     ) : null}

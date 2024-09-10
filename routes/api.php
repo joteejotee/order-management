@@ -19,3 +19,4 @@ Route::post('/orders', 'App\Http\Controllers\OrderController@store');
 Route::get('/orders/{order:id}', 'App\Http\Controllers\OrderController@edit');
 Route::patch('/orders/{order:id}', 'App\Http\Controllers\OrderController@update');
 Route::delete('/orders/{order:id}', 'App\Http\Controllers\OrderController@delete');
+Route::put('/orders/{order:id}', 'App\Http\Controllers\OrderController@ship');
