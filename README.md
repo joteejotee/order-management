@@ -62,25 +62,25 @@ DB_PASSWORD=
 ### 3. Next.jsフロントエンドをセットアップします。
 
 #### Next.jsのディレクトリに移動
-cd breeze_next_chikaraemon
+`cd breeze_next_chikaraemon`
 
 #### 依存関係をインストール
-npm install
+`npm install`
 
 #### 環境ファイルをコピー
-cp .env.example .env.local
+`cp .env.example .env.local`
 
 #### .env.localファイルを編集してバックエンドURLを設定
 .env.localファイルに以下を貼り付ける
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+`NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
 
 #### 開発サーバーを起動
-npm run dev
+`npm run dev`
 
 
 
 ### 4. ブラウザでアプリケーションにアクセスします。
-http://localhost:3000
+`http://localhost:3000`
 
 
 
@@ -88,8 +88,8 @@ http://localhost:3000
 右上のloginをクリックする
 
 以下を入力してLOGINボタンをクリックする
-e-mail　hanako@yamada.com
-パスワード　hanakoyamada
+e-mail　`hanako@yamada.com`
+パスワード　`hanakoyamada`
 
 ナビゲーションメニューのPen Masterではペンの商品登録画面が表示され、
 Order Masterではペンの受注情報、出荷状況が表示されます。
