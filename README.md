@@ -4,11 +4,6 @@
 
 order-managementアプリケーションは、Laravel BreezeとNext.jsを組み合わせたアプリケーションです。このリポジトリは、Laravel 11.6.0をバックエンド環境として使用し、フロントエンドをNext.jsで作成しております。認証機能にはLaravel Breezeを使用しています。
 
-
-
-
-
-
 ## ローカルでの動かし方
 
 ### 前提条件
@@ -55,48 +50,35 @@ DB_PASSWORD=
 #### データベースマイグレーションを実行
 `php artisan migrate`
 
-
 #### サーバーを起動
 `php artisan serve`
 
-
 #### サーバーの起動を確認
 ブラウザで、`http://localhost:8000`　にアクセスしてlaravelのバージョン表示がされていれば起動済み
-
-
 
 ### 3. Next.jsフロントエンドをセットアップします。
 
 #### Next.jsのディレクトリに移動
 `cd breeze_next_chikaraemon`
 
-
 #### 依存関係をインストール
 `npm install`
 
-
 #### 環境ファイルをコピー
 `cp .env.example .env.local`
-
 
 #### .env.localファイルを編集してバックエンドURLを設定
 .env.localファイルに以下を貼り付ける
 `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
 
-
 #### 開発サーバーを起動
 `npm run dev`
-
-
 
 ### 4. ブラウザでアプリケーションにアクセスします。
 `http://localhost:3000`
 
-
-
 ### 5. アプリケーションにログインします。
 右上のloginをクリックする
-
 
 以下を入力してLOGINボタンをクリックする
 
