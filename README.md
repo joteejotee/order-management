@@ -22,16 +22,16 @@ git clone https://github.com/joteejotee/order-management.git
 
 2. Laravelバックエンドをセットアップします。
 
-# ルートディレクトリに移動
+### ルートディレクトリに移動
 cd nextjs
 
-# Composerの依存関係をインストール
+### Composerの依存関係をインストール
 composer install
 
-# 環境ファイルをコピー
+### 環境ファイルをコピー
 cp .env.example .env
 
-# .envファイルに以下を貼り付けて、データベース接続情報を設定
+### .envファイルに以下を貼り付けて、データベース接続情報を設定
 APP_NAME=Laravel
 APP_ENV=local
 APP_KEY=base64:TzzCxoQodblEZL7syitIA3ZwceWCyM5Axrc2q9UThnA=
@@ -46,33 +46,33 @@ DB_DATABASE=nextjs
 DB_USERNAME=root
 DB_PASSWORD=
 
-# データベースマイグレーションを実行
+### データベースマイグレーションを実行
 php artisan migrate
 
-# サーバーを起動
+### サーバーを起動
 php artisan serve
 
-# サーバーの起動を確認
+### サーバーの起動を確認
 ブラウザで、http://localhost:8000　にアクセスしてlaravelのバージョン表示がされていれば起動済み
 
 
 
 3. Next.jsフロントエンドをセットアップします。
 
-# Next.jsのディレクトリに移動
+### Next.jsのディレクトリに移動
 cd breeze_next_chikaraemon
 
-# 依存関係をインストール
+### 依存関係をインストール
 npm install
 
-# 環境ファイルをコピー
+### 環境ファイルをコピー
 cp .env.example .env.local
 
-# .env.localファイルを編集してバックエンドURLを設定
+### .env.localファイルを編集してバックエンドURLを設定
 .env.localファイルに以下を貼り付ける
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
-# 開発サーバーを起動
+### 開発サーバーを起動
 npm run dev
 
 
