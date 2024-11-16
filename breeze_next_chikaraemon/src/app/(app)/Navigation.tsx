@@ -38,17 +38,13 @@ const Navigation = ({ user }) => {
             </div>
             {/* Navigation Links */}
             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <NavLink
-                href="/pens"
-                active={usePathname() === '/pens'}>
+              <NavLink href="/pens" active={usePathname() === '/pens'}>
                 Pen Master
               </NavLink>
             </div>
             {/* Navigation Links */}
             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <NavLink
-                href="/orders"
-                active={usePathname() === '/orders'}>
+              <NavLink href="/orders" active={usePathname() === '/orders'}>
                 Order Master
               </NavLink>
             </div>
@@ -78,9 +74,7 @@ const Navigation = ({ user }) => {
                 </button>
               }>
               {/* Authentication */}
-              <DropdownButton onClick={logout}>
-                Logout
-              </DropdownButton>
+              <DropdownButton onClick={logout}>Logout</DropdownButton>
             </Dropdown>
           </div>
 
@@ -159,9 +153,7 @@ const Navigation = ({ user }) => {
 
             <div className="mt-3 space-y-1">
               {/* Authentication */}
-              <ResponsiveNavButton onClick={logout}>
-                Logout
-              </ResponsiveNavButton>
+              <ResponsiveNavButton onClick={logout}>Logout</ResponsiveNavButton>
             </div>
           </div>
         </div>
