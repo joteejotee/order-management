@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/auth'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-const Navigation = ({ user }) => {
+const Navigation = ({ user }: { user: User }) => {
   const { logout } = useAuth()
 
   const [open, setOpen] = useState(false)
