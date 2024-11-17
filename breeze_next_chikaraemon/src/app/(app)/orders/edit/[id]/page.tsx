@@ -23,7 +23,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
   const router = useRouter()
 
-  //以下　pens customers 取得のための処理
+  //以下 pens customers 取得のための処理
   const [pens, setPens] = useState({})
   const [customers, setCustomers] = useState({})
   const getOrder = async () => {
@@ -89,14 +89,16 @@ const EditPage = ({ params }: { params: { id: string } }) => {
               customer_id: e.target.value,
             })
           }}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600">
+          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
+        >
           <option value="">顧客を選択してください</option>
           {Array.isArray(customers) &&
             customers.map(customer => (
               <option
                 key={customer.id}
                 value={customer.id}
-                selected={customer.id === order.customer_id}>
+                selected={customer.id === order.customer_id}
+              >
                 {customer.name}
               </option>
             ))}
@@ -110,14 +112,16 @@ const EditPage = ({ params }: { params: { id: string } }) => {
               pen_id: e.target.value,
             })
           }}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600">
+          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
+        >
           <option value="">ペンを選択してください</option>
           {Array.isArray(pens) &&
             pens.map(pen => (
               <option
                 key={pen.id}
                 value={pen.id}
-                selected={pen.id === order.pen_id}>
+                selected={pen.id === order.pen_id}
+              >
                 {pen.name}
               </option>
             ))}
@@ -141,7 +145,8 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => {
               updateOrder()
-            }}>
+            }}
+          >
             編集
           </button>
         </div>

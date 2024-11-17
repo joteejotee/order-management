@@ -20,7 +20,7 @@ const CreatePage = () => {
 
   const router = useRouter()
 
-  //以下　pens customers 取得のための処理
+  //以下 pens customers 取得のための処理
   const [pens, setPens] = useState({})
   const [customers, setCustomers] = useState({})
   const url = 'http://localhost:8000/api/orders/create'
@@ -35,7 +35,7 @@ const CreatePage = () => {
   useEffect(() => {
     getJsons(url)
   }, [])
-  //以上　pens customers 取得のための処理
+  //以上 pens customers 取得のための処理
 
   const createOrder = async () => {
     const requestBody = {
@@ -73,7 +73,8 @@ const CreatePage = () => {
         <select
           id="customerSelect"
           onChange={e => setCustomer_id(e.target.value)}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600">
+          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
+        >
           <option value="">顧客を選択してください</option>
           {Array.isArray(customers) &&
             customers.map(customer => (
@@ -86,7 +87,8 @@ const CreatePage = () => {
         <select
           id="penSelect"
           onChange={e => setPen_id(e.target.value)}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600">
+          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
+        >
           <option value="">ペンを選択してください</option>
           {Array.isArray(pens) &&
             pens.map(pen => (
@@ -110,7 +112,8 @@ const CreatePage = () => {
             className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => {
               createOrder()
-            }}>
+            }}
+          >
             登録
           </button>
         </div>

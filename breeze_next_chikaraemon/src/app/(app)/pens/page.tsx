@@ -25,7 +25,7 @@ const Pens = () => {
 
     console.log(json.data)
 
-    //変更json.data　→　json.data.data
+    //変更json.data → json.data.data
     setPens(json.data.data)
     //追加
     setInfo(json.data)
@@ -72,7 +72,8 @@ const Pens = () => {
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={() => {
                   router.push('/pens/create')
-                }}>
+                }}
+              >
                 新規登録
               </button>
             </th>
@@ -92,7 +93,8 @@ const Pens = () => {
                     className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
                     onClick={() => {
                       router.push(`/pens/edit/${pen.id}`)
-                    }}>
+                    }}
+                  >
                     編集
                   </button>
                 </td>
@@ -101,7 +103,8 @@ const Pens = () => {
                     className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
                     onClick={() => {
                       deletePen(pen.id)
-                    }}>
+                    }}
+                  >
                     削除
                   </button>
                 </td>
@@ -115,7 +118,8 @@ const Pens = () => {
           {info.prev_page_url ? (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
-              onClick={handlePreviousPage}>
+              onClick={handlePreviousPage}
+            >
               <svg
                 class="flex-shrink-0 size-3.5"
                 xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +130,8 @@ const Pens = () => {
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round">
+                stroke-linejoin="round"
+              >
                 <path d="m15 18-6-6 6-6"></path>
               </svg>
               <span>PreviousPage</span>
@@ -135,7 +140,8 @@ const Pens = () => {
           {info.next_page_url ? (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
-              onClick={handleNextPage}>
+              onClick={handleNextPage}
+            >
               <span>NextPage</span>
               <svg
                 class="flex-shrink-0 size-3.5"
@@ -147,7 +153,8 @@ const Pens = () => {
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round">
+                stroke-linejoin="round"
+              >
                 <path d="m9 18 6-6-6-6"></path>
               </svg>
             </button>

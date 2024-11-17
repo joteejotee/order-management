@@ -86,7 +86,8 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => {
               updatePen()
-            }}>
+            }}
+          >
             編集
           </button>
         </div>

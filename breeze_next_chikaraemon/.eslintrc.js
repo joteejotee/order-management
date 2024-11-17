@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  parser: '@babel/eslint-parser',
+  parser: '@typescript-eslint/parser',
   settings: {
     react: {
       version: 'detect',
@@ -17,22 +17,22 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
+    'next', // Next.jsのルールを追加
   ],
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
     },
     ecmaVersion: 2020,
-    requireConfigFile: false,
-    babelOptions: {
-      presets: ['@babel/preset-react'],
-    },
+    sourceType: 'module',
+    project: './tsconfig.json', // TypeScriptのプロジェクト設定
   },
-  plugins: ['react', '@next/eslint-plugin-next', 'prettier'],
+  plugins: ['react', 'prettier'],
   rules: {
     'prettier/prettier': 'error', // PrettierのルールをESLintに適用(prettierを優先)
     'import/prefer-default-export': 0,
-    'no-console': 'warn',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'no-console': 'off',
     'no-nested-ternary': 0,
     'no-underscore-dangle': 0,
     'no-unused-expressions': ['error', { allowTernary: true }],

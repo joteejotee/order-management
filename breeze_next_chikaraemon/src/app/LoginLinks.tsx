@@ -11,7 +11,8 @@ const LoginLinks = () => {
       {user ? (
         <Link
           href="/dashboard"
-          className="ml-4 text-sm text-gray-700 underline">
+          className="ml-4 text-sm text-gray-700 underline"
+        >
           Dashboard
         </Link>
       ) : (
@@ -22,7 +23,8 @@ const LoginLinks = () => {
 
           <Link
             href="/register"
-            className="ml-4 text-sm text-gray-700 underline">
+            className="ml-4 text-sm text-gray-700 underline"
+          >
             Register
           </Link>
         </>
