@@ -9,7 +9,11 @@ import { DropdownButton } from '@/components/DropdownLink'
 import { useAuth } from '@/hooks/auth'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { User } from '@/types' // これを追加
+
+interface User {
+  name: string
+  email: string
+}
 
 const Navigation = ({ user }: { user: User }) => {
   const { logout } = useAuth()
