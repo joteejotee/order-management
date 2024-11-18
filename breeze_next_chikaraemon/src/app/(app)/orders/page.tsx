@@ -11,7 +11,7 @@ const http = axios.create({
 const Orders = () => {
   const [orders, setOrders] = useState([])
   const router = useRouter()
-  const [info, setInfo] = useState({})
+  const [info, setInfo] = useState<{ next_page_url?: string; prev_page_url?: string }>({})
   const url = 'http://localhost:8000/api/orders'
 
   const getOrders = async (url: string) => {
@@ -42,11 +42,15 @@ const Orders = () => {
     }
   }
   const handleNextPage = () => {
-    getOrders(info.next_page_url)
+    if (info.next_page_url) {
+      getOrders(info.next_page_url)
+    }
   }
 
   const handlePreviousPage = () => {
-    getOrders(info.prev_page_url)
+    if (info.prev_page_url) {
+      getOrders(info.prev_page_url)
+    }
   }
 
   const shipOrder = async (id: number) => {
