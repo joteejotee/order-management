@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 const http = axios.create({
   baseURL: 'http://localhost:8000',
   withCredentials: true,
-  withXSRFToken: true,
 })
 
 const EditPage = ({ params }: { params: { id: string } }) => {
