@@ -10,22 +10,16 @@ const http = axios.create({
 })
 
 const EditPage = ({ params }: { params: { id: string } }) => {
-  const [customer_id, setCustomer_id] = useState('')
   const [customer_idMessage, setCustomer_idMessage] = useState('')
-
-  const [pen_id, setPen_id] = useState('')
   const [pen_idMessage, setPen_idMessage] = useState('')
-
-  const [num, setNum] = useState('')
   const [numMessage, setNumMessage] = useState('')
-
   const [order, setOrder] = useState<any>({})
-
   const router = useRouter()
 
   //以下 pens customers 取得のための処理
   const [pens, setPens] = useState({})
   const [customers, setCustomers] = useState({})
+
   const getOrder = async () => {
     const response = await fetch(
       `http://localhost:8000/api/orders/${params.id}`,
