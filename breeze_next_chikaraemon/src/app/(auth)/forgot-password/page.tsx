@@ -15,10 +15,10 @@ const Page = () => {
   })
 
   const [email, setEmail] = useState('')
-  const [errors, setErrors] = useState([])
-  const [status, setStatus] = useState(null)
+  const [errors, setErrors] = useState<{ email?: string[] }>({})
+  const [status, setStatus] = useState<string | null>(null)
 
-  const submitForm = event => {
+  const submitForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     forgotPassword({ email, setErrors, setStatus })
@@ -45,7 +45,10 @@ const Page = () => {
             name="email"
             value={email}
             className="block mt-1 w-full"
-            onChange={event => setEmail(event.target.value)}
+            // 修正: onChange の型を指定
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(event.target.value)
+            }
             required
             autoFocus
           />
