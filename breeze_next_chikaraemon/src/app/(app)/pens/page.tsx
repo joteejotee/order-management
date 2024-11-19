@@ -8,19 +8,23 @@ const http = axios.create({
   withCredentials: true,
 })
 
+//この関数が呼ばれると、ペンの一覧が表示される
 const Pens = () => {
   const [pens, setPens] = useState([])
   const router = useRouter()
-  //追加
-  const [info, setInfo] = useState({})
+  const [currentUrl, setCurrentUrl] = useState('http://localhost:8000/api/pens')
 
-  //引数にurl追加
-  const getPens = async (url: string) => {
-    //追加
-    if (!url) {
-      url = 'http://localhost:8000/api/pens'
-    }
-    const response = await fetch(url)
+  interface PageInfo {
+    next_page_url?: string
+    prev_page_url?: string
+    [key: string]: any
+  }
+
+  const [info, setInfo] = useState<PageInfo>({})
+
+  //この関数が呼ばれると、ペンの一覧が取得される
+  const getPens = async () => {
+    const response = await fetch(currentUrl)
     const json = await response.json()
 
     console.log(json.data)
@@ -32,9 +36,12 @@ const Pens = () => {
     console.log(json.data)
   }
 
+  //関数useEffectは、このコンポーネントが初期化（画面に表示）された時に呼ばれる。
+  // currentUrl が変更されたときに getPens を呼び出す
   useEffect(() => {
     getPens()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUrl])
 
   const deletePen = async (id: number) => {
     if (confirm('削除しますか？')) {
@@ -45,11 +52,15 @@ const Pens = () => {
   }
   //追加
   const handleNextPage = () => {
-    getPens(info.next_page_url)
+    if (info.next_page_url) {
+      setCurrentUrl(info.next_page_url) // 次のページURLを状態に設定
+    }
   }
   //追加
   const handlePreviousPage = () => {
-    getPens(info.prev_page_url)
+    if (info.prev_page_url) {
+      setCurrentUrl(info.prev_page_url) // 前のページURLを状態に設定
+    }
   }
 
   return (
@@ -66,7 +77,7 @@ const Pens = () => {
             <th scope="col" className="px-6 py-4 text-left">
               価格
             </th>
-            <th scope="col" className="px-3 py-4"></th>
+            <th scope="col" className="px-3 py-4" />
             <th scope="col" className="px-3 py-4">
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
@@ -121,7 +132,7 @@ const Pens = () => {
               onClick={handlePreviousPage}
             >
               <svg
-                class="flex-shrink-0 size-3.5"
+                className="flex-shrink-0 size-3.5"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -132,7 +143,7 @@ const Pens = () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="m15 18-6-6 6-6"></path>
+                <path d="m15 18-6-6 6-6" />
               </svg>
               <span>PreviousPage</span>
             </button>
@@ -144,7 +155,7 @@ const Pens = () => {
             >
               <span>NextPage</span>
               <svg
-                class="flex-shrink-0 size-3.5"
+                className="flex-shrink-0 size-3.5"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -155,7 +166,7 @@ const Pens = () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="m9 18 6-6-6-6"></path>
+                <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
           ) : null}

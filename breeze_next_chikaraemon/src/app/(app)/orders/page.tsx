@@ -11,7 +11,10 @@ const http = axios.create({
 const Orders = () => {
   const [orders, setOrders] = useState([])
   const router = useRouter()
-  const [info, setInfo] = useState<{ next_page_url?: string; prev_page_url?: string }>({})
+  const [info, setInfo] = useState<{
+    next_page_url?: string
+    prev_page_url?: string
+  }>({})
   const url = 'http://localhost:8000/api/orders'
 
   const getOrders = async (url: string) => {
@@ -100,7 +103,7 @@ const Orders = () => {
                 新規登録
               </button>
             </th>
-            <th scope="col" className="px-3 py-4"></th>
+            <th scope="col" className="px-3 py-4" />
           </tr>
         </thead>
         <tbody>
@@ -167,7 +170,7 @@ const Orders = () => {
               onClick={handlePreviousPage}
             >
               <svg
-                class="flex-shrink-0 size-3.5"
+                className="flex-shrink-0 size-3.5"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -178,7 +181,7 @@ const Orders = () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="m15 18-6-6 6-6"></path>
+                <path d="m15 18-6-6 6-6" />
               </svg>
               <span>PreviousPage</span>
             </button>
@@ -190,7 +193,7 @@ const Orders = () => {
             >
               <span>NextPage</span>
               <svg
-                class="flex-shrink-0 size-3.5"
+                className="flex-shrink-0 size-3.5"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -201,7 +204,7 @@ const Orders = () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="m9 18 6-6-6-6"></path>
+                <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
           ) : null}

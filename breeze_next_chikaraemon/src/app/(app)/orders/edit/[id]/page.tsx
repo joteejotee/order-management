@@ -34,6 +34,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     getOrder()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const updateOrder = async () => {
