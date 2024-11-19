@@ -12,6 +12,7 @@ module.exports = {
     es6: true,
     commonjs: true,
   },
+  ignorePatterns: ['.eslintrc.js', 'next.config.js', 'tailwind.config.js'],
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',

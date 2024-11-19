@@ -34,7 +34,7 @@ const PasswordReset = () => {
 
   useEffect(() => {
     setEmail(searchParams.get('email'))
-  }, [searchParams.get('email')])
+  }, [searchParams])
 
   return (
     <>

@@ -21,8 +21,11 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [shouldRemember, setShouldRemember] = useState(false)
-  const [errors, setErrors] = useState([])
-  const [status, setStatus] = useState(null)
+  const [errors, setErrors] = useState<{
+    email?: string[]
+    password?: string[]
+  }>({})
+  const [status, setStatus] = useState<string | null>(null)
 
   useEffect(() => {
     if (router.reset?.length > 0 && errors.length === 0) {
@@ -30,9 +33,9 @@ const Login = () => {
     } else {
       setStatus(null)
     }
-  })
+  }, [router.reset, errors.length])
 
-  const submitForm = async event => {
+  const submitForm = async (event: React.FormEvent) => {
     event.preventDefault()
 
     login({

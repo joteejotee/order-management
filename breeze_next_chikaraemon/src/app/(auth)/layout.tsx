@@ -6,7 +6,9 @@ export const metadata = {
   title: 'Laravel',
 }
 
-const Layout = ({ children }) => {
+import { ReactNode } from 'react'
+
+const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <div>
       <div className="font-sans text-gray-900 antialiased">

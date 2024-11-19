@@ -14,15 +14,16 @@ const EditPage = ({ params }: { params: { id: string } }) => {
   const [priceMessage, setPriceMessage] = useState('')
   const router = useRouter()
 
-  const getPen = async () => {
-    const response = await fetch(`http://localhost:8000/api/pens/${params.id}`)
-    const json = await response.json()
-    setPen(json.data)
-  }
-
   useEffect(() => {
+    const getPen = async () => {
+      const response = await fetch(
+        `http://localhost:8000/api/pens/${params.id}`,
+      )
+      const json = await response.json()
+      setPen(json.data)
+    }
     getPen()
-  }, [])
+  }, [params.id])
 
   const updatePen = async () => {
     const requestBody = {

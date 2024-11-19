@@ -1,4 +1,16 @@
-const AuthSessionStatus = ({ status, className, ...props }) => (
+import React from 'react'
+
+interface AuthSessionStatusProps {
+  status: string
+  className?: string
+  [key: string]: any
+}
+
+const AuthSessionStatus: React.FC<AuthSessionStatusProps> = ({
+  status,
+  className,
+  ...props
+}) => (
   <>
     {status && (
       <div
