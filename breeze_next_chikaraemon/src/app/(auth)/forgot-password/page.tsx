@@ -33,7 +33,7 @@ const Page = () => {
       </div>
 
       {/* Session Status */}
-      <AuthSessionStatus className="mb-4" status={status} />
+      <AuthSessionStatus className="mb-4" status={status || ''} />
 
       <form onSubmit={submitForm}>
         {/* Email Address */}
