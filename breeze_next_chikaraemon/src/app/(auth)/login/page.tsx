@@ -30,12 +30,12 @@ const Login = () => {
 
   useEffect(() => {
     const reset = searchParams.get('reset') // 'reset' パラメータを取得
-    if (reset && errors.length === 0) {
+    if (reset && Object.keys(errors).length === 0) { // 修正: errors.length → Object.keys(errors).length
       setStatus(atob(reset))
     } else {
       setStatus(null)
     }
-  }, [searchParams, errors.length])
+  }, [searchParams, errors])
 
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault()
