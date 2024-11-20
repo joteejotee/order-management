@@ -1,7 +1,13 @@
 import useSWR from 'swr'
-import axios from '@/lib/axios'
+import axios from 'axios'
 import { useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+
+// axiosの設定を更新
+axios.defaults.baseURL = apiUrl
+axios.defaults.withCredentials = true
 
 export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const router = useRouter()
