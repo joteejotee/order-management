@@ -12,6 +12,7 @@ import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
 
 const Login = () => {
   const router = useRouter()
+  const searchParams = useSearchParams() // クエリパラメータを取得
 
   const { login } = useAuth({
     middleware: 'guest',
@@ -28,12 +29,13 @@ const Login = () => {
   const [status, setStatus] = useState<string | null>(null)
 
   useEffect(() => {
-    if (router.reset?.length > 0 && errors.length === 0) {
-      setStatus(atob(router.reset))
+    const reset = searchParams.get('reset') // 'reset' パラメータを取得
+    if (reset && errors.length === 0) {
+      setStatus(atob(reset))
     } else {
       setStatus(null)
     }
-  }, [router.reset, errors.length])
+  }, [searchParams, errors.length])
 
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault()
