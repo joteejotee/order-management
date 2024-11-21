@@ -12,7 +12,7 @@ const http = axios.create({
 
 //この関数が呼ばれると、ペンの一覧が表示される
 const Pens = () => {
-  const [pens, setPens] = useState([])
+  const [pens, setPens] = useState<any[]>([])
   const router = useRouter()
   const [currentUrl, setCurrentUrl] = useState('http://localhost:8000/api/pens')
 

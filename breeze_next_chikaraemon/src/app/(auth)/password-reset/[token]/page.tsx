@@ -6,40 +6,50 @@ import InputError from '@/components/InputError'
 import Label from '@/components/Label'
 import { useAuth } from '@/hooks/auth'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+
+// 型エイリアスを追加
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
+type FormEvent = React.FormEvent<HTMLFormElement>
 
 const PasswordReset = () => {
   const searchParams = useSearchParams()
+  const params = useParams()
 
   const { resetPassword } = useAuth({ middleware: 'guest' })
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
-  const [errors, setErrors] = useState([])
-  const [status, setStatus] = useState(null)
+  const [errors, setErrors] = useState<{
+    email?: string[]
+    password?: string[]
+    password_confirmation?: string[]
+  }>({})
+  const [status, setStatus] = useState<string | null>(null)
 
-  const submitForm = event => {
+  const submitForm = async (event: FormEvent) => {
     event.preventDefault()
 
     resetPassword({
       email,
       password,
       password_confirmation: passwordConfirmation,
+      token: params.token as string,
       setErrors,
       setStatus,
     })
   }
 
   useEffect(() => {
-    setEmail(searchParams.get('email'))
+    setEmail(searchParams.get('email') || '')
   }, [searchParams])
 
   return (
     <>
       {/* Session Status */}
-      <AuthSessionStatus className="mb-4" status={status} />
+      <AuthSessionStatus className="mb-4" status={status || ''} />
 
       <form onSubmit={submitForm}>
         {/* Email Address */}
@@ -51,7 +61,7 @@ const PasswordReset = () => {
             type="email"
             value={email}
             className="block mt-1 w-full"
-            onChange={event => setEmail(event.target.value)}
+            onChange={(event: InputChangeEvent) => setEmail(event.target.value)}
             required
             autoFocus
           />
@@ -67,7 +77,9 @@ const PasswordReset = () => {
             type="password"
             value={password}
             className="block mt-1 w-full"
-            onChange={event => setPassword(event.target.value)}
+            onChange={(event: InputChangeEvent) =>
+              setPassword(event.target.value)
+            }
             required
           />
 
@@ -83,7 +95,9 @@ const PasswordReset = () => {
             type="password"
             value={passwordConfirmation}
             className="block mt-1 w-full"
-            onChange={event => setPasswordConfirmation(event.target.value)}
+            onChange={(event: InputChangeEvent) =>
+              setPasswordConfirmation(event.target.value)
+            }
             required
           />
 

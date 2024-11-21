@@ -8,6 +8,10 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/auth'
 import { useState } from 'react'
 
+// 型エイリアスを追加
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
+type FormEvent = React.FormEvent<HTMLFormElement>
+
 const Page = () => {
   const { register } = useAuth({
     middleware: 'guest',
@@ -18,9 +22,14 @@ const Page = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
-  const [errors, setErrors] = useState([])
+  const [errors, setErrors] = useState<{
+    name?: string[]
+    email?: string[]
+    password?: string[]
+    password_confirmation?: string[]
+  }>({})
 
-  const submitForm = event => {
+  const submitForm = (event: FormEvent) => {
     event.preventDefault()
 
     register({
@@ -43,7 +52,7 @@ const Page = () => {
           type="text"
           value={name}
           className="block mt-1 w-full"
-          onChange={event => setName(event.target.value)}
+          onChange={(event: InputChangeEvent) => setName(event.target.value)}
           required
           autoFocus
         />
@@ -60,7 +69,7 @@ const Page = () => {
           type="email"
           value={email}
           className="block mt-1 w-full"
-          onChange={event => setEmail(event.target.value)}
+          onChange={(event: InputChangeEvent) => setEmail(event.target.value)}
           required
         />
 
@@ -76,7 +85,9 @@ const Page = () => {
           type="password"
           value={password}
           className="block mt-1 w-full"
-          onChange={event => setPassword(event.target.value)}
+          onChange={(event: InputChangeEvent) =>
+            setPassword(event.target.value)
+          }
           required
           autoComplete="new-password"
         />
@@ -93,7 +104,9 @@ const Page = () => {
           type="password"
           value={passwordConfirmation}
           className="block mt-1 w-full"
-          onChange={event => setPasswordConfirmation(event.target.value)}
+          onChange={(event: InputChangeEvent) =>
+            setPasswordConfirmation(event.target.value)
+          }
           required
         />
 

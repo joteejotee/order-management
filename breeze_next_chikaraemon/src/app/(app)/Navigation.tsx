@@ -9,14 +9,10 @@ import { DropdownButton } from '@/components/DropdownLink'
 import { useAuth } from '@/hooks/auth'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-
-interface User {
-  name: string
-  email: string
-}
+import { User } from '@/types/user'
 
 const Navigation = ({ user }: { user: User }) => {
-  const { logout } = useAuth()
+  const { logout } = useAuth() as { logout: () => Promise<void> }
   const [open, setOpen] = useState(false)
 
   // トップレベルで usePathname を呼び出す

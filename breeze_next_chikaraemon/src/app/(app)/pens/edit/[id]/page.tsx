@@ -9,9 +9,9 @@ const http = axios.create({
 })
 
 const EditPage = ({ params }: { params: { id: string } }) => {
-  const [pen, setPen] = useState<any>({})
-  const [nameMessage, setNameMessage] = useState('')
-  const [priceMessage, setPriceMessage] = useState('')
+  const [pen, setPen] = useState<Record<string, any>>({})
+  const [nameMessage, setNameMessage] = useState<string>('')
+  const [priceMessage, setPriceMessage] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {

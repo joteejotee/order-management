@@ -9,7 +9,7 @@ const http = axios.create({
 })
 
 const Orders = () => {
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState<any[]>([])
   const router = useRouter()
   const [info, setInfo] = useState<{
     next_page_url?: string

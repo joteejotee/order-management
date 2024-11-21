@@ -6,9 +6,13 @@ import InputError from '@/components/InputError'
 import Label from '@/components/Label'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/auth'
-import { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+
+// 型エイリアスを追加
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
+type FormEvent = React.FormEvent<HTMLFormElement>
 
 const Login = () => {
   const router = useRouter()
@@ -30,14 +34,15 @@ const Login = () => {
 
   useEffect(() => {
     const reset = searchParams.get('reset') // 'reset' パラメータを取得
-    if (reset && Object.keys(errors).length === 0) { // 修正: errors.length → Object.keys(errors).length
+    if (reset && Object.keys(errors).length === 0) {
+      // 修正: errors.length → Object.keys(errors).length
       setStatus(atob(reset))
     } else {
       setStatus(null)
     }
   }, [searchParams, errors])
 
-  const submitForm = async (event: React.FormEvent) => {
+  const submitForm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     login({
@@ -47,6 +52,11 @@ const Login = () => {
       setErrors,
       setStatus,
     })
+  }
+
+  // 型エイリアスを使用
+  const handleInputChange = (event: InputChangeEvent) => {
+    setEmail(event.target.value)
   }
 
   return (
@@ -62,7 +72,7 @@ const Login = () => {
             type="email"
             value={email}
             className="block mt-1 w-full"
-            onChange={event => setEmail(event.target.value)}
+            onChange={handleInputChange}
             required
             autoFocus
           />
@@ -79,7 +89,9 @@ const Login = () => {
             type="password"
             value={password}
             className="block mt-1 w-full"
-            onChange={event => setPassword(event.target.value)}
+            onChange={(event: InputChangeEvent) =>
+              setPassword(event.target.value)
+            }
             required
             autoComplete="current-password"
           />
@@ -95,9 +107,10 @@ const Login = () => {
               type="checkbox"
               name="remember"
               className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              onChange={event => setShouldRemember(event.target.checked)}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setShouldRemember(event.target.checked)
+              }
             />
-
             <span className="ml-2 text-sm text-gray-600">Remember me</span>
           </label>
         </div>
