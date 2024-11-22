@@ -1,49 +1,35 @@
-'use client'
+'use client';
 
-import Button from '@/components/Button'
-import Input from '@/components/Input'
-import InputError from '@/components/InputError'
-import Label from '@/components/Label'
-import Link from 'next/link'
-import { useAuth } from '@/hooks/auth'
-import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import InputError from '@/components/InputError';
+import Label from '@/components/Label';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/auth';
+import React, { useState, Suspense } from 'react';
+import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
+import { SearchParamsHandler } from './SearchParamsHandler';
 
-// 型エイリアスを追加
-type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
-type FormEvent = React.FormEvent<HTMLFormElement>
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
+type FormEvent = React.FormEvent<HTMLFormElement>;
 
 const Login = () => {
-  const router = useRouter()
-  const searchParams = useSearchParams() // クエリパラメータを取得
-
   const { login } = useAuth({
     middleware: 'guest',
     redirectIfAuthenticated: '/dashboard',
-  })
+  });
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [shouldRemember, setShouldRemember] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [shouldRemember, setShouldRemember] = useState(false);
   const [errors, setErrors] = useState<{
-    email?: string[]
-    password?: string[]
-  }>({})
-  const [status, setStatus] = useState<string | null>(null)
+    email?: string[];
+    password?: string[];
+  }>({});
+  const [status, setStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    const reset = searchParams.get('reset') // 'reset' パラメータを取得
-    if (reset && Object.keys(errors).length === 0) {
-      // 修正: errors.length → Object.keys(errors).length
-      setStatus(atob(reset))
-    } else {
-      setStatus(null)
-    }
-  }, [searchParams, errors])
-
-  const submitForm = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const submitForm = async (event: FormEvent) => {
+    event.preventDefault();
 
     login({
       email,
@@ -51,16 +37,18 @@ const Login = () => {
       remember: shouldRemember,
       setErrors,
       setStatus,
-    })
-  }
+    });
+  };
 
-  // 型エイリアスを使用
   const handleInputChange = (event: InputChangeEvent) => {
-    setEmail(event.target.value)
-  }
+    setEmail(event.target.value);
+  };
 
   return (
     <>
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsHandler setStatus={setStatus} errors={errors} />
+      </Suspense>
       <AuthSessionStatus className="mb-4" status={status || ''} />
       <form onSubmit={submitForm}>
         {/* Email Address */}
@@ -127,7 +115,7 @@ const Login = () => {
         </div>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

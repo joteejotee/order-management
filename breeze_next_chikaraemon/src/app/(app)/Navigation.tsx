@@ -1,22 +1,22 @@
-import ApplicationLogo from '@/components/ApplicationLogo'
-import Dropdown from '@/components/Dropdown'
-import Link from 'next/link'
-import NavLink from '@/components/NavLink'
+import ApplicationLogo from '@/components/ApplicationLogo';
+import Dropdown from '@/components/Dropdown';
+import Link from 'next/link';
+import NavLink from '@/components/NavLink';
 import ResponsiveNavLink, {
   ResponsiveNavButton,
-} from '@/components/ResponsiveNavLink'
-import { DropdownButton } from '@/components/DropdownLink'
-import { useAuth } from '@/hooks/auth'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import { User } from '@/types/user'
+} from '@/components/ResponsiveNavLink';
+import { DropdownButton } from '@/components/DropdownLink';
+import { useAuth } from '@/hooks/auth';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { User } from '@/types/user';
 
 const Navigation = ({ user }: { user: User }) => {
-  const { logout } = useAuth() as { logout: () => Promise<void> }
-  const [open, setOpen] = useState(false)
+  const { logout } = useAuth() as { logout: () => Promise<void> };
+  const [open, setOpen] = useState(false);
 
   // トップレベルで usePathname を呼び出す
-  const pathname = usePathname() // 修正箇所
+  const pathname = usePathname(); // 修正箇所
 
   return (
     <nav className="bg-white border-b border-gray-100">
@@ -166,7 +166,7 @@ const Navigation = ({ user }: { user: User }) => {
         </div>
       )}
     </nav>
-  )
-}
+  );
+};
 
-export default Navigation
+export default Navigation;

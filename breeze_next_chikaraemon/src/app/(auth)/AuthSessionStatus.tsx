@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
 interface AuthSessionStatusProps {
-  status: string
-  className?: string
-  [key: string]: any
+  status: string;
+  className?: string;
+  [key: string]: any;
 }
 
 const AuthSessionStatus: React.FC<AuthSessionStatusProps> = ({
@@ -21,6 +21,6 @@ const AuthSessionStatus: React.FC<AuthSessionStatusProps> = ({
       </div>
     )}
   </>
-)
+);
 
-export default AuthSessionStatus
+export default AuthSessionStatus;

@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import Button from '@/components/Button'
-import Input from '@/components/Input'
-import InputError from '@/components/InputError'
-import Label from '@/components/Label'
-import { useAuth } from '@/hooks/auth'
-import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
-import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import InputError from '@/components/InputError';
+import Label from '@/components/Label';
+import { useAuth } from '@/hooks/auth';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
 
 // 型エイリアスを追加
-type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
-type FormEvent = React.FormEvent<HTMLFormElement>
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
+type FormEvent = React.FormEvent<HTMLFormElement>;
 
 const PasswordReset = () => {
-  const searchParams = useSearchParams()
-  const params = useParams()
+  const searchParams = useSearchParams();
+  const params = useParams();
 
-  const { resetPassword } = useAuth({ middleware: 'guest' })
+  const { resetPassword } = useAuth({ middleware: 'guest' });
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [errors, setErrors] = useState<{
-    email?: string[]
-    password?: string[]
-    password_confirmation?: string[]
-  }>({})
-  const [status, setStatus] = useState<string | null>(null)
+    email?: string[];
+    password?: string[];
+    password_confirmation?: string[];
+  }>({});
+  const [status, setStatus] = useState<string | null>(null);
 
   const submitForm = async (event: FormEvent) => {
-    event.preventDefault()
+    event.preventDefault();
 
     resetPassword({
       email,
@@ -39,12 +39,12 @@ const PasswordReset = () => {
       token: params.token as string,
       setErrors,
       setStatus,
-    })
-  }
+    });
+  };
 
   useEffect(() => {
-    setEmail(searchParams.get('email') || '')
-  }, [searchParams])
+    setEmail(searchParams.get('email') || '');
+  }, [searchParams]);
 
   return (
     <>
@@ -112,7 +112,7 @@ const PasswordReset = () => {
         </div>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default PasswordReset
+export default PasswordReset;

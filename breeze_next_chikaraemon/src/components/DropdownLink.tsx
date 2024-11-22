@@ -1,12 +1,11 @@
-import Link from 'next/link'
-import { Menu } from '@headlessui/react'
-import { ReactNode } from 'react'
+import Link from 'next/link';
+import { Menu } from '@headlessui/react';
 
 // 型定義を追加
 interface DropdownLinkProps {
-  href: string
-  children: React.ReactNode
-  className?: string
+  href: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 const DropdownLink = ({
@@ -17,11 +16,11 @@ const DropdownLink = ({
   <Link href={href} className={`block px-4 py-2 text-sm ${className}`}>
     {children}
   </Link>
-)
+);
 
 interface DropdownButtonProps {
-  children: React.ReactNode
-  [key: string]: any // 他のpropsを許容
+  children: React.ReactNode;
+  [key: string]: any; // 他のpropsを許容
 }
 
 export const DropdownButton = ({ children, ...props }: DropdownButtonProps) => (
@@ -37,6 +36,6 @@ export const DropdownButton = ({ children, ...props }: DropdownButtonProps) => (
       </button>
     )}
   </Menu.Item>
-)
+);
 
-export default DropdownLink
+export default DropdownLink;

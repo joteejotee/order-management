@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
-import Button from '@/components/Button'
-import Input from '@/components/Input'
-import InputError from '@/components/InputError'
-import Label from '@/components/Label'
-import { useAuth } from '@/hooks/auth'
-import { useState } from 'react'
-import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import InputError from '@/components/InputError';
+import Label from '@/components/Label';
+import { useAuth } from '@/hooks/auth';
+import { useState } from 'react';
+import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
 
 const Page = () => {
   const { forgotPassword } = useAuth({
     middleware: 'guest',
     redirectIfAuthenticated: '/dashboard',
-  })
+  });
 
-  const [email, setEmail] = useState('')
-  const [errors, setErrors] = useState<{ email?: string[] }>({})
-  const [status, setStatus] = useState<string | null>(null)
+  const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState<{ email?: string[] }>({});
+  const [status, setStatus] = useState<string | null>(null);
 
   const submitForm = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
-    forgotPassword({ email, setErrors, setStatus })
-  }
+    forgotPassword({ email, setErrors, setStatus });
+  };
 
   return (
     <>
@@ -61,7 +61,7 @@ const Page = () => {
         </div>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

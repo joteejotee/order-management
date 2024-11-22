@@ -1,69 +1,71 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const http = axios.create({
   baseURL: apiUrl,
   withCredentials: true,
-})
+});
 
 //この関数が呼ばれると、ペンの一覧が表示される
 const Pens = () => {
-  const [pens, setPens] = useState<any[]>([])
-  const router = useRouter()
-  const [currentUrl, setCurrentUrl] = useState('http://localhost:8000/api/pens')
+  const [pens, setPens] = useState<any[]>([]);
+  const router = useRouter();
+  const [currentUrl, setCurrentUrl] = useState(
+    'http://localhost:8000/api/pens',
+  );
 
   interface PageInfo {
-    next_page_url?: string
-    prev_page_url?: string
-    [key: string]: any
+    next_page_url?: string;
+    prev_page_url?: string;
+    [key: string]: any;
   }
 
-  const [info, setInfo] = useState<PageInfo>({})
+  const [info, setInfo] = useState<PageInfo>({});
 
   //この関数が呼ばれると、ペンの一覧が取得される
   const getPens = async () => {
-    const response = await fetch(currentUrl)
-    const json = await response.json()
+    const response = await fetch(currentUrl);
+    const json = await response.json();
 
-    console.log(json.data)
+    console.log(json.data);
 
     //変更json.data → json.data.data
-    setPens(json.data.data)
+    setPens(json.data.data);
     //追加
-    setInfo(json.data)
-    console.log(json.data)
-  }
+    setInfo(json.data);
+    console.log(json.data);
+  };
 
   //関数useEffectは、このコンポーネントが初期化（画面に表示）された時に呼ばれる。
   // currentUrl が変更されたときに getPens を呼び出す
   useEffect(() => {
-    getPens()
+    getPens();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUrl])
+  }, [currentUrl]);
 
   const deletePen = async (id: number) => {
     if (confirm('削除しますか？')) {
       http.delete(`/api/pens/${id}`).then(() => {
-        getPens()
-      })
+        getPens();
+      });
     }
-  }
+  };
   //追加
   const handleNextPage = () => {
     if (info.next_page_url) {
-      setCurrentUrl(info.next_page_url) // 次のページURLを状態に設定
+      setCurrentUrl(info.next_page_url); // 次のページURLを状態に設定
     }
-  }
+  };
   //追加
   const handlePreviousPage = () => {
     if (info.prev_page_url) {
-      setCurrentUrl(info.prev_page_url) // 前のページURLを状態に設定
+      setCurrentUrl(info.prev_page_url); // 前のページURLを状態に設定
     }
-  }
+  };
 
   return (
     <div className="relative overflow-x-auto">
@@ -84,7 +86,7 @@ const Pens = () => {
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={() => {
-                  router.push('/pens/create')
+                  router.push('/pens/create');
                 }}
               >
                 新規登録
@@ -105,7 +107,7 @@ const Pens = () => {
                   <button
                     className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
                     onClick={() => {
-                      router.push(`/pens/edit/${pen.id}`)
+                      router.push(`/pens/edit/${pen.id}`);
                     }}
                   >
                     編集
@@ -115,14 +117,14 @@ const Pens = () => {
                   <button
                     className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
                     onClick={() => {
-                      deletePen(pen.id)
+                      deletePen(pen.id);
                     }}
                   >
                     削除
                   </button>
                 </td>
               </tr>
-            )
+            );
           })}
         </tbody>
       </table>
@@ -175,6 +177,6 @@ const Pens = () => {
         </div>
       </div>
     </div>
-  )
-}
-export default Pens
+  );
+};
+export default Pens;

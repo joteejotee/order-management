@@ -1,10 +1,10 @@
 // src/components/Input.tsx
 
-import React, { forwardRef, InputHTMLAttributes } from 'react'
+import React, { forwardRef, InputHTMLAttributes } from 'react';
 
 // 型定義を追加
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  className?: string
+  className?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -15,7 +15,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       ref={ref}
     />
   ),
-)
+);
+
+// display name を追加
+Input.displayName = 'Input';
 
 // コンポーネントをエクスポート
-export default Input
+export default Input;

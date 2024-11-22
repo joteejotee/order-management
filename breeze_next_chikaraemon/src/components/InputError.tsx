@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 
 interface InputErrorProps {
-  messages?: string[] // messagesの型をstring[]に指定
-  className?: string
+  messages?: string[]; // messagesの型をstring[]に指定
+  className?: string;
 }
 
 const InputError: React.FC<InputErrorProps> = ({
@@ -20,6 +20,6 @@ const InputError: React.FC<InputErrorProps> = ({
       </>
     )}
   </>
-)
+);
 
-export default InputError
+export default InputError;

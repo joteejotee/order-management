@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import Button from '@/components/Button'
-import Input from '@/components/Input'
-import InputError from '@/components/InputError'
-import Label from '@/components/Label'
-import Link from 'next/link'
-import { useAuth } from '@/hooks/auth'
-import { useState } from 'react'
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import InputError from '@/components/InputError';
+import Label from '@/components/Label';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/auth';
+import { useState } from 'react';
 
 // 型エイリアスを追加
-type InputChangeEvent = React.ChangeEvent<HTMLInputElement>
-type FormEvent = React.FormEvent<HTMLFormElement>
+type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
+type FormEvent = React.FormEvent<HTMLFormElement>;
 
 const Page = () => {
   const { register } = useAuth({
     middleware: 'guest',
     redirectIfAuthenticated: '/dashboard',
-  })
+  });
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [errors, setErrors] = useState<{
-    name?: string[]
-    email?: string[]
-    password?: string[]
-    password_confirmation?: string[]
-  }>({})
+    name?: string[];
+    email?: string[];
+    password?: string[];
+    password_confirmation?: string[];
+  }>({});
 
   const submitForm = (event: FormEvent) => {
-    event.preventDefault()
+    event.preventDefault();
 
     register({
       name,
@@ -38,8 +38,8 @@ const Page = () => {
       password,
       password_confirmation: passwordConfirmation,
       setErrors,
-    })
-  }
+    });
+  };
 
   return (
     <form onSubmit={submitForm}>
@@ -124,7 +124,7 @@ const Page = () => {
         <Button className="ml-4">Register</Button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

@@ -1,71 +1,71 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const http = axios.create({
   baseURL: 'http://localhost:8000',
   withCredentials: true,
-})
+});
 
 const Orders = () => {
-  const [orders, setOrders] = useState<any[]>([])
-  const router = useRouter()
+  const [orders, setOrders] = useState<any[]>([]);
+  const router = useRouter();
   const [info, setInfo] = useState<{
-    next_page_url?: string
-    prev_page_url?: string
-  }>({})
-  const url = 'http://localhost:8000/api/orders'
+    next_page_url?: string;
+    prev_page_url?: string;
+  }>({});
+  const url = 'http://localhost:8000/api/orders';
 
   const getOrders = async (url: string) => {
     if (!url) {
-      url = 'http://localhost:8000/api/orders'
+      url = 'http://localhost:8000/api/orders';
     }
-    const response = await fetch(url)
-    const json = await response.json()
-    setOrders(json.data)
-    console.log(json.data)
-    setInfo(json.meta)
-    console.log(json.meta)
+    const response = await fetch(url);
+    const json = await response.json();
+    setOrders(json.data);
+    console.log(json.data);
+    setInfo(json.meta);
+    console.log(json.meta);
     //setOrders(json.data.data);
     //console.log(json.data.data);
     //setInfo(json.data);
     //console.log(json.data);
-  }
+  };
 
   useEffect(() => {
-    getOrders(url)
-  }, [])
+    getOrders(url);
+  }, []);
 
   const deleteOrder = async (id: number) => {
     if (confirm('削除しますか？')) {
       http.delete(`/api/orders/${id}`).then(() => {
-        getOrders(url)
-      })
+        getOrders(url);
+      });
     }
-  }
+  };
   const handleNextPage = () => {
     if (info.next_page_url) {
-      getOrders(info.next_page_url)
+      getOrders(info.next_page_url);
     }
-  }
+  };
 
   const handlePreviousPage = () => {
     if (info.prev_page_url) {
-      getOrders(info.prev_page_url)
+      getOrders(info.prev_page_url);
     }
-  }
+  };
 
   const shipOrder = async (id: number) => {
     http
       .put(`/api/orders/${id}`)
       .then(() => {
-        getOrders(url)
+        getOrders(url);
       })
       .catch(function (error) {
-        console.log(error)
-      })
-  }
+        console.log(error);
+      });
+  };
 
   return (
     <div className="relative overflow-x-auto p-5">
@@ -97,7 +97,7 @@ const Orders = () => {
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={() => {
-                  router.push('/orders/create')
+                  router.push('/orders/create');
                 }}
               >
                 新規登録
@@ -123,7 +123,7 @@ const Orders = () => {
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => {
-                        shipOrder(order.id)
+                        shipOrder(order.id);
                       }}
                     >
                       未
@@ -137,7 +137,7 @@ const Orders = () => {
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => {
-                        router.push(`/orders/edit/${order.id}`)
+                        router.push(`/orders/edit/${order.id}`);
                       }}
                     >
                       編集
@@ -149,7 +149,7 @@ const Orders = () => {
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => {
-                        deleteOrder(order.id)
+                        deleteOrder(order.id);
                       }}
                     >
                       削除
@@ -157,7 +157,7 @@ const Orders = () => {
                   ) : null}
                 </td>
               </tr>
-            )
+            );
           })}
         </tbody>
       </table>
@@ -211,6 +211,6 @@ const Orders = () => {
         </div>
       </div>
     </div>
-  )
-}
-export default Orders
+  );
+};
+export default Orders;

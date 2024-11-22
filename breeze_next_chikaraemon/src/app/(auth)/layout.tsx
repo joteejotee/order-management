@@ -1,12 +1,12 @@
-import Link from 'next/link'
-import AuthCard from '@/app/(auth)/AuthCard'
-import ApplicationLogo from '@/components/ApplicationLogo'
+import Link from 'next/link';
+import AuthCard from '@/app/(auth)/AuthCard';
+import ApplicationLogo from '@/components/ApplicationLogo';
 
 export const metadata = {
   title: 'Laravel',
-}
+};
 
-import { ReactNode } from 'react'
+import { ReactNode } from 'react';
 
 const Layout = ({ children }: { children: ReactNode }) => {
   return (
@@ -23,7 +23,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
         </AuthCard>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

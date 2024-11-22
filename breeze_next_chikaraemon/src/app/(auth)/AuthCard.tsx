@@ -1,8 +1,8 @@
-import { ReactNode } from 'react'
+import { ReactNode } from 'react';
 
 interface AuthCardProps {
-  logo: ReactNode
-  children: ReactNode
+  logo: ReactNode;
+  children: ReactNode;
 }
 
 const AuthCard = ({ logo, children }: AuthCardProps) => (
@@ -13,6 +13,6 @@ const AuthCard = ({ logo, children }: AuthCardProps) => (
       {children}
     </div>
   </div>
-)
+);
 
-export default AuthCard
+export default AuthCard;

@@ -1,8 +1,8 @@
-import Header from '../Header'
+import Header from '../Header';
 
 export const metadata = {
   title: 'Laravel - Dashboard',
-}
+};
 
 const Dashboard = () => {
   return (
@@ -18,7 +18,7 @@ const Dashboard = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

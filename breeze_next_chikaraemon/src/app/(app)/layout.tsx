@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useAuth } from '@/hooks/auth'
-import Navigation from '@/app/(app)/Navigation'
-import Loading from './Loading'
-import React from 'react' // Reactの型定義が必要
-import { User } from '@/types/user'
+import { useAuth } from '@/hooks/auth';
+import Navigation from '@/app/(app)/Navigation';
+import Loading from './Loading';
+import React from 'react'; // Reactの型定義が必要
+import { User } from '@/types/user';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   // 型を明示的に指定
-  const { user } = useAuth({ middleware: 'auth' }) as { user: User | null }
+  const { user } = useAuth({ middleware: 'auth' }) as { user: User | null };
 
   if (!user) {
-    return <Loading />
+    return <Loading />;
   }
 
   return (
@@ -20,7 +20,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
       <main>{children}</main>
     </div>
-  )
-}
+  );
+};
 
-export default AppLayout
+export default AppLayout;

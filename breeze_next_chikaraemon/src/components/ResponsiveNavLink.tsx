@@ -1,16 +1,16 @@
-import Link from 'next/link'
-import { ReactNode } from 'react'
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 interface ResponsiveNavLinkProps {
-  href: string
-  active?: boolean
-  children: ReactNode
-  className?: string
+  href: string;
+  active?: boolean;
+  children: ReactNode;
+  className?: string;
 }
 
 interface ResponsiveNavButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode
+  children: ReactNode;
 }
 
 const ResponsiveNavLink = ({
@@ -29,12 +29,12 @@ const ResponsiveNavLink = ({
   >
     {children}
   </Link>
-)
+);
 
 export const ResponsiveNavButton = (props: ResponsiveNavButtonProps) => (
   <button className="w-full flex items-center px-4 py-2 text-sm" {...props}>
     {props.children}
   </button>
-)
+);
 
-export default ResponsiveNavLink
+export default ResponsiveNavLink;

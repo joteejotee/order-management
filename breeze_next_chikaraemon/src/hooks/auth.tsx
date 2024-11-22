@@ -1,40 +1,27 @@
-import useSWR from 'swr'
-import axios from 'axios'
-import { useEffect, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Dispatch, SetStateAction } from 'react'
-import { User } from '@/types/user'
-import { useState } from 'react'
+import useSWR from 'swr';
+import axios from 'axios';
+import { useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Dispatch, SetStateAction } from 'react';
+import { User } from '@/types/user';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 // axiosの設定を更新
-axios.defaults.baseURL = apiUrl
-axios.defaults.withCredentials = true
+axios.defaults.baseURL = apiUrl;
+axios.defaults.withCredentials = true;
 
 // オプションの型定義
 interface UseAuthOptions {
-  middleware?: 'guest' | 'auth'
-  redirectIfAuthenticated?: string
+  middleware?: 'guest' | 'auth';
+  redirectIfAuthenticated?: string;
 }
-
-// コールバック関数の型定義
-type SetErrors = (errors: any[]) => void
-type SetStatus = (status: string | null) => void
 
 export const useAuth = ({
   middleware,
   redirectIfAuthenticated,
 }: UseAuthOptions = {}) => {
-  const router = useRouter()
-  const params = useParams()
-
-  // エラー状態を管理するstateを追加
-  const [errors, setErrors] = useState<{
-    email?: string[]
-    password?: string[]
-    password_confirmation?: string[]
-  }>({})
+  const router = useRouter();
 
   // 修正: useSWR の型定義を追加
   const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
@@ -42,13 +29,13 @@ export const useAuth = ({
       .get('/api/user')
       .then(res => res.data)
       .catch(error => {
-        if (error.response.status !== 409) throw error
+        if (error.response.status !== 409) throw error;
 
-        router.push('/verify-email')
+        router.push('/verify-email');
       }),
-  )
+  );
 
-  const csrf = () => axios.get('/sanctum/csrf-cookie')
+  const csrf = () => axios.get('/sanctum/csrf-cookie');
 
   const register = async ({
     name,
@@ -57,32 +44,32 @@ export const useAuth = ({
     password_confirmation,
     setErrors,
   }: {
-    name: string
-    email: string
-    password: string
-    password_confirmation: string
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
     setErrors: Dispatch<
       SetStateAction<{
-        name?: string[]
-        email?: string[]
-        password?: string[]
-        password_confirmation?: string[]
+        name?: string[];
+        email?: string[];
+        password?: string[];
+        password_confirmation?: string[];
       }>
-    >
+    >;
   }) => {
-    await csrf()
+    await csrf();
 
-    setErrors({})
+    setErrors({});
 
     axios
       .post('/register', { name, email, password, password_confirmation })
       .then(() => mutate())
       .catch(error => {
-        if (error.response.status !== 422) throw error
+        if (error.response.status !== 422) throw error;
 
-        setErrors(error.response.data.errors)
-      })
-  }
+        setErrors(error.response.data.errors);
+      });
+  };
 
   const login = async ({
     email,
@@ -91,52 +78,52 @@ export const useAuth = ({
     setErrors,
     setStatus,
   }: {
-    email: string
-    password: string
-    remember: boolean
+    email: string;
+    password: string;
+    remember: boolean;
     setErrors: Dispatch<
       SetStateAction<{ email?: string[]; password?: string[] }>
-    >
-    setStatus: Dispatch<SetStateAction<string | null>>
+    >;
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
-    await csrf()
+    await csrf();
 
-    setErrors({})
-    setStatus(null)
+    setErrors({});
+    setStatus(null);
 
     axios
       .post('/login', { email, password, remember })
       .then(() => mutate())
       .catch(error => {
-        if (error.response.status !== 422) throw error
+        if (error.response.status !== 422) throw error;
 
-        setErrors(error.response.data.errors)
-      })
-  }
+        setErrors(error.response.data.errors);
+      });
+  };
 
   const forgotPassword = async ({
     email,
     setErrors,
     setStatus,
   }: {
-    email: string
-    setErrors: Dispatch<SetStateAction<{ email?: string[] }>>
-    setStatus: Dispatch<SetStateAction<string | null>>
+    email: string;
+    setErrors: Dispatch<SetStateAction<{ email?: string[] }>>;
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
-    await csrf()
+    await csrf();
 
-    setErrors({})
-    setStatus(null)
+    setErrors({});
+    setStatus(null);
 
     axios
       .post('/forgot-password', { email })
       .then(response => setStatus(response.data.status))
       .catch(error => {
-        if (error.response.status !== 422) throw error
+        if (error.response.status !== 422) throw error;
 
-        setErrors(error.response.data.errors)
-      })
-  }
+        setErrors(error.response.data.errors);
+      });
+  };
 
   const resetPassword = async ({
     email,
@@ -146,23 +133,23 @@ export const useAuth = ({
     setErrors,
     setStatus,
   }: {
-    email: string
-    password: string
-    password_confirmation: string
-    token: string
+    email: string;
+    password: string;
+    password_confirmation: string;
+    token: string;
     setErrors: Dispatch<
       SetStateAction<{
-        email?: string[]
-        password?: string[]
-        password_confirmation?: string[]
+        email?: string[];
+        password?: string[];
+        password_confirmation?: string[];
       }>
-    >
-    setStatus: Dispatch<SetStateAction<string | null>>
+    >;
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
-    await csrf()
+    await csrf();
 
-    setErrors({})
-    setStatus(null)
+    setErrors({});
+    setStatus(null);
 
     axios
       .post('/reset-password', {
@@ -175,42 +162,42 @@ export const useAuth = ({
         router.push('/login?reset=' + btoa(response.data.status)),
       )
       .catch(error => {
-        if (error.response.status !== 422) throw error
+        if (error.response.status !== 422) throw error;
 
-        setErrors(error.response.data.errors)
-      })
-  }
+        setErrors(error.response.data.errors);
+      });
+  };
 
   const resendEmailVerification = ({
     setStatus,
   }: {
-    setStatus: Dispatch<SetStateAction<string | null>>
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
     axios
       .post('/email/verification-notification')
-      .then(response => setStatus(response.data.status))
-  }
+      .then(response => setStatus(response.data.status));
+  };
 
   const logout = useCallback(async () => {
     if (!error) {
-      await axios.post('/logout').then(() => mutate())
+      await axios.post('/logout').then(() => mutate());
     }
 
-    window.location.pathname = '/login'
-  }, [error, mutate])
+    window.location.pathname = '/login';
+  }, [error, mutate]);
 
   useEffect(() => {
     if (middleware === 'guest' && redirectIfAuthenticated && user)
-      router.push(redirectIfAuthenticated)
+      router.push(redirectIfAuthenticated);
     if (
       window.location.pathname === '/verify-email' &&
       user?.email_verified_at !== undefined &&
       redirectIfAuthenticated !== undefined
     ) {
-      router.push(redirectIfAuthenticated)
+      router.push(redirectIfAuthenticated);
     }
-    if (middleware === 'auth' && error) logout()
-  }, [user, error, middleware, redirectIfAuthenticated, router, logout])
+    if (middleware === 'auth' && error) logout();
+  }, [user, error, middleware, redirectIfAuthenticated, router, logout]);
 
   return {
     user,
@@ -220,5 +207,5 @@ export const useAuth = ({
     resetPassword,
     resendEmailVerification,
     logout,
-  }
-}
+  };
+};

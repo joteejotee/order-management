@@ -15,10 +15,10 @@ module.exports = {
   ignorePatterns: ['.eslintrc.js', 'next.config.js', 'tailwind.config.js'],
   extends: [
     'eslint:recommended',
-    'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
-    'next', // Next.jsのルールを追加
+    'next/core-web-vitals', // これだけで next, react, react-hooks の設定を含む
+    'prettier',
   ],
   parserOptions: {
     ecmaFeatures: {
@@ -28,7 +28,7 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json', // TypeScriptのプロジェクト設定
   },
-  plugins: ['react', 'prettier'],
+  plugins: ['react', 'prettier', '@typescript-eslint'],
   rules: {
     'prettier/prettier': 'error', // PrettierのルールをESLintに適用(prettierを優先)
     'import/prefer-default-export': 0,
@@ -53,4 +53,4 @@ module.exports = {
     'react/react-in-jsx-scope': 0,
     'linebreak-style': ['error', 'unix'],
   },
-}
+};

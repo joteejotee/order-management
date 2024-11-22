@@ -1,7 +1,7 @@
 interface LabelProps {
-  className?: string // 必須ではなくオプションに変更
-  children: React.ReactNode
-  [x: string]: any // 他のプロパティも許可
+  className?: string; // 必須ではなくオプションに変更
+  children: React.ReactNode;
+  [x: string]: any; // 他のプロパティも許可
 }
 
 const Label = ({ className = '', children, ...props }: LabelProps) => (
@@ -11,6 +11,6 @@ const Label = ({ className = '', children, ...props }: LabelProps) => (
   >
     {children}
   </label>
-)
+);
 
-export default Label
+export default Label;

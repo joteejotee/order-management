@@ -7,7 +7,7 @@ const Header = ({ title }: { title: string }) => {
         </h2>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

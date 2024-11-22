@@ -1,35 +1,35 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const http = axios.create({
   baseURL: 'http://localhost:8000',
   withCredentials: true,
-})
+});
 
 const EditPage = ({ params }: { params: { id: string } }) => {
-  const [pen, setPen] = useState<Record<string, any>>({})
-  const [nameMessage, setNameMessage] = useState<string>('')
-  const [priceMessage, setPriceMessage] = useState<string>('')
-  const router = useRouter()
+  const [pen, setPen] = useState<Record<string, any>>({});
+  const [nameMessage, setNameMessage] = useState<string>('');
+  const [priceMessage, setPriceMessage] = useState<string>('');
+  const router = useRouter();
 
   useEffect(() => {
     const getPen = async () => {
       const response = await fetch(
         `http://localhost:8000/api/pens/${params.id}`,
-      )
-      const json = await response.json()
-      setPen(json.data)
-    }
-    getPen()
-  }, [params.id])
+      );
+      const json = await response.json();
+      setPen(json.data);
+    };
+    getPen();
+  }, [params.id]);
 
   const updatePen = async () => {
     const requestBody = {
       name: pen.name,
       price: pen.price,
-    }
+    };
     http
       .patch(`/api/pens/${pen.id}`, requestBody, {
         headers: {
@@ -37,15 +37,15 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         },
       })
       .then(() => {
-        router.push('/pens')
+        router.push('/pens');
       })
       .catch(function (error) {
-        console.log(error.response.data.errors.name)
-        console.log(error.response.data.errors.price)
-        setNameMessage(error.response.data.errors.name)
-        setPriceMessage(error.response.data.errors.price)
-      })
-  }
+        console.log(error.response.data.errors.name);
+        console.log(error.response.data.errors.price);
+        setNameMessage(error.response.data.errors.name);
+        setPriceMessage(error.response.data.errors.price);
+      });
+  };
 
   return (
     <div className="relative p-3">
@@ -65,7 +65,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             setPen({
               ...pen,
               name: e.target.value,
-            })
+            });
           }}
         />
         <div className="ml-4 text-red-500">{nameMessage}</div>
@@ -78,7 +78,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             setPen({
               ...pen,
               price: e.target.value,
-            })
+            });
           }}
         />
         <div className="ml-4 text-red-500">{priceMessage}</div>
@@ -86,7 +86,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
           <button
             className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => {
-              updatePen()
+              updatePen();
             }}
           >
             編集
@@ -94,7 +94,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EditPage
+export default EditPage;

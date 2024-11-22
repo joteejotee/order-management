@@ -1,12 +1,12 @@
-import Link from 'next/link'
-import { ReactNode } from 'react'
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 // 型定義を追加
 interface NavLinkProps {
-  href: string
-  active?: boolean
-  children: ReactNode
-  className?: string
+  href: string;
+  active?: boolean;
+  children: ReactNode;
+  className?: string;
 }
 
 const NavLink = ({ active = false, children, ...props }: NavLinkProps) => (
@@ -20,6 +20,6 @@ const NavLink = ({ active = false, children, ...props }: NavLinkProps) => (
   >
     {children}
   </Link>
-)
+);
 
-export default NavLink
+export default NavLink;

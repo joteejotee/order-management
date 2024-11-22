@@ -1,35 +1,35 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const http = axios.create({
   baseURL: 'http://localhost:8000',
   withCredentials: true,
-})
+});
 
 // 型定義
 type Customer = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type Pen = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type Order = {
-  id: string
-  customer_id: string
-  pen_id: string
-  num: number
-}
+  id: string;
+  customer_id: string;
+  pen_id: string;
+  num: number;
+};
 
 const EditPage = ({ params }: { params: { id: string } }) => {
-  const [customer_idMessage, setCustomer_idMessage] = useState<string>('')
-  const [pen_idMessage, setPen_idMessage] = useState<string>('')
-  const [numMessage, setNumMessage] = useState<string>('')
+  const [customer_idMessage, setCustomer_idMessage] = useState<string>('');
+  const [pen_idMessage, setPen_idMessage] = useState<string>('');
+  const [numMessage, setNumMessage] = useState<string>('');
 
   // ★ Record<string, any> を Order 型に変更
   const [order, setOrder] = useState<Order>({
@@ -37,38 +37,39 @@ const EditPage = ({ params }: { params: { id: string } }) => {
     customer_id: '',
     pen_id: '',
     num: 0,
-  })
+  });
 
   // ★ Record<string, any>[] を Pen[] 型に変更
-  const [pens, setPens] = useState<Pen[]>([])
+  const [pens, setPens] = useState<Pen[]>([]);
 
   // ★ Record<string, any>[] を Customer[] 型に変更
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const getOrder = async () => {
     const response = await fetch(
       `http://localhost:8000/api/orders/${params.id}`,
-    )
-    const json = await response.json()
-    setOrder(json.data)
-    setPens(json.pens)
-    setCustomers(json.customers)
-  }
+    );
+    const json = await response.json();
+    setOrder(json.data);
+    setPens(json.pens);
+    setCustomers(json.customers);
+  };
 
   useEffect(() => {
-    getOrder()
-  }, [])
+    getOrder();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateOrder = async () => {
     const requestBody = {
       customer_id: order.customer_id,
       pen_id: order.pen_id,
       num: order.num,
-    }
+    };
 
-    console.log(requestBody)
+    console.log(requestBody);
 
     // この1行下がAPIリクエスト
     http
@@ -78,14 +79,14 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         },
       })
       .then(() => {
-        router.push('/orders')
+        router.push('/orders');
       })
       .catch(function (error) {
-        setCustomer_idMessage(error.response.data.errors.customer_id || '')
-        setPen_idMessage(error.response.data.errors.pen_id || '')
-        setNumMessage(error.response.data.errors.num || '')
-      })
-  }
+        setCustomer_idMessage(error.response.data.errors.customer_id || '');
+        setPen_idMessage(error.response.data.errors.pen_id || '');
+        setNumMessage(error.response.data.errors.num || '');
+      });
+  };
 
   return (
     <div className="relative p-3">
@@ -102,7 +103,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             setOrder({
               ...order,
               customer_id: e.target.value,
-            })
+            });
           }}
           className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
         >
@@ -124,7 +125,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             setOrder({
               ...order,
               pen_id: e.target.value,
-            })
+            });
           }}
           className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
         >
@@ -149,7 +150,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             setOrder({
               ...order,
               num: Number(e.target.value),
-            })
+            });
           }}
         />
         <div className="ml-4 text-red-500">{numMessage}</div>
@@ -157,7 +158,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
           <button
             className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => {
-              updateOrder()
+              updateOrder();
             }}
           >
             編集
@@ -165,6 +166,6 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         </div>
       </div>
     </div>
-  )
-}
-export default EditPage
+  );
+};
+export default EditPage;
