@@ -55,8 +55,8 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-#### MySQLを起動し、データベースマイグレーションを実行
-`php artisan migrate`
+#### MySQLを起動し、データベースマイグレーションとシードを実行
+`php artisan migrate --seed`
 
 #### サーバーを起動
 `php artisan serve`
@@ -91,10 +91,10 @@ DB_PASSWORD=
 以下を入力してLOGINボタンをクリックする
 
 e-mail
-`hanako@yamada.com`
+`test@example.com`
 
 パスワード
-`hanakoyamada`
+`Test1234`
 
 ## 技術スタック
 - Laravel 11.30.0

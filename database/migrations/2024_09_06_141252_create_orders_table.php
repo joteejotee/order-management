@@ -17,6 +17,7 @@ return new class extends Migration
       $table->foreignId('pen_id')->constrained();
       $table->integer('num');
       $table->datetime('orderday');
+      $table->string('shipping')->nullable(); // NULLを許可
       $table->timestamps();
     });
   }

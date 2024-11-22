@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            //
-            $table->integer('shipping');
-        });
+      Schema::table('orders', function (Blueprint $table) {
+        if (!Schema::hasColumn('orders', 'shipping')) {
+            $table->integer('shipping')->default(0); // デフォルト値を設定
+        }
+      });
     }
 
     /**
