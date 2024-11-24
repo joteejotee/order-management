@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents; //Seederを使うためのもの
 use Illuminate\Database\Seeder; //Seederを使うためのもの
 use Illuminate\Support\Facades\DB; //DBを扱うためのもの
 use Carbon\Carbon; //日付を扱うためのもの

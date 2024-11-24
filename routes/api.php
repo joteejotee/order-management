@@ -7,7 +7,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
   return $request->user();
 });
 
-Route::get('/pens', 'App\Http\Controllers\PenController@index'); //一覧表示
+Route::get('/pens', 'App\Http\Controllers\PenController@index'); //一覧を取得
 Route::post('/pens', 'App\Http\Controllers\PenController@store'); //登録
 Route::get('/pens/{pen:id}', 'App\Http\Controllers\PenController@edit'); //指定のデータのみ取得
 Route::patch('/pens/{pen:id}', 'App\Http\Controllers\PenController@update'); //指定のデータを更新

@@ -1,9 +1,24 @@
-const Input = ({ disabled = false, className, ...props }) => (
-    <input
-        disabled={disabled}
-        className={`${className} rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50`}
-        {...props}
-    />
-)
+// src/components/Input.tsx
 
-export default Input
+import React, { forwardRef, InputHTMLAttributes } from 'react';
+
+// 型定義を追加
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className = '', ...props }, ref) => (
+    <input
+      {...props}
+      className={`border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm ${className}`}
+      ref={ref}
+    />
+  ),
+);
+
+// display name を追加
+Input.displayName = 'Input';
+
+// コンポーネントをエクスポート
+export default Input;

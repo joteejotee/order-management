@@ -1,13 +1,26 @@
-const AuthSessionStatus = ({ status, className, ...props }) => (
-    <>
-        {status && (
-            <div
-                className={`${className} font-medium text-sm text-green-600`}
-                {...props}>
-                {status}
-            </div>
-        )}
-    </>
-)
+import React from 'react';
 
-export default AuthSessionStatus
+interface AuthSessionStatusProps {
+  status: string;
+  className?: string;
+  [key: string]: any;
+}
+
+const AuthSessionStatus: React.FC<AuthSessionStatusProps> = ({
+  status,
+  className,
+  ...props
+}) => (
+  <>
+    {status && (
+      <div
+        className={`${className} font-medium text-sm text-green-600`}
+        {...props}
+      >
+        {status}
+      </div>
+    )}
+  </>
+);
+
+export default AuthSessionStatus;
