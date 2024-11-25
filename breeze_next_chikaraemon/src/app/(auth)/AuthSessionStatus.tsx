@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface AuthSessionStatusProps {
-  status: string;
+  status: string | null;
   className?: string;
   [key: string]: any;
 }

@@ -1,17 +1,36 @@
 'use client';
 
-import Button from '@/components/Button';
-import Input from '@/components/Input';
-import InputError from '@/components/InputError';
-import Label from '@/components/Label';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/auth';
-import React, { useState, Suspense } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
-import { SearchParamsHandler } from './SearchParamsHandler';
 
-type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
-type FormEvent = React.FormEvent<HTMLFormElement>;
+// バリデーションスキーマ
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'メールアドレスは必須です')
+    .email('正しいメールアドレスを入力してください'),
+  password: z
+    .string()
+    .min(8, 'パスワードは8文字以上である必要があります')
+    .regex(/^[a-zA-Z0-9]+$/, '半角英数字のみ使用できます')
+    .regex(/[A-Z]/, '大文字を1文字以上含める必要があります')
+    .regex(/[0-9]/, '数字を1文字以上含める必要があります'),
+  remember: z.boolean().default(false),
+});
 
 const Login = () => {
   const { login } = useAuth({
@@ -19,101 +38,80 @@ const Login = () => {
     redirectIfAuthenticated: '/dashboard',
   });
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [shouldRemember, setShouldRemember] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     email?: string[];
     password?: string[];
   }>({});
-  const [status, setStatus] = useState<string | null>(null);
 
-  const submitForm = async (event: FormEvent) => {
-    event.preventDefault();
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      remember: false,
+    },
+  });
 
-    login({
-      email,
-      password,
-      remember: shouldRemember,
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    await login({
+      email: values.email,
+      password: values.password,
+      remember: values.remember,
       setErrors,
       setStatus,
     });
   };
 
-  const handleInputChange = (event: InputChangeEvent) => {
-    setEmail(event.target.value);
-  };
-
   return (
     <>
-      <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsHandler setStatus={setStatus} errors={errors} />
-      </Suspense>
-      <AuthSessionStatus className="mb-4" status={status || ''} />
-      <form onSubmit={submitForm}>
-        {/* Email Address */}
-        <div>
-          <Label htmlFor="email">Email</Label>
+      <AuthSessionStatus className="mb-4" status={status} />
 
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            className="block mt-1 w-full"
-            onChange={handleInputChange}
-            required
-            autoFocus
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>メールアドレス</FormLabel>
+                <FormControl>
+                  <Input placeholder="mail@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+                {errors.email && (
+                  <span className="text-sm text-red-600">
+                    {errors.email.join(', ')}
+                  </span>
+                )}
+              </FormItem>
+            )}
           />
 
-          <InputError messages={errors.email} className="mt-2" />
-        </div>
-
-        {/* Password */}
-        <div className="mt-4">
-          <Label htmlFor="password">Password</Label>
-
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            className="block mt-1 w-full"
-            onChange={(event: InputChangeEvent) =>
-              setPassword(event.target.value)
-            }
-            required
-            autoComplete="current-password"
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>パスワード</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+                {errors.password && (
+                  <span className="text-sm text-red-600">
+                    {errors.password.join(', ')}
+                  </span>
+                )}
+              </FormItem>
+            )}
           />
 
-          <InputError messages={errors.password} className="mt-2" />
-        </div>
-
-        {/* Remember Me */}
-        <div className="block mt-4">
-          <label htmlFor="remember_me" className="inline-flex items-center">
-            <input
-              id="remember_me"
-              type="checkbox"
-              name="remember"
-              className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                setShouldRemember(event.target.checked)
-              }
-            />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-end mt-4">
-          <Link
-            href="/forgot-password"
-            className="underline text-sm text-gray-600 hover:text-gray-900"
-          >
-            Forgot your password?
-          </Link>
-
-          <Button className="ml-3">Login</Button>
-        </div>
-      </form>
+          <Button type="submit" className="w-full">
+            ログイン
+          </Button>
+        </form>
+      </Form>
     </>
   );
 };
