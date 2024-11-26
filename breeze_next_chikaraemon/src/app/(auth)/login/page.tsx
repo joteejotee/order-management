@@ -1,17 +1,37 @@
 'use client';
 
-import Button from '@/components/Button';
-import Input from '@/components/Input';
-import InputError from '@/components/InputError';
-import Label from '@/components/Label';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/auth';
-import React, { useState, Suspense } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
-import { SearchParamsHandler } from './SearchParamsHandler';
+import { Eye, EyeOff, Check } from 'lucide-react';
 
-type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
-type FormEvent = React.FormEvent<HTMLFormElement>;
+// バリデーションスキーマ
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'メールアドレスは必須です')
+    .email('正しいメールアドレスを入力してください'),
+  password: z
+    .string()
+    .min(8, 'パスワードは8文字以上である必要があります')
+    .regex(/^[a-zA-Z0-9]+$/, '半角英数字のみ使用できます')
+    .regex(/[A-Z]/, '大文字を1文字以上含める必要があります')
+    .regex(/[0-9]/, '数字を1文字以上含める必要があります'),
+  remember: z.boolean().default(false),
+});
 
 const Login = () => {
   const { login } = useAuth({
@@ -19,101 +39,134 @@ const Login = () => {
     redirectIfAuthenticated: '/dashboard',
   });
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [shouldRemember, setShouldRemember] = useState(false);
-  const [errors, setErrors] = useState<{
-    email?: string[];
-    password?: string[];
-  }>({});
   const [status, setStatus] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const submitForm = async (event: FormEvent) => {
-    event.preventDefault();
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      remember: false,
+    },
+    mode: 'onChange',
+  });
 
-    login({
-      email,
-      password,
-      remember: shouldRemember,
-      setErrors,
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    await login({
+      email: values.email,
+      password: values.password,
+      remember: values.remember,
+      setErrors: () => {},
       setStatus,
     });
   };
 
-  const handleInputChange = (event: InputChangeEvent) => {
-    setEmail(event.target.value);
-  };
-
   return (
     <>
-      <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsHandler setStatus={setStatus} errors={errors} />
-      </Suspense>
-      <AuthSessionStatus className="mb-4" status={status || ''} />
-      <form onSubmit={submitForm}>
-        {/* Email Address */}
-        <div>
-          <Label htmlFor="email">Email</Label>
-
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            className="block mt-1 w-full"
-            onChange={handleInputChange}
-            required
-            autoFocus
+      <AuthSessionStatus className="mb-4" status={status} />
+      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 text-lg"
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="relative mb-2 space-y-0">
+                <FormLabel className="flex items-center text-lg">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Email
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    className="h-12 !text-lg placeholder:text-lg pt-1"
+                    placeholder="mail@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-base mt-1" />
+                {!form.formState.errors.email && field.value && (
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
+                    <Check className="h-6 w-6 text-green-500" />
+                  </div>
+                )}
+              </FormItem>
+            )}
           />
 
-          <InputError messages={errors.email} className="mt-2" />
-        </div>
-
-        {/* Password */}
-        <div className="mt-4">
-          <Label htmlFor="password">Password</Label>
-
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            className="block mt-1 w-full"
-            onChange={(event: InputChangeEvent) =>
-              setPassword(event.target.value)
-            }
-            required
-            autoComplete="current-password"
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="relative space-y-0">
+                <FormLabel className="flex items-center text-lg">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                  Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      className="h-12 !text-lg pt-1"
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage className="text-base mt-1" />
+                {!form.formState.errors.password && field.value && (
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
+                    <Check className="h-6 w-6 text-green-500" />
+                  </div>
+                )}
+              </FormItem>
+            )}
           />
 
-          <InputError messages={errors.password} className="mt-2" />
-        </div>
-
-        {/* Remember Me */}
-        <div className="block mt-4">
-          <label htmlFor="remember_me" className="inline-flex items-center">
-            <input
-              id="remember_me"
-              type="checkbox"
-              name="remember"
-              className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                setShouldRemember(event.target.checked)
-              }
-            />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-end mt-4">
-          <Link
-            href="/forgot-password"
-            className="underline text-sm text-gray-600 hover:text-gray-900"
-          >
-            Forgot your password?
-          </Link>
-
-          <Button className="ml-3">Login</Button>
-        </div>
-      </form>
+          <Button type="submit" className="w-full text-lg h-12">
+            Login
+          </Button>
+        </form>
+      </Form>
     </>
   );
 };

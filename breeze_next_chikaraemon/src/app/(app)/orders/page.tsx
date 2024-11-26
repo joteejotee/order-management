@@ -57,14 +57,22 @@ const Orders = () => {
   };
 
   const shipOrder = async (id: number) => {
-    http
-      .put(`/api/orders/${id}`)
-      .then(() => {
-        getOrders(url);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    // 即座にUIを更新
+    const updatedOrders = orders.map(order =>
+      order.id === id ? { ...order, shipping: 1 } : order,
+    );
+    setOrders(updatedOrders);
+
+    try {
+      await http.put(`/api/orders/${id}`);
+    } catch (error: any) {
+      // エラー時は元に戻す
+      const originalOrders = orders.map(order =>
+        order.id === id ? { ...order, shipping: 0 } : order,
+      );
+      setOrders(originalOrders);
+      console.error('出荷状態の更新に失敗しました:', error.message);
+    }
   };
 
   return (

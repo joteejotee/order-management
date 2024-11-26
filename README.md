@@ -103,4 +103,5 @@ e-mail
 - TypeScript
 - MySQL
 - Vercel
+- zod, React Hook Form, shadcn/ui, Lucide
 - ESLint, Perttier, Postman, Git, GitHub
