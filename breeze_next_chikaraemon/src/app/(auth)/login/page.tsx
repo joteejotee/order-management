@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
+import { Eye, EyeOff } from 'lucide-react';
 
 // バリデーションスキーマ
 const loginSchema = z.object({
@@ -43,6 +44,7 @@ const Login = () => {
     email?: string[];
     password?: string[];
   }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -73,6 +75,7 @@ const Login = () => {
             control={form.control}
             name="email"
             render={({ field }) => (
+              // shadcn/uiのFormLabelコンポーネントを修正して実装
               <FormItem>
                 <FormLabel className="flex items-center">
                   <svg
@@ -127,7 +130,23 @@ const Login = () => {
                   パスワード
                 </FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
                 {errors.password && (
