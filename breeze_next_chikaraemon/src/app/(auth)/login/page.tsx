@@ -53,6 +53,7 @@ const Login = () => {
       password: '',
       remember: false,
     },
+    mode: 'onChange',
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
