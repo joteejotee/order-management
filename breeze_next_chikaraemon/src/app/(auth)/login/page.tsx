@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Check } from 'lucide-react';
 
 // バリデーションスキーマ
 const loginSchema = z.object({
@@ -40,10 +40,6 @@ const Login = () => {
   });
 
   const [status, setStatus] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{
-    email?: string[];
-    password?: string[];
-  }>({});
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -61,7 +57,7 @@ const Login = () => {
       email: values.email,
       password: values.password,
       remember: values.remember,
-      setErrors,
+      setErrors: () => {},
       setStatus,
     });
   };
@@ -76,8 +72,7 @@ const Login = () => {
             control={form.control}
             name="email"
             render={({ field }) => (
-              // shadcn/uiのFormLabelコンポーネントを修正して実装
-              <FormItem>
+              <FormItem className="relative">
                 <FormLabel className="flex items-center">
                   <svg
                     className="w-4 h-4 mr-1"
@@ -99,10 +94,10 @@ const Login = () => {
                   <Input placeholder="mail@example.com" {...field} />
                 </FormControl>
                 <FormMessage />
-                {errors.email && (
-                  <span className="text-sm text-red-600">
-                    {errors.email.join(', ')}
-                  </span>
+                {!form.formState.errors.email && field.value && (
+                  <div className="absolute right-[-30px] top-[56%] transform -translate-y-1/2">
+                    <Check className="h-6 w-6 text-green-500" />
+                  </div>
                 )}
               </FormItem>
             )}
@@ -112,7 +107,7 @@ const Login = () => {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="relative">
                 <FormLabel className="flex items-center">
                   <svg
                     className="w-4 h-4 mr-1"
@@ -150,10 +145,10 @@ const Login = () => {
                   </div>
                 </FormControl>
                 <FormMessage />
-                {errors.password && (
-                  <span className="text-sm text-red-600">
-                    {errors.password.join(', ')}
-                  </span>
+                {!form.formState.errors.password && field.value && (
+                  <div className="absolute right-[-30px] top-[56%] transform -translate-y-1/2">
+                    <Check className="h-6 w-6 text-green-500" />
+                  </div>
                 )}
               </FormItem>
             )}
