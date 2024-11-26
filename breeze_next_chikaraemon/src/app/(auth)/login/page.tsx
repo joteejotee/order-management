@@ -65,17 +65,20 @@ const Login = () => {
   return (
     <>
       <AuthSessionStatus className="mb-4" status={status} />
-      <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 text-lg"
+        >
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem className="relative">
-                <FormLabel className="flex items-center">
+                <FormLabel className="flex items-center text-lg">
                   <svg
-                    className="w-4 h-4 mr-1"
+                    className="w-5 h-5 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -88,14 +91,18 @@ const Login = () => {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  メールアドレス
+                  Email
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="mail@example.com" {...field} />
+                  <Input
+                    className="text-lg"
+                    placeholder="mail@example.com"
+                    {...field}
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
                 {!form.formState.errors.email && field.value && (
-                  <div className="absolute right-[-30px] top-[56%] transform -translate-y-1/2">
+                  <div className="absolute right-[-30px] top-[64%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}
@@ -108,9 +115,9 @@ const Login = () => {
             name="password"
             render={({ field }) => (
               <FormItem className="relative">
-                <FormLabel className="flex items-center">
+                <FormLabel className="flex items-center text-lg">
                   <svg
-                    className="w-4 h-4 mr-1"
+                    className="w-5 h-5 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -123,7 +130,7 @@ const Login = () => {
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                     />
                   </svg>
-                  パスワード
+                  Password
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -146,7 +153,7 @@ const Login = () => {
                 </FormControl>
                 <FormMessage />
                 {!form.formState.errors.password && field.value && (
-                  <div className="absolute right-[-30px] top-[56%] transform -translate-y-1/2">
+                  <div className="absolute right-[-30px] top-[64%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}
@@ -154,8 +161,8 @@ const Login = () => {
             )}
           />
 
-          <Button type="submit" className="w-full">
-            ログイン
+          <Button type="submit" className="w-full text-lg">
+            Login
           </Button>
         </form>
       </Form>
