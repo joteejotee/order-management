@@ -75,7 +75,7 @@ const Login = () => {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="relative">
+              <FormItem className="relative mb-2 space-y-0">
                 <FormLabel className="flex items-center text-lg">
                   <svg
                     className="w-5 h-5 mr-2"
@@ -95,14 +95,14 @@ const Login = () => {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    className="h-12 text-lg placeholder:text-lg"
+                    className="h-12 !text-lg placeholder:text-lg pt-2"
                     placeholder="mail@example.com"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-base mt-1" />
                 {!form.formState.errors.email && field.value && (
-                  <div className="absolute right-[-30px] top-[64%] transform -translate-y-1/2">
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}
@@ -114,7 +114,7 @@ const Login = () => {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem className="relative">
+              <FormItem className="relative space-y-0">
                 <FormLabel className="flex items-center text-lg">
                   <svg
                     className="w-5 h-5 mr-2"
@@ -135,7 +135,7 @@ const Login = () => {
                 <FormControl>
                   <div className="relative">
                     <Input
-                      className="text-lg h-12 text-lg"
+                      className="h-12 !text-lg pt-2"
                       type={showPassword ? 'text' : 'password'}
                       {...field}
                     />
@@ -152,9 +152,9 @@ const Login = () => {
                     </button>
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base mt-1" />
                 {!form.formState.errors.password && field.value && (
-                  <div className="absolute right-[-30px] top-[64%] transform -translate-y-1/2">
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}
