@@ -95,7 +95,7 @@ const Login = () => {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    className="h-12 !text-lg placeholder:text-lg pt-2"
+                    className="h-12 !text-lg placeholder:text-lg pt-1"
                     placeholder="mail@example.com"
                     {...field}
                   />
@@ -135,7 +135,7 @@ const Login = () => {
                 <FormControl>
                   <div className="relative">
                     <Input
-                      className="h-12 !text-lg pt-2"
+                      className="h-12 !text-lg pt-1"
                       type={showPassword ? 'text' : 'password'}
                       {...field}
                     />
