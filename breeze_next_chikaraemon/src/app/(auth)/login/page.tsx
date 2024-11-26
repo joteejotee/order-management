@@ -65,7 +65,7 @@ const Login = () => {
   return (
     <>
       <AuthSessionStatus className="mb-4" status={status} />
-
+      <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
