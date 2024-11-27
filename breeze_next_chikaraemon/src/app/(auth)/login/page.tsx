@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
-import { Eye, EyeOff, Check } from 'lucide-react';
+import { Eye, EyeOff, Check, UserCircle } from 'lucide-react';
 
 // バリデーションスキーマ
 const loginSchema = z.object({
@@ -65,7 +65,13 @@ const Login = () => {
   return (
     <>
       <AuthSessionStatus className="mb-4" status={status} />
-      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+      <div className="text-center mb-6">
+        <UserCircle
+          className="w-16 h-16 text-gray-700 mx-auto mb-6"
+          strokeWidth={1.5}
+        />
+        <h1 className="text-3xl font-bold">Login</h1>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
