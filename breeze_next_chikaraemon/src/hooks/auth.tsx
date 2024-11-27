@@ -23,15 +23,15 @@ export const useAuth = ({
 }: UseAuthOptions = {}) => {
   const router = useRouter();
 
-  // 修正: useSWR の型定義を追加
   const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
     axios
       .get('/api/user')
       .then(res => res.data)
       .catch(error => {
-        if (error.response.status !== 409) throw error;
-
-        router.push('/verify-email');
+        if (error.response?.status === 401) {
+          return null;
+        }
+        throw error;
       }),
   );
 
