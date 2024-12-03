@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Dispatch, SetStateAction } from 'react';
 import { User } from '@/types/user';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+const apiUrl = 'http://localhost:8000';
 
 // axiosの設定を更新
 axios.defaults.baseURL = apiUrl;
