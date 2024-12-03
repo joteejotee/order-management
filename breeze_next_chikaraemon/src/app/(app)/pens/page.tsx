@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+const apiUrl = 'http://localhost:8000';
+// const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const http = axios.create({
   baseURL: apiUrl,
