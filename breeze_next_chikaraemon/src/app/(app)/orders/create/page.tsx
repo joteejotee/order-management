@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 const http = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
   withCredentials: true,
 });
 
@@ -23,7 +23,9 @@ const CreatePage = () => {
   //以下 pens customers 取得のための処理
   const [pens, setPens] = useState({});
   const [customers, setCustomers] = useState({});
-  const url = 'http://localhost:8000/api/orders/create';
+  const url =
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders/create` ||
+    'http://localhost:8000/api/orders/create';
   const getJsons = async (url: string) => {
     const response = await fetch(url);
     const json = await response.json();
