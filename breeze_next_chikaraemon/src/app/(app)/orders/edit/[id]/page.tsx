@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 const http = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
   withCredentials: true,
 });
 
@@ -49,7 +49,8 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
   const getOrder = async () => {
     const response = await fetch(
-      `http://localhost:8000/api/orders/${params.id}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders/${params.id}` ||
+        `http://localhost:8000/api/orders/${params.id}`,
     );
     const json = await response.json();
     setOrder(json.data);

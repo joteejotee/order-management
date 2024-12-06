@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-const apiUrl = 'http://localhost:8000';
-// const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 const http = axios.create({
   baseURL: apiUrl,
@@ -16,7 +15,8 @@ const Pens = () => {
   const [pens, setPens] = useState<any[]>([]);
   const router = useRouter();
   const [currentUrl, setCurrentUrl] = useState(
-    'http://localhost:8000/api/pens',
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pens` ||
+      'http://localhost:8000/api/pens',
   );
 
   interface PageInfo {

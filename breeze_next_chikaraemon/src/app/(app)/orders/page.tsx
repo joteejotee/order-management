@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 const http = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
   withCredentials: true,
 });
 
@@ -15,22 +15,20 @@ const Orders = () => {
     next_page_url?: string;
     prev_page_url?: string;
   }>({});
-  const url = 'http://localhost:8000/api/orders';
+  const url =
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders` ||
+    'http://localhost:8000/api/orders';
 
   const getOrders = async (url: string) => {
     if (!url) {
-      url = 'http://localhost:8000/api/orders';
+      url =
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders` ||
+        'http://localhost:8000/api/orders';
     }
     const response = await fetch(url);
     const json = await response.json();
     setOrders(json.data);
-    console.log(json.data);
     setInfo(json.meta);
-    console.log(json.meta);
-    //setOrders(json.data.data);
-    //console.log(json.data.data);
-    //setInfo(json.data);
-    //console.log(json.data);
   };
 
   useEffect(() => {
