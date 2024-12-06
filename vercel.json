@@ -38,15 +38,5 @@
           "src": "/(.*)",
           "dest": "breeze_next_chikaraemon/$1"
       }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/$1"
-    }
   ]
 }
