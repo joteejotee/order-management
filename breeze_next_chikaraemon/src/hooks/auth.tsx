@@ -26,11 +26,12 @@ export const useAuth = ({
   const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
     axios
       .get('/api/user')
-      .then(res => res.data)
+      .then(res => {
+        console.log('API Response:', res.data);
+        return res.data;
+      })
       .catch(error => {
-        if (error.response?.status === 401) {
-          return null;
-        }
+        console.error('API Error:', error);
         throw error;
       }),
   );
