@@ -1,16 +1,30 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Laravel',
 };
-import { ReactNode } from 'react';
 
-const RootLayout = ({ children }: { children: ReactNode }) => {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // wheelイベントのパッシブリスナーを有効化
+              document.addEventListener('wheel', function() {}, { passive: true });
+            `,
+          }}
+        />
+      </head>
+      <body className={`antialiased ${inter.className}`}>{children}</body>
     </html>
   );
-};
-
-export default RootLayout;
+}

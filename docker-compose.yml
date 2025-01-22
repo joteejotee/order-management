@@ -1,0 +1,71 @@
+name: nextjs
+version: "3.8"
+services:
+    nextjs-backend-1:
+        container_name: nextjs-backend-1
+        build:
+            context: .
+            dockerfile: docker/backend/Dockerfile
+        volumes:
+            - .:/var/www/html
+            - ./docker/php/logs:/var/log
+        expose:
+            - 9000
+        depends_on:
+            - nextjs-db-1
+        networks:
+            - app-network
+
+    nextjs-frontend-1:
+        container_name: nextjs-frontend-1
+        build:
+            context: .
+            dockerfile: docker/frontend/Dockerfile
+        volumes:
+            - ./breeze_next_chikaraemon:/app
+        ports:
+            - "3000:3000"
+        networks:
+            - app-network
+        environment:
+            - NEXT_TELEMETRY_DISABLED=1
+            - NODE_ENV=development
+        deploy:
+            resources:
+                limits:
+                    memory: 2G
+
+    nextjs-nginx-1:
+        container_name: nextjs-nginx-1
+        image: nginx:alpine
+        ports:
+            - "8000:80"
+        volumes:
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+            - .:/var/www/html
+            - ./docker/nginx/logs:/var/log/nginx
+        depends_on:
+            - nextjs-backend-1
+        networks:
+            - app-network
+
+    nextjs-db-1:
+        container_name: nextjs-db-1
+        image: mysql:8.0
+        environment:
+            MYSQL_DATABASE: nextjs
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_PASSWORD: root
+        ports:
+            - "3306:3306"
+        volumes:
+            - dbdata:/var/lib/mysql
+        networks:
+            - app-network
+
+volumes:
+    dbdata:
+
+networks:
+    app-network:
+        driver: bridge

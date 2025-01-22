@@ -2,8 +2,20 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use Illuminate\Support\Facades\Auth;
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+Route::options('/{any}', function (Request $request) {
+    return response()->json('OK', 200);
+})->where('any', '.*');
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+    ->middleware('guest');
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth:sanctum');
+
+Route::middleware(['web', 'auth:sanctum'])->get('/user', function (Request $request) {
   return $request->user();
 });
 
@@ -20,3 +32,12 @@ Route::get('/orders/{order:id}', 'App\Http\Controllers\OrderController@edit');
 Route::patch('/orders/{order:id}', 'App\Http\Controllers\OrderController@update');
 Route::delete('/orders/{order:id}', 'App\Http\Controllers\OrderController@delete');
 Route::put('/orders/{order:id}', 'App\Http\Controllers\OrderController@ship');
+
+Route::get('/auth-check', function (Request $request) {
+    return response()->json([
+        'sanctum_check' => Auth::guard('sanctum')->check(),
+        'web_check' => Auth::guard('web')->check(),
+        'user' => Auth::user(),
+        'request_user' => $request->user(),
+    ]);
+});

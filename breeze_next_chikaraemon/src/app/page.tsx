@@ -1,21 +1,33 @@
 'use client';
 
 import { useAuth } from '@/hooks/auth';
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/types/user';
+import { useEffect } from 'react';
 
-const Home = () => {
+export default function Home() {
   const router = useRouter();
-  const { user } = useAuth() as { user: User | null | undefined };
+  const { user, isValidating } = useAuth();
 
   useEffect(() => {
-    if (user === null) {
-      router.push('/login');
-    } else if (user) {
-      router.push('/dashboard');
+    if (!isValidating) {
+      if (user) {
+        router.push('/dashboard');
+      } else {
+        router.push('/login');
+      }
     }
-  }, [user, router]);
+  }, [user, isValidating, router]);
+
+  // ローディング表示（3秒後にタイムアウト）
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isValidating) {
+        router.push('/login'); // タイムアウト時はログインページへ
+      }
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [isValidating, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -25,6 +37,4 @@ const Home = () => {
       </div>
     </div>
   );
-};
-
-export default Home;
+}

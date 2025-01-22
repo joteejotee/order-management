@@ -8,7 +8,7 @@ import { User } from '@/types/user';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   // 型を明示的に指定
-  const { user } = useAuth({ middleware: 'auth' }) as { user: User | null };
+  const { user } = useAuth() as { user: User | null };
 
   if (!user) {
     return <Loading />;
