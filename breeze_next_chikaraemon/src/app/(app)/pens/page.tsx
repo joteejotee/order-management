@@ -1,70 +1,90 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+interface Pen {
+  id: number;
+  name: string;
+  price: number;
+}
 
-const http = axios.create({
-  baseURL: apiUrl,
-  withCredentials: true,
-});
+interface PageInfo {
+  next_page_url?: string;
+  prev_page_url?: string;
+  data: Pen[];
+}
 
-//この関数が呼ばれると、ペンの一覧が表示される
 const Pens = () => {
-  const [pens, setPens] = useState<any[]>([]);
+  const [pens, setPens] = useState<Pen[]>([]);
   const router = useRouter();
-  const [currentUrl, setCurrentUrl] = useState(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pens` ||
-      'http://localhost:8000/api/pens',
-  );
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
-  interface PageInfo {
-    next_page_url?: string;
-    prev_page_url?: string;
-    [key: string]: any;
-  }
+  const getPens = async (pageNum: number) => {
+    if (isLoading) return;
 
-  const [info, setInfo] = useState<PageInfo>({});
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
-  //この関数が呼ばれると、ペンの一覧が取得される
-  const getPens = async () => {
-    const response = await fetch(currentUrl);
-    const json = await response.json();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-    console.log(json.data);
-
-    //変更json.data → json.data.data
-    setPens(json.data.data);
-    //追加
-    setInfo(json.data);
-    console.log(json.data);
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`/api/pens?page=${pageNum}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      });
+      if (abortControllerRef.current === controller) {
+        setPens(response.data.data.data);
+        setPageInfo(response.data.data);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Failed to fetch pens:', error.message);
+      }
+    } finally {
+      if (abortControllerRef.current === controller) {
+        setIsLoading(false);
+      }
+    }
   };
 
-  //関数useEffectは、このコンポーネントが初期化（画面に表示）された時に呼ばれる。
-  // currentUrl が変更されたときに getPens を呼び出す
   useEffect(() => {
-    getPens();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUrl]);
+    getPens(page);
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [page]);
 
   const deletePen = async (id: number) => {
     if (confirm('削除しますか？')) {
-      http.delete(`/api/pens/${id}`).then(() => {
-        getPens();
-      });
+      try {
+        await axios.delete(`/api/pens/${id}`);
+        getPens(page);
+      } catch (error) {
+        console.error('Failed to delete pen:', error);
+      }
     }
   };
-  //追加
+
   const handleNextPage = () => {
-    if (info.next_page_url) {
-      setCurrentUrl(info.next_page_url); // 次のページURLを状態に設定
+    if (pageInfo?.next_page_url) {
+      setPage(page + 1);
     }
   };
-  //追加
+
   const handlePreviousPage = () => {
-    if (info.prev_page_url) {
-      setCurrentUrl(info.prev_page_url); // 前のページURLを状態に設定
+    if (pageInfo?.prev_page_url && page > 1) {
+      setPage(page - 1);
     }
   };
 
@@ -86,9 +106,7 @@ const Pens = () => {
             <th scope="col" className="px-3 py-4">
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={() => {
-                  router.push('/pens/create');
-                }}
+                onClick={() => router.push('/pens/create')}
               >
                 新規登録
               </button>
@@ -96,42 +114,36 @@ const Pens = () => {
           </tr>
         </thead>
         <tbody>
-          {pens.map((pen: any) => {
-            return (
-              <tr key={pen.id} className="bg-white border-b">
-                <th scope="row" className="px-6 py-2">
-                  {pen.id}
-                </th>
-                <td className="px-6 py-2">{pen.name}</td>
-                <td className="px-6 py-2">{pen.price}円</td>
-                <td className="px-3 py-2 text-right">
-                  <button
-                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                    onClick={() => {
-                      router.push(`/pens/edit/${pen.id}`);
-                    }}
-                  >
-                    編集
-                  </button>
-                </td>
-                <td className="px-3 py-2">
-                  <button
-                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                    onClick={() => {
-                      deletePen(pen.id);
-                    }}
-                  >
-                    削除
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+          {pens.map(pen => (
+            <tr key={pen.id} className="bg-white border-b">
+              <th scope="row" className="px-6 py-2">
+                {pen.id}
+              </th>
+              <td className="px-6 py-2">{pen.name}</td>
+              <td className="px-6 py-2">{pen.price}円</td>
+              <td className="px-3 py-2 text-right">
+                <button
+                  className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                  onClick={() => router.push(`/pens/edit/${pen.id}`)}
+                >
+                  編集
+                </button>
+              </td>
+              <td className="px-3 py-2">
+                <button
+                  className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                  onClick={() => deletePen(pen.id)}
+                >
+                  削除
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <div className="w-1/2 items-center px-4 mt-6">
         <div className="join grid grid-cols-2">
-          {info.prev_page_url ? (
+          {pageInfo?.prev_page_url && (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
               onClick={handlePreviousPage}
@@ -144,16 +156,16 @@ const Pens = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
               <span>PreviousPage</span>
             </button>
-          ) : null}
-          {info.next_page_url ? (
+          )}
+          {pageInfo?.next_page_url && (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
               onClick={handleNextPage}
@@ -167,17 +179,18 @@ const Pens = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
   );
 };
+
 export default Pens;

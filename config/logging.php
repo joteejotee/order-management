@@ -54,7 +54,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => ['single', 'daily'],
             'ignore_exceptions' => false,
         ],
 
@@ -63,6 +63,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'permission' => 0666,
+            'replace_placeholders' => true,
         ],
 
         'daily' => [

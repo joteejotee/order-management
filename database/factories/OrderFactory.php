@@ -20,7 +20,7 @@ class OrderFactory extends Factory
       'customer_id' => $this->faker->numberBetween($min = 1, $max = 3),
       'pen_id' => $this->faker->numberBetween($min = 1, $max = 10),
       'num' => $this->faker->numberBetween($min = 1, $max = 20),
-      'orderday' => date('Y-m-d H:i:s'),
+      'orderday' => date('Y-m-d H:i:s')
     ];
   }
 }

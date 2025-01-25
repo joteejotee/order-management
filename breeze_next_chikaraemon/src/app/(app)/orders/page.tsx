@@ -1,12 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
-
-const http = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
-  withCredentials: true,
-});
 
 const Orders = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -15,20 +10,12 @@ const Orders = () => {
     next_page_url?: string;
     prev_page_url?: string;
   }>({});
-  const url =
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders` ||
-    'http://localhost:8000/api/orders';
+  const url = '/api/orders';
 
-  const getOrders = async (url: string) => {
-    if (!url) {
-      url =
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders` ||
-        'http://localhost:8000/api/orders';
-    }
-    const response = await fetch(url);
-    const json = await response.json();
-    setOrders(json.data);
-    setInfo(json.meta);
+  const getOrders = async (currentUrl: string) => {
+    const response = await axios.get(currentUrl);
+    setOrders(response.data.data);
+    setInfo(response.data.meta);
   };
 
   useEffect(() => {
@@ -37,11 +24,20 @@ const Orders = () => {
 
   const deleteOrder = async (id: number) => {
     if (confirm('削除しますか？')) {
-      http.delete(`/api/orders/${id}`).then(() => {
+      axios.delete(`/api/orders/${id}`).then(() => {
         getOrders(url);
       });
     }
   };
+
+  const handleShip = async (id: number) => {
+    if (confirm('出荷処理を行いますか？')) {
+      axios.put(`/api/orders/${id}/ship`).then(() => {
+        getOrders(url);
+      });
+    }
+  };
+
   const handleNextPage = () => {
     if (info.next_page_url) {
       getOrders(info.next_page_url);
@@ -54,23 +50,12 @@ const Orders = () => {
     }
   };
 
-  const shipOrder = async (id: number) => {
-    // 即座にUIを更新
-    const updatedOrders = orders.map(order =>
-      order.id === id ? { ...order, shipping: 1 } : order,
-    );
-    setOrders(updatedOrders);
-
-    try {
-      await http.put(`/api/orders/${id}`);
-    } catch (error: any) {
-      // エラー時は元に戻す
-      const originalOrders = orders.map(order =>
-        order.id === id ? { ...order, shipping: 0 } : order,
-      );
-      setOrders(originalOrders);
-      console.error('出荷状態の更新に失敗しました:', error.message);
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -96,8 +81,8 @@ const Orders = () => {
             <th scope="col" className="px-6 py-4 text-left">
               注文日
             </th>
-            <th scope="col" className="px-6 py-4">
-              出荷・未出荷
+            <th scope="col" className="px-6 py-4 text-left">
+              出荷状態
             </th>
             <th scope="col" className="px-3 py-4">
               <button
@@ -123,44 +108,38 @@ const Orders = () => {
                 <td className="px-6 py-2">{order.pen.name}</td>
                 <td className="px-6 py-2">{order.pen.price}</td>
                 <td className="px-6 py-2">{order.num}</td>
-                <td className="px-6 py-2">{order.orderday}</td>
-                <td className="px-6 py-2 text-center">
-                  {order.shipping === 0 ? (
+                <td className="px-6 py-2">{formatDate(order.orderday)}</td>
+                <td className="px-6 py-2">
+                  {order.shipping ? (
+                    '出荷済み'
+                  ) : (
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        shipOrder(order.id);
-                      }}
+                      onClick={() => handleShip(order.id)}
+                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none"
                     >
-                      未
+                      出荷する
                     </button>
-                  ) : order.shipping === 1 ? (
-                    <span>出荷済</span>
-                  ) : null}
+                  )}
                 </td>
                 <td className="px-3 py-2 text-right">
-                  {order.shipping === 0 ? (
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        router.push(`/orders/edit/${order.id}`);
-                      }}
-                    >
-                      編集
-                    </button>
-                  ) : null}
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => {
+                      router.push(`/orders/edit/${order.id}`);
+                    }}
+                  >
+                    編集
+                  </button>
                 </td>
                 <td className="px-3 py-2">
-                  {order.shipping === 0 ? (
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        deleteOrder(order.id);
-                      }}
-                    >
-                      削除
-                    </button>
-                  ) : null}
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => {
+                      deleteOrder(order.id);
+                    }}
+                  >
+                    削除
+                  </button>
                 </td>
               </tr>
             );

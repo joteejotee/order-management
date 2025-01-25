@@ -17,7 +17,6 @@ return new class extends Migration
       $table->foreignId('pen_id')->constrained();
       $table->integer('num');
       $table->datetime('orderday');
-      $table->integer('shipping')->default(0);
       $table->timestamps();
     });
   }
