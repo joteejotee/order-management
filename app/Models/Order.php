@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Order extends Model
 {
@@ -24,9 +25,11 @@ class Order extends Model
     'orderday',
   ];
 
-  protected $casts = [
-    'orderday' => 'datetime',
-  ];
+  // アクセサを追加
+  public function getOrderdayFormattedAttribute()
+  {
+    return Carbon::parse($this->orderday)->format('Y-m-d H:i');
+  }
 
   public function customer()
   {
