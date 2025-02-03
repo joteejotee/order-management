@@ -17,7 +17,7 @@ class OrderResource extends JsonResource
     return [
       'id' => $this->id,
       'num' => $this->num,
-      'orderday' => $this->orderday,
+      'orderday' => $this->orderday_formatted,
       'customer' => CustomerResource::make($this->customer),
       'pen' => PenResource::make($this->pen),
       'shipping' => $this->shipping,

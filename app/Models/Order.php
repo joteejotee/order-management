@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Order extends Model
 {
@@ -26,6 +27,13 @@ class Order extends Model
     // このorderdayは、注文日を表す
     'orderday',
   ];
+
+  // アクセサを追加
+  public function getOrderdayFormattedAttribute()
+  {
+    return Carbon::parse($this->orderday)->format('Y-m-d H:i');
+  }
+
   public function customer()
   {
     // OrderモデルからCustomerモデルへのリレーションを定義
