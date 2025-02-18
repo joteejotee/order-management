@@ -16,11 +16,12 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     const getPen = async () => {
-      const response = await fetch(
-        `http://localhost:8000/api/pens/${params.id}`,
-      );
-      const json = await response.json();
-      setPen(json.data);
+      try {
+        const response = await http.get(`/api/pens/${params.id}`);
+        setPen(response.data.data);
+      } catch (error) {
+        console.error('Error fetching pen:', error);
+      }
     };
     getPen();
   }, [params.id]);
@@ -58,9 +59,9 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         </div>
         <input
           type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+          className="my-3 peer py-3 px-4 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
           placeholder="名前"
-          defaultValue={pen.name}
+          value={pen.name || ''}
           onChange={e => {
             setPen({
               ...pen,
@@ -71,9 +72,9 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         <div className="ml-4 text-red-500">{nameMessage}</div>
         <input
           type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+          className="my-3 peer py-3 px-4 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
           placeholder="価格"
-          defaultValue={pen.price}
+          value={pen.price || ''}
           onChange={e => {
             setPen({
               ...pen,
