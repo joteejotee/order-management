@@ -42,7 +42,7 @@ class OrderController extends Controller
     return response()->json([
       'pens' => $pens,
       'customers' => $customers,
-    ]);
+    ], 200);
   }
 
   /**

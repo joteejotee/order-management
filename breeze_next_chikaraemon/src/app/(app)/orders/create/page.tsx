@@ -23,19 +23,21 @@ const CreatePage = () => {
   //以下 pens customers 取得のための処理
   const [pens, setPens] = useState({});
   const [customers, setCustomers] = useState({});
-  const url =
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders/create` ||
-    'http://localhost:8000/api/orders/create';
-  const getJsons = async (url: string) => {
-    const response = await fetch(url);
-    const json = await response.json();
-    console.log(json.pens);
-    console.log(json.customers);
-    setPens(json.pens);
-    setCustomers(json.customers);
+
+  const getJsons = async () => {
+    // urlパラメータを削除
+    try {
+      const response = await http.get('/api/orders/create');
+      const json = response.data;
+      setPens(json.pens);
+      setCustomers(json.customers);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
+
   useEffect(() => {
-    getJsons(url);
+    getJsons(); // 引数なしで呼び出し
   }, []);
   //以上 pens customers 取得のための処理
 
@@ -102,7 +104,7 @@ const CreatePage = () => {
         <div className="ml-4 text-red-500">{pen_idMessage}</div>
         <input
           type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+          className="my-3 peer py-3 px-4 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
           placeholder="数量"
           onChange={e => {
             setNum(e.target.value);
