@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Pen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\OrderStoreRequest;
 
 class OrderController extends Controller
 {
@@ -48,13 +49,9 @@ class OrderController extends Controller
   /**
    * Store a newly created resource in storage.
    */
-  public function store(Request $request)
+  public function store(OrderStoreRequest $request)
   {
-    $validated = $request->validate([
-      'customer_id' => 'required|exists:customers,id',
-      'pen_id' => 'required|exists:pens,id',
-      'num' => 'required|integer|min:1',
-    ]);
+    $validated = $request->validated();
 
     $order = new Order();
     $order->customer_id = $validated['customer_id'];
@@ -63,7 +60,12 @@ class OrderController extends Controller
     $order->orderday = now();
     $order->save();
 
-    return response()->json(['message' => '注文を登録しました。']);
+    $order->load(['customer:id,name', 'pen:id,name,price']);
+
+    return response()->json([
+      'message' => '注文を登録しました。',
+      'data' => new OrderResource($order)
+    ], 201);
   }
 
   /**

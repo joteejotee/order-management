@@ -16,9 +16,9 @@ class OrderStoreRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'customer_id' => 'required|integer',
-      'pen_id' => 'required|integer',
-      'num' => 'required|integer|max:20|min:1',
+      'customer_id' => 'required|exists:customers,id',
+      'pen_id' => 'required|exists:pens,id',
+      'num' => 'required|integer|min:1|max:20',
     ];
   }
   public function attributes()
@@ -26,7 +26,7 @@ class OrderStoreRequest extends FormRequest
     return [
       'customer_id' => '顧客',
       'pen_id' => 'ペン',
-      'num' => '注文数',
+      'num' => '数量',
     ];
   }
   public function messages()
