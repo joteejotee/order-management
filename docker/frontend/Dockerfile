@@ -1,20 +1,49 @@
 # フロントエンドのDockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # 環境変数を設定
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 ENV NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
-ENV PATH $PATH:/app/node_modules/.bin
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-# アプリケーションファイルを先にコピー
-COPY breeze_next_chikaraemon/ .
+# ユーザーを作成
+RUN addgroup -g 2000 appgroup && \
+    adduser -u 2000 -G appgroup -s /bin/sh -D appuser
 
-# 依存関係をインストール
-RUN npm install --legacy-peer-deps
-RUN npm install next@13.4.19 react@18.2.0 react-dom@18.2.0 --legacy-peer-deps
+# package.jsonをコピー
+COPY --chown=appuser:appgroup ./breeze_next_chikaraemon/package*.json ./
+
+# npmを最新版にアップデート
+RUN npm install -g npm@latest
+
+# 依存関係をインストール（npmを使用）
+RUN npm install --legacy-peer-deps && \
+    npm cache clean --force
+
+# アプリケーションファイルをコピー
+COPY --chown=appuser:appgroup ./breeze_next_chikaraemon .
+
+# TypeScriptの設定
+COPY --chown=appuser:appgroup ./breeze_next_chikaraemon/tsconfig.json ./tsconfig.json
+
+# パーミッションを設定
+RUN chown -R appuser:appgroup /app && \
+    chmod -R 755 /app && \
+    chmod -R 755 node_modules/.bin
+
+# PATHを設定
+ENV PATH="/app/node_modules/.bin:/usr/local/bin:${PATH}"
+ENV NODE_PATH="/app/node_modules"
+
+# ユーザーを切り替え
+USER appuser
 
 EXPOSE 3000
 
-CMD ["npx", "next", "dev"]
+# Next.jsの開発サーバーを起動
+CMD ["npm", "run", "dev"]

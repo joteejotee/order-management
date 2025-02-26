@@ -12,6 +12,13 @@ import { useState } from 'react';
 type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
 type FormEvent = React.FormEvent<HTMLFormElement>;
 
+interface RegisterProps {
+  setErrors: (errors: any) => void;
+  setStatus: (status: string | null) => void;
+  name?: string;
+  email?: string;
+}
+
 const Page = () => {
   const { register } = useAuth({
     middleware: 'guest',

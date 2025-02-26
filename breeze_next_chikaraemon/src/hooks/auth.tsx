@@ -45,8 +45,12 @@ export const useAuth = ({
     () =>
       axios
         .get('/api/user')
-        .then(res => res.data)
+        .then(res => {
+          console.log('Auth - User data response:', res.data);
+          return res.data;
+        })
         .catch(error => {
+          console.error('Auth - Error fetching user:', error);
           if (error.response?.status !== 401) {
             throw error;
           }
@@ -103,7 +107,7 @@ export const useAuth = ({
       if (DEBUG_MODE) console.log('Login request successful');
       setStatus('success');
       await mutate();
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (error) {
       if (DEBUG_MODE) console.error('Login error:', error);
       setStatus('error');
@@ -180,16 +184,45 @@ export const useAuth = ({
   }, [error, mutate]);
 
   useEffect(() => {
-    if (middleware === 'guest' && redirectIfAuthenticated && user)
-      router.push(redirectIfAuthenticated);
+    console.log('Auth - Middleware Effect:', {
+      path: window.location.pathname,
+      user,
+      error,
+      middleware,
+      redirectIfAuthenticated,
+      isValidating,
+    });
+
+    if (middleware === 'guest' && redirectIfAuthenticated && user) {
+      console.log(
+        'Auth - Redirecting authenticated user from guest page to:',
+        redirectIfAuthenticated,
+      );
+      window.location.href = redirectIfAuthenticated;
+    }
+
     if (
       window.location.pathname === '/verify-email' &&
       user?.email_verified_at &&
       redirectIfAuthenticated
-    )
-      router.push(redirectIfAuthenticated);
-    if (middleware === 'auth' && error) logout();
-  }, [user, error, logout, middleware, redirectIfAuthenticated, router]);
+    ) {
+      console.log('Auth - Redirecting verified user from verification page');
+      window.location.href = redirectIfAuthenticated;
+    }
+
+    if (middleware === 'auth' && error && !isValidating) {
+      console.log('Auth - Unauthorized user detected, logging out');
+      logout();
+    }
+  }, [
+    user,
+    error,
+    logout,
+    middleware,
+    redirectIfAuthenticated,
+    router,
+    isValidating,
+  ]);
 
   return {
     user,
