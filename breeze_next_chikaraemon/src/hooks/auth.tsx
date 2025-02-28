@@ -32,6 +32,23 @@ interface LoginCredentials {
   setStatus: (status: string | null) => void;
 }
 
+interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  setErrors: (errors: any) => void;
+}
+
+interface ResetPasswordCredentials {
+  email: string;
+  password: string;
+  password_confirmation: string;
+  token: string;
+  setErrors: (errors: any) => void;
+  setStatus: (status: string | null) => void;
+}
+
 const DEBUG_MODE = true;
 
 export const useAuth = ({
@@ -70,16 +87,17 @@ export const useAuth = ({
   }, []);
 
   const register = async ({
+    name,
+    email,
+    password,
+    password_confirmation,
     setErrors,
-    ...props
-  }: {
-    setErrors: (errors: any) => void;
-  }) => {
+  }: RegisterCredentials) => {
     await csrf();
     setErrors([]);
 
     axios
-      .post('/register', props)
+      .post('/register', { name, email, password, password_confirmation })
       .then(() => mutate())
       .catch((error: ErrorResponse) => {
         if (error.response.status !== 422) throw error;
@@ -142,19 +160,24 @@ export const useAuth = ({
   };
 
   const resetPassword = async ({
+    email,
+    password,
+    password_confirmation,
+    token,
     setErrors,
     setStatus,
-    ...props
-  }: {
-    setErrors: (errors: any) => void;
-    setStatus: (status: string | null) => void;
-  }) => {
+  }: ResetPasswordCredentials) => {
     await csrf();
     setErrors([]);
     setStatus(null);
 
     axios
-      .post('/reset-password', { ...props })
+      .post('/reset-password', {
+        email,
+        password,
+        password_confirmation,
+        token,
+      })
       .then(response =>
         router.push('/login?reset=' + btoa(response.data.status)),
       )

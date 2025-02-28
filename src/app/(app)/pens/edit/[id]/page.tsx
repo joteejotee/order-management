@@ -4,12 +4,11 @@ import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { ApiResponse, Pen } from "@/types";
 
-const http = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000",
-    withCredentials: true,
-});
+// axiosインスタンスを直接インポートして使用する
+// axios.createは不要
 
 const EditPage = ({ params }: { params: { id: string } }) => {
+    // 型定義に合わせた初期値を設定
     const [pen, setPen] = useState<Pen>({
         id: 0,
         name: "",
@@ -24,7 +23,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
     useEffect(() => {
         const getPen = async () => {
             try {
-                const response = await http.get<ApiResponse<Pen>>(
+                const response = await axios.get<ApiResponse<Pen>>(
                     `/api/pens/${params.id}`
                 );
                 setPen(response.data.data);
@@ -40,11 +39,12 @@ const EditPage = ({ params }: { params: { id: string } }) => {
             name: pen.name,
             price: pen.price,
         };
-        http.patch(`/api/pens/${pen.id}`, requestBody, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
+        axios
+            .patch(`/api/pens/${pen.id}`, requestBody, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
             .then(() => {
                 router.push("/pens");
             })
@@ -84,11 +84,11 @@ const EditPage = ({ params }: { params: { id: string } }) => {
                     type="text"
                     className="my-3 peer py-3 px-4 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                     placeholder="価格"
-                    value={pen.price || ""}
+                    value={pen.price}
                     onChange={(e) => {
                         setPen({
                             ...pen,
-                            price: e.target.value,
+                            price: Number(e.target.value),
                         });
                     }}
                 />
@@ -109,5 +109,3 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 };
 
 export default EditPage;
-
-// 修正のためのダミーコメント
