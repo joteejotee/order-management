@@ -878,3 +878,6 @@
 [26-Feb-2025 06:40:13] NOTICE: exiting, bye-bye!
 [26-Feb-2025 06:46:14] NOTICE: fpm is running, pid 7
 [26-Feb-2025 06:46:14] NOTICE: ready to handle connections
+[28-Feb-2025 12:47:51] NOTICE: Terminating ...
+[28-Feb-2025 12:49:52] NOTICE: fpm is running, pid 8
+[28-Feb-2025 12:49:52] NOTICE: ready to handle connections
