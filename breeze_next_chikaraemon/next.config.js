@@ -13,6 +13,8 @@ const nextConfig = {
     // type checkをbuild時にoff
     ignoreBuildErrors: true,
   },
+  // 追加：出力設定
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
