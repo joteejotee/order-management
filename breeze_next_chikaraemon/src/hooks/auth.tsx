@@ -112,25 +112,32 @@ export const useAuth = ({
     setErrors,
     setStatus,
   }: LoginCredentials) => {
-    if (DEBUG_MODE)
-      console.log('Login attempt with:', { email, password, remember });
-
-    await csrf();
-    setErrors([]);
+    setErrors({});
     setStatus(null);
 
     try {
-      if (DEBUG_MODE) console.log('Sending login request...');
-      await axios.post('/api/login', { email, password, remember });
-      if (DEBUG_MODE) console.log('Login request successful');
-      setStatus('success');
-      await mutate();
-      window.location.href = '/dashboard';
+      // CSRFトークンを取得
+      console.log('Auth - Requesting CSRF token');
+      await axios.get('/sanctum/csrf-cookie');
+
+      // ログイン処理
+      console.log('Auth - Sending login request');
+      await axios.post('/login', {
+        email,
+        password,
+        remember,
+      });
+
+      mutate();
+      router.push('/dashboard');
     } catch (error) {
-      if (DEBUG_MODE) console.error('Login error:', error);
-      setStatus('error');
-      if ((error as ErrorResponse).response?.status === 422) {
-        setErrors((error as ErrorResponse).response.data.errors);
+      if (error instanceof Error) {
+        console.error('Login error:', error);
+      }
+
+      const errorResponse = error as ErrorResponse;
+      if (errorResponse.response?.status === 422) {
+        setErrors(errorResponse.response.data.errors);
       } else {
         throw error;
       }
