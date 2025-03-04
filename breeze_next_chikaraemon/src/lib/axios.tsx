@@ -25,7 +25,21 @@ axios.interceptors.request.use(config => {
 axios.interceptors.response.use(
   response => response,
   error => {
-    console.error('Axios error:', error.response || error);
+    // 開発環境でのみエラーログを出力
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Axios error:', error.response || error);
+    }
+
+    // CSRFトークンエラーの場合、自動的にトークンを再取得
+    if (error.response?.status === 419) {
+      console.warn('CSRF token mismatch detected, refreshing token...');
+      // ページをリロードせずにCSRFトークンを再取得
+      return axios.get('/sanctum/csrf-cookie').then(() => {
+        // 元のリクエストを再試行
+        return axios(error.config);
+      });
+    }
+
     return Promise.reject(error);
   },
 );

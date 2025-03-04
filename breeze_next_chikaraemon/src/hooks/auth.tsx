@@ -49,7 +49,7 @@ interface ResetPasswordCredentials {
   setStatus: (status: string | null) => void;
 }
 
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 export const useAuth = ({
   middleware,
@@ -117,29 +117,33 @@ export const useAuth = ({
 
     try {
       // CSRFトークンを取得
-      console.log('Auth - Requesting CSRF token');
       await axios.get('/sanctum/csrf-cookie');
 
       // ログイン処理
-      console.log('Auth - Sending login request');
       await axios.post('/login', {
         email,
         password,
         remember,
       });
 
-      mutate();
+      // ユーザー情報を更新
+      await mutate();
       router.push('/dashboard');
     } catch (error) {
       if (error instanceof Error) {
         console.error('Login error:', error);
       }
 
-      const errorResponse = error as ErrorResponse;
+      const errorResponse = error as any;
       if (errorResponse.response?.status === 422) {
         setErrors(errorResponse.response.data.errors);
+      } else if (errorResponse.response?.status === 419) {
+        // CSRFトークンエラーの場合
+        setStatus(
+          'CSRFトークンが無効です。ページを更新して再度お試しください。',
+        );
       } else {
-        throw error;
+        setStatus('ログインに失敗しました。認証情報を確認してください。');
       }
     }
   };
