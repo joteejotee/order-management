@@ -169,7 +169,18 @@ export function useAuth({
     const login = async ({ email, password }: LoginCredentials) => {
         setIsLoading(true);
         try {
-            await axios.post("/login", { email, password });
+            // CSRFトークンを取得
+            console.log("Auth - Requesting CSRF token");
+            await axios.get("/sanctum/csrf-cookie");
+
+            // ログイン処理
+            console.log("Auth - Sending login request");
+            await axios.post("/api/login", {
+                email,
+                password,
+                remember: false,
+            });
+
             // キャッシュキーを更新
             const newKey = `/api/user?t=${Date.now()}`;
             setCacheKey(newKey);
