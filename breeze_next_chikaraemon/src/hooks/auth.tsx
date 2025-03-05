@@ -115,21 +115,36 @@ export const useAuth = ({
     setErrors({});
     setStatus(null);
 
+    console.log('Login attempt with:', { email, password, remember });
+
     try {
       // CSRFトークンを取得
-      await axios.get('/sanctum/csrf-cookie');
+      console.log('Fetching CSRF token...');
+      await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
 
       // ログイン処理
-      await axios.post('/api/login', {
-        email,
-        password,
-        remember,
-      });
+      console.log('Sending login request...');
+      await axios.post(
+        '/login',
+        {
+          email,
+          password,
+          remember,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
+          },
+        },
+      );
 
       // ユーザー情報を更新
       await mutate();
+      console.log('Login status: success');
       router.push('/dashboard');
     } catch (error) {
+      console.log('Login status: error');
       if (error instanceof Error) {
         console.error('Login error:', error);
       }
@@ -270,3 +285,18 @@ export const useAuth = ({
     isValidating,
   };
 };
+
+// ヘルパー関数を追加
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift();
+    return cookieValue ? decodeURIComponent(cookieValue) : null;
+  }
+
+  return null;
+}
