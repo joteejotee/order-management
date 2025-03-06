@@ -19,7 +19,7 @@ const LoginForm = () => {
 
             // ログイン処理
             console.log("Sending login request");
-            const loginResponse = await axios.post("/api/login", {
+            const loginResponse = await axios.post("/login", {
                 email,
                 password,
                 remember: false,
