@@ -58,10 +58,10 @@ export const useAuth = ({
   const router = useRouter();
 
   const { data: user, error, mutate, isValidating } = useSWR<User | null>(
-    '/api/user',
+    '/user',
     () =>
       axios
-        .get('/api/user')
+        .get('/user')
         .then(res => {
           console.log('Auth - User data response:', res.data);
           return res.data;
