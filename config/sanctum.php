@@ -15,11 +15,16 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        env('FRONTEND_URL') ? ',' . parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
-    ))),
+    'stateful' => [
+        'localhost',
+        'localhost:3000',
+        '127.0.0.1',
+        '127.0.0.1:8000',
+        '::1',
+        'www.order-management1.com',
+        'api.order-management1.com',
+        parse_url(env('FRONTEND_URL', 'https://www.order-management1.com'), PHP_URL_HOST),
+    ],
 
     /*
     |--------------------------------------------------------------------------

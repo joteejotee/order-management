@@ -1,23 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
-
-const apiUrl = 'http://localhost:8000';
-// const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const http = axios.create({
-  baseURL: apiUrl,
-  withCredentials: true,
-});
+import axios from '@/lib/axios';
 
 //この関数が呼ばれると、ペンの一覧が表示される
 const Pens = () => {
   const [pens, setPens] = useState<any[]>([]);
   const router = useRouter();
-  const [currentUrl, setCurrentUrl] = useState(
-    'http://localhost:8000/api/pens',
-  );
+  const [currentUrl, setCurrentUrl] = useState('/api/pens');
 
   interface PageInfo {
     next_page_url?: string;
@@ -29,16 +19,20 @@ const Pens = () => {
 
   //この関数が呼ばれると、ペンの一覧が取得される
   const getPens = async () => {
-    const response = await fetch(currentUrl);
-    const json = await response.json();
+    try {
+      const response = await axios.get(currentUrl);
+      const data = response.data;
 
-    console.log(json.data);
+      console.log(data.data);
 
-    //変更json.data → json.data.data
-    setPens(json.data.data);
-    //追加
-    setInfo(json.data);
-    console.log(json.data);
+      //変更json.data → json.data.data
+      setPens(data.data.data);
+      //追加
+      setInfo(data.data);
+      console.log(data.data);
+    } catch (error) {
+      console.error('ペンの取得に失敗しました', error);
+    }
   };
 
   //関数useEffectは、このコンポーネントが初期化（画面に表示）された時に呼ばれる。
@@ -50,21 +44,28 @@ const Pens = () => {
 
   const deletePen = async (id: number) => {
     if (confirm('削除しますか？')) {
-      http.delete(`/api/pens/${id}`).then(() => {
+      try {
+        await axios.delete(`/api/pens/${id}`);
         getPens();
-      });
+      } catch (error) {
+        console.error('削除に失敗しました', error);
+      }
     }
   };
   //追加
   const handleNextPage = () => {
     if (info.next_page_url) {
-      setCurrentUrl(info.next_page_url); // 次のページURLを状態に設定
+      // 完全なURLから相対パスに変換する
+      const url = new URL(info.next_page_url);
+      setCurrentUrl(url.pathname + url.search);
     }
   };
   //追加
   const handlePreviousPage = () => {
     if (info.prev_page_url) {
-      setCurrentUrl(info.prev_page_url); // 前のページURLを状態に設定
+      // 完全なURLから相対パスに変換する
+      const url = new URL(info.prev_page_url);
+      setCurrentUrl(url.pathname + url.search);
     }
   };
 

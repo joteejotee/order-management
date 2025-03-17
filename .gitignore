@@ -20,3 +20,11 @@ yarn-error.log
 /.vscode
 
 .vercel
+
+# Added temporarily for development
+cookies*.txt
+*-fix.sh
+fix-*.php
+*.log
+/storage/logs/
+/logs/

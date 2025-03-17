@@ -1,12 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
-
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+import axios from '@/lib/axios';
 
 const EditPage = ({ params }: { params: { id: string } }) => {
   const [pen, setPen] = useState<Record<string, any>>({});
@@ -16,11 +11,12 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     const getPen = async () => {
-      const response = await fetch(
-        `http://localhost:8000/api/pens/${params.id}`,
-      );
-      const json = await response.json();
-      setPen(json.data);
+      try {
+        const response = await axios.get(`/api/pens/${params.id}`);
+        setPen(response.data.data);
+      } catch (error) {
+        console.error('ペンの取得に失敗しました', error);
+      }
     };
     getPen();
   }, [params.id]);
@@ -30,21 +26,26 @@ const EditPage = ({ params }: { params: { id: string } }) => {
       name: pen.name,
       price: pen.price,
     };
-    http
-      .patch(`/api/pens/${pen.id}`, requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(() => {
-        router.push('/pens');
-      })
-      .catch(function (error) {
-        console.log(error.response.data.errors.name);
-        console.log(error.response.data.errors.price);
-        setNameMessage(error.response.data.errors.name);
-        setPriceMessage(error.response.data.errors.price);
-      });
+
+    try {
+      setNameMessage('');
+      setPriceMessage('');
+
+      await axios.put(`/api/pens/${params.id}`, requestBody);
+      router.push('/pens');
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errors = error.response.data.errors;
+        if (errors.name) {
+          setNameMessage(errors.name[0]);
+        }
+        if (errors.price) {
+          setPriceMessage(errors.price[0]);
+        }
+      } else {
+        console.error('更新に失敗しました', error);
+      }
+    }
   };
 
   return (
