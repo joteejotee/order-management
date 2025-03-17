@@ -1,90 +1,41 @@
 import useSWR from 'swr';
-import axios from '@/lib/axios';
+import axios from 'axios';
 import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Dispatch, SetStateAction } from 'react';
+import { User } from '@/types/user';
 
-interface AuthProps {
-  middleware?: 'auth' | 'guest';
-  redirectIfAuthenticated?: string | undefined;
+const apiUrl = 'http://localhost:8000';
+
+// axiosの設定を更新
+axios.defaults.baseURL = apiUrl;
+axios.defaults.withCredentials = true;
+
+// オプションの型定義
+interface UseAuthOptions {
+  middleware?: 'guest' | 'auth';
+  redirectIfAuthenticated?: string;
 }
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  email_verified_at?: string;
-}
-
-interface ErrorResponse {
-  response: {
-    status: number;
-    data: {
-      errors: Record<string, string[]>;
-    };
-  };
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-  remember: boolean;
-  setErrors: (errors: any) => void;
-  setStatus: (status: string | null) => void;
-}
-
-interface RegisterCredentials {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-  setErrors: (errors: any) => void;
-}
-
-interface ResetPasswordCredentials {
-  email: string;
-  password: string;
-  password_confirmation: string;
-  token: string;
-  setErrors: (errors: any) => void;
-  setStatus: (status: string | null) => void;
-}
-
-const DEBUG_MODE = false;
 
 export const useAuth = ({
   middleware,
   redirectIfAuthenticated,
-}: AuthProps = {}) => {
+}: UseAuthOptions = {}) => {
   const router = useRouter();
 
-  const { data: user, error, mutate, isValidating } = useSWR<User | null>(
-    '/api/user',
-    () =>
-      axios
-        .get('/api/user')
-        .then(res => {
-          console.log('Auth - User data response:', res.data);
-          return res.data;
-        })
-        .catch(error => {
-          console.error('Auth - Error fetching user:', error);
-          if (error.response?.status !== 401) {
-            throw error;
-          }
+  const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
+    axios
+      .get('/api/user')
+      .then(res => res.data)
+      .catch(error => {
+        if (error.response?.status === 401) {
           return null;
-        }),
-    {
-      revalidateOnFocus: false,
-      shouldRetryOnError: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 2000,
-    },
+        }
+        throw error;
+      }),
   );
 
-  const csrf = useCallback(() => {
-    if (DEBUG_MODE) console.log('Fetching CSRF token...');
-    return axios.get('/sanctum/csrf-cookie');
-  }, []);
+  const csrf = () => axios.get('/sanctum/csrf-cookie');
 
   const register = async ({
     name,
@@ -92,15 +43,30 @@ export const useAuth = ({
     password,
     password_confirmation,
     setErrors,
-  }: RegisterCredentials) => {
+  }: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    setErrors: Dispatch<
+      SetStateAction<{
+        name?: string[];
+        email?: string[];
+        password?: string[];
+        password_confirmation?: string[];
+      }>
+    >;
+  }) => {
     await csrf();
-    setErrors([]);
+
+    setErrors({});
 
     axios
       .post('/register', { name, email, password, password_confirmation })
       .then(() => mutate())
-      .catch((error: ErrorResponse) => {
+      .catch(error => {
         if (error.response.status !== 422) throw error;
+
         setErrors(error.response.data.errors);
       });
   };
@@ -111,76 +77,50 @@ export const useAuth = ({
     remember,
     setErrors,
     setStatus,
-  }: LoginCredentials) => {
+  }: {
+    email: string;
+    password: string;
+    remember: boolean;
+    setErrors: Dispatch<
+      SetStateAction<{ email?: string[]; password?: string[] }>
+    >;
+    setStatus: Dispatch<SetStateAction<string | null>>;
+  }) => {
+    await csrf();
+
     setErrors({});
     setStatus(null);
 
-    console.log('Login attempt with:', { email, password, remember });
+    axios
+      .post('/login', { email, password, remember })
+      .then(() => mutate())
+      .catch(error => {
+        if (error.response.status !== 422) throw error;
 
-    try {
-      // CSRFトークンを取得
-      console.log('Fetching CSRF token...');
-      await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
-
-      // ログイン処理
-      console.log('Sending login request...');
-      await axios.post(
-        '/login',
-        {
-          email,
-          password,
-          remember,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
-          },
-        },
-      );
-
-      // ユーザー情報を更新
-      await mutate();
-      console.log('Login status: success');
-      router.push('/dashboard');
-    } catch (error) {
-      console.log('Login status: error');
-      if (error instanceof Error) {
-        console.error('Login error:', error);
-      }
-
-      const errorResponse = error as any;
-      if (errorResponse.response?.status === 422) {
-        setErrors(errorResponse.response.data.errors);
-      } else if (errorResponse.response?.status === 419) {
-        // CSRFトークンエラーの場合
-        setStatus(
-          'CSRFトークンが無効です。ページを更新して再度お試しください。',
-        );
-      } else {
-        setStatus('ログインに失敗しました。認証情報を確認してください。');
-      }
-    }
+        setErrors(error.response.data.errors);
+      });
   };
 
   const forgotPassword = async ({
+    email,
     setErrors,
     setStatus,
-    email,
   }: {
-    setErrors: (errors: any) => void;
-    setStatus: (status: string | null) => void;
     email: string;
+    setErrors: Dispatch<SetStateAction<{ email?: string[] }>>;
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
     await csrf();
-    setErrors([]);
+
+    setErrors({});
     setStatus(null);
 
     axios
       .post('/forgot-password', { email })
       .then(response => setStatus(response.data.status))
-      .catch((error: ErrorResponse) => {
+      .catch(error => {
         if (error.response.status !== 422) throw error;
+
         setErrors(error.response.data.errors);
       });
   };
@@ -192,23 +132,38 @@ export const useAuth = ({
     token,
     setErrors,
     setStatus,
-  }: ResetPasswordCredentials) => {
+  }: {
+    email: string;
+    password: string;
+    password_confirmation: string;
+    token: string;
+    setErrors: Dispatch<
+      SetStateAction<{
+        email?: string[];
+        password?: string[];
+        password_confirmation?: string[];
+      }>
+    >;
+    setStatus: Dispatch<SetStateAction<string | null>>;
+  }) => {
     await csrf();
-    setErrors([]);
+
+    setErrors({});
     setStatus(null);
 
     axios
       .post('/reset-password', {
+        token,
         email,
         password,
         password_confirmation,
-        token,
       })
       .then(response =>
         router.push('/login?reset=' + btoa(response.data.status)),
       )
-      .catch((error: ErrorResponse) => {
+      .catch(error => {
         if (error.response.status !== 422) throw error;
+
         setErrors(error.response.data.errors);
       });
   };
@@ -216,7 +171,7 @@ export const useAuth = ({
   const resendEmailVerification = ({
     setStatus,
   }: {
-    setStatus: (status: string) => void;
+    setStatus: Dispatch<SetStateAction<string | null>>;
   }) => {
     axios
       .post('/email/verification-notification')
@@ -225,53 +180,24 @@ export const useAuth = ({
 
   const logout = useCallback(async () => {
     if (!error) {
-      await axios.post('/logout');
-      mutate();
+      await axios.post('/logout').then(() => mutate());
     }
 
     window.location.pathname = '/login';
   }, [error, mutate]);
 
   useEffect(() => {
-    console.log('Auth - Middleware Effect:', {
-      path: window.location.pathname,
-      user,
-      error,
-      middleware,
-      redirectIfAuthenticated,
-      isValidating,
-    });
-
-    if (middleware === 'guest' && redirectIfAuthenticated && user) {
-      console.log(
-        'Auth - Redirecting authenticated user from guest page to:',
-        redirectIfAuthenticated,
-      );
-      window.location.href = redirectIfAuthenticated;
-    }
-
+    if (middleware === 'guest' && redirectIfAuthenticated && user)
+      router.push(redirectIfAuthenticated);
     if (
       window.location.pathname === '/verify-email' &&
-      user?.email_verified_at &&
-      redirectIfAuthenticated
+      user?.email_verified_at !== undefined &&
+      redirectIfAuthenticated !== undefined
     ) {
-      console.log('Auth - Redirecting verified user from verification page');
-      window.location.href = redirectIfAuthenticated;
+      router.push(redirectIfAuthenticated);
     }
-
-    if (middleware === 'auth' && error && !isValidating) {
-      console.log('Auth - Unauthorized user detected, logging out');
-      logout();
-    }
-  }, [
-    user,
-    error,
-    logout,
-    middleware,
-    redirectIfAuthenticated,
-    router,
-    isValidating,
-  ]);
+    if (middleware === 'auth' && error) logout();
+  }, [user, error, middleware, redirectIfAuthenticated, router, logout]);
 
   return {
     user,
@@ -281,22 +207,5 @@ export const useAuth = ({
     resetPassword,
     resendEmailVerification,
     logout,
-    csrf,
-    isValidating,
   };
 };
-
-// ヘルパー関数を追加
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift();
-    return cookieValue ? decodeURIComponent(cookieValue) : null;
-  }
-
-  return null;
-}

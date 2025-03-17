@@ -1,30 +1,30 @@
 'use client';
 
 import { useAuth } from '@/hooks/auth';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { User } from '@/types/user';
 
-export default function Home() {
+const Home = () => {
   const router = useRouter();
-  const { user, isValidating } = useAuth();
+  const { user } = useAuth() as { user: User | null | undefined };
 
   useEffect(() => {
-    if (!isValidating) {
-      if (user) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/login');
-      }
+    if (user === null) {
+      router.push('/login');
+    } else if (user) {
+      router.push('/dashboard');
     }
-  }, [user, isValidating, router]);
+  }, [user, router]);
 
-  if (isValidating) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700 mx-auto mb-4" />
+        <div className="text-gray-600">Loading...</div>
       </div>
-    );
-  }
+    </div>
+  );
+};
 
-  return null;
-}
+export default Home;

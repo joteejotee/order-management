@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Customer;
-use App\Models\Pen;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Resources\OrderResource;
 use App\Http\Requests\OrderStoreRequest;
+use App\Models\Pen;
+use App\Models\Customer;
 
 class OrderController extends Controller
 {
@@ -17,20 +17,20 @@ class OrderController extends Controller
    */
   public function index()
   {
-    $ordersQuery = Order::select(['id', 'pen_id', 'customer_id', 'num', 'shipping', 'orderday'])
-      ->with(['customer:id,name', 'pen:id,name,price']);
-
-    $orders = $ordersQuery->paginate(4);
-
+    $orders = Order::paginate(4);
+    $ordersQuery = Order::orderBy('id', 'desc');
+    $ordersPaginator = $ordersQuery->paginate(4); // ページネーション
+    $orders = OrderResource::collection($ordersPaginator->items());
     return response()->json([
-      'data' => OrderResource::collection($orders),
+      'data' => $orders,
       'meta' => [
-        'current_page' => $orders->currentPage(),
-        'per_page' => $orders->perPage(),
-        'next_page_url' => $orders->nextPageUrl(),
-        'prev_page_url' => $orders->previousPageUrl(),
+        'current_page' => $ordersPaginator->currentPage(),
+        'per_page' => $ordersPaginator->perPage(),
+        'total' => $ordersPaginator->total(),
+        'next_page_url' => $ordersPaginator->nextPageUrl(),
+        'prev_page_url' => $ordersPaginator->previousPageUrl(),
       ],
-    ]);
+    ], 200);
   }
 
   /**
@@ -51,20 +51,15 @@ class OrderController extends Controller
    */
   public function store(OrderStoreRequest $request)
   {
-    $validated = $request->validated();
-
     $order = new Order();
-    $order->customer_id = $validated['customer_id'];
-    $order->pen_id = $validated['pen_id'];
-    $order->num = $validated['num'];
-    $order->orderday = now();
+    $order->pen_id = $request->pen_id;
+    $order->customer_id = $request->customer_id;
+    $order->num = $request->num;
+    $order->shipping = 0;
+    $order->orderday = date('Y-m-d H:i:s');
     $order->save();
-
-    $order->load(['customer:id,name', 'pen:id,name,price']);
-
     return response()->json([
-      'message' => '注文を登録しました。',
-      'data' => new OrderResource($order)
+      'data' => $order
     ], 201);
   }
 
@@ -81,34 +76,26 @@ class OrderController extends Controller
    */
   public function edit($id)
   {
-    $order = Order::find($id);
     $pens = Pen::all();
     $customers = Customer::all();
+    $order = Order::find($id);
     return response()->json([
       'data' => $order,
       'pens' => $pens,
       'customers' => $customers,
-    ]);
+    ], 200);
   }
 
   /**
    * Update the specified resource in storage.
    */
-  public function update(Request $request, $id)
+  public function update(OrderStoreRequest $request, Order $order)
   {
-    $validated = $request->validate([
-      'customer_id' => 'required|exists:customers,id',
-      'pen_id' => 'required|exists:pens,id',
-      'num' => 'required|integer|min:1',
-    ]);
-
-    $order = Order::find($id);
-    $order->customer_id = $validated['customer_id'];
-    $order->pen_id = $validated['pen_id'];
-    $order->num = $validated['num'];
+    $order->fill($request->all());
     $order->save();
-
-    return response()->json(['message' => '注文を更新しました。']);
+    return response()->json([
+      'data' => $order
+    ], 200);
   }
 
   /**
@@ -118,21 +105,26 @@ class OrderController extends Controller
   {
     //
   }
-
-  public function delete($id)
+  public function delete(Order $order)
   {
-    $order = Order::find($id);
     $order->delete();
-
-    return response()->json(['message' => '注文を削除しました。']);
+    return response()->json([
+      'message' => '注文を削除しました'
+    ], 200);
   }
 
   public function ship($id)
   {
     $order = Order::find($id);
-    $order->shipping = true;
+    if (!$order) {
+      return response()->json(['error' => 'Order not found'], 404);
+    }
+
+    $order->shipping = 1;
     $order->save();
 
-    return response()->json(['message' => '出荷処理が完了しました。']);
+    return response()->json([
+      'message' => '出荷済にしました'
+    ], 200);
   }
 }

@@ -13,12 +13,6 @@ import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
 type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
 type FormEvent = React.FormEvent<HTMLFormElement>;
 
-interface RegisterProps {
-  setErrors: (errors: any) => void;
-  setStatus: (status: string | null) => void;
-  email?: string;
-}
-
 const PasswordReset = () => {
   const searchParams = useSearchParams();
   const params = useParams();

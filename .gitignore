@@ -18,6 +18,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
 .vercel
-structure.txt
-docker/*/logs/*

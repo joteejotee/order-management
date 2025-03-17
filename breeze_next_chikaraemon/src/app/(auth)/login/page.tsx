@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
 import { Eye, EyeOff, Check, UserCircle } from 'lucide-react';
 
 // バリデーションスキーマ
@@ -33,8 +34,12 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login } = useAuth({
+    middleware: 'guest',
+    redirectIfAuthenticated: '/dashboard',
+  });
 
+  const [status, setStatus] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -48,33 +53,18 @@ const Login = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    try {
-      await login({
-        email: values.email,
-        password: values.password,
-        remember: values.remember,
-        setErrors: errors => {
-          if (errors?.email) {
-            form.setError('email', { message: errors.email[0] });
-          }
-          if (errors?.password) {
-            form.setError('password', { message: errors.password[0] });
-          }
-        },
-        setStatus: status => {
-          if (status) {
-            console.log('Login status:', status);
-          }
-        },
-      });
-    } catch (error) {
-      console.error('Login submission error:', error);
-      form.setError('root', { message: 'ログインに失敗しました。' });
-    }
+    await login({
+      email: values.email,
+      password: values.password,
+      remember: values.remember,
+      setErrors: () => {},
+      setStatus,
+    });
   };
 
   return (
     <>
+      <AuthSessionStatus className="mb-4" status={status} />
       <div className="text-center mb-6">
         <UserCircle
           className="w-16 h-16 text-gray-700 mx-auto mb-6"
@@ -113,13 +103,12 @@ const Login = () => {
                   <Input
                     className="h-12 !text-lg placeholder:text-lg pt-1"
                     placeholder="mail@example.com"
-                    autoComplete="username"
                     {...field}
                   />
                 </FormControl>
                 <FormMessage className="text-base mt-1" />
                 {!form.formState.errors.email && field.value && (
-                  <div className="absolute right-[-30px] top-[70%] translate-y-[-50%]">
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}
@@ -154,7 +143,6 @@ const Login = () => {
                     <Input
                       className="h-12 !text-lg pt-1"
                       type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
                       {...field}
                     />
                     <button
@@ -172,7 +160,7 @@ const Login = () => {
                 </FormControl>
                 <FormMessage className="text-base mt-1" />
                 {!form.formState.errors.password && field.value && (
-                  <div className="absolute right-[-30px] top-[70%] translate-y-[-50%]">
+                  <div className="absolute right-[-30px] top-[70%] transform -translate-y-1/2">
                     <Check className="h-6 w-6 text-green-500" />
                   </div>
                 )}

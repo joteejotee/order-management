@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 const http = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
+  baseURL: 'http://localhost:8000',
   withCredentials: true,
 });
 
@@ -48,14 +48,13 @@ const EditPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
 
   const getOrder = async () => {
-    try {
-      const response = await http.get(`/api/orders/${params.id}`);
-      setOrder(response.data.data);
-      setPens(response.data.pens);
-      setCustomers(response.data.customers);
-    } catch (error) {
-      console.error('Error fetching order:', error);
-    }
+    const response = await fetch(
+      `http://localhost:8000/api/orders/${params.id}`,
+    );
+    const json = await response.json();
+    setOrder(json.data);
+    setPens(json.pens);
+    setCustomers(json.customers);
   };
 
   useEffect(() => {
@@ -95,12 +94,11 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         <div className="py-2 px-4">
           <p>
             IDが{params.id}
-            の注文の顧客とペン、注文数を入力して、登録ボタンをクリックしてください
+            の注文の顧客IDとペンID、注文数を入力して、登録ボタンをクリックしてください
           </p>
         </div>
         <select
           id="customerSelect"
-          value={order.customer_id}
           onChange={e => {
             setOrder({
               ...order,
@@ -111,7 +109,11 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         >
           <option value="">顧客を選択してください</option>
           {customers.map(customer => (
-            <option key={customer.id} value={customer.id}>
+            <option
+              key={customer.id}
+              value={customer.id}
+              selected={customer.id === order.customer_id}
+            >
               {customer.name}
             </option>
           ))}
@@ -119,7 +121,6 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         <div className="ml-4 text-red-500">{customer_idMessage}</div>
         <select
           id="penSelect"
-          value={order.pen_id}
           onChange={e => {
             setOrder({
               ...order,
@@ -130,7 +131,11 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         >
           <option value="">ペンを選択してください</option>
           {pens.map(pen => (
-            <option key={pen.id} value={pen.id}>
+            <option
+              key={pen.id}
+              value={pen.id}
+              selected={pen.id === order.pen_id}
+            >
               {pen.name}
             </option>
           ))}
@@ -138,7 +143,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         <div className="ml-4 text-red-500">{pen_idMessage}</div>
         <input
           type="text"
-          className="my-3 peer py-3 px-4 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
           placeholder="数量"
           value={order.num}
           onChange={e => {

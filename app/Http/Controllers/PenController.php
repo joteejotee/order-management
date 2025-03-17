@@ -12,19 +12,11 @@ class PenController extends Controller
   //penの全データを取得して、json形式で返す
   public function index()
   {
-    $pens = Pen::select(['id', 'name', 'price'])
-      ->orderBy('id', 'desc')
-      ->simplePaginate(4);
-    
-    return response()->json([
-      'data' => $pens,
-      'meta' => [
-        'current_page' => $pens->currentPage(),
-        'per_page' => $pens->perPage(),
-        'next_page_url' => $pens->nextPageUrl(),
-        'prev_page_url' => $pens->previousPageUrl(),
-      ],
-    ], 200);
+    // $pens = Pen::all(); //penモデルの全データを取得
+    $pens = Pen::paginate(4); //ページネーション
+    return response()->json([ //json形式で返す
+      'data' => $pens //dataに$pensを代入
+    ], 200); //ステータスコード200
   }
 
   // 登録
