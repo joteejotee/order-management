@@ -1,0 +1,43 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add EC2 to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          rsync -avz --exclude '.git' --exclude '.github' \
+            --exclude 'breeze_next_chikaraemon' \
+            --exclude '.vscode' --exclude '.DS_Store' \
+            --exclude '.next' --exclude 'node_modules' \
+            --exclude 'docker' --exclude 'docker-compose.yml' \
+            --exclude '.vercel' --exclude 'vercel.json' \
+            --exclude 'deploy-aws.sh' --exclude '.env.local' \
+            --exclude '.cursorrules' --exclude 'api-test.http' \
+            --exclude 'README_LOCAL.md' \
+            ./ ec2-user@${{ secrets.EC2_HOST }}:/usr/share/nginx/html/
+
+      - name: Restart services & run migrations
+        run: |
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'cd /usr/share/nginx/html && 
+            php artisan migrate --force && 
+            php artisan cache:clear && 
+            php artisan route:clear && 
+            php artisan optimize &&
+            sudo systemctl restart nginx'

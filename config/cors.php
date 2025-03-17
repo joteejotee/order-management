@@ -15,12 +15,9 @@ return [
     |
     */
 
-    'paths' => ['*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => [
-        'https://order-management1.com',
-        'https://www.order-management1.com'
-    ],
+    'allowed_origins' => ['https://www.order-management1.com'],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
