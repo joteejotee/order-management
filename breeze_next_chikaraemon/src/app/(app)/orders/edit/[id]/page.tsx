@@ -1,171 +1,133 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
+"use client";
+import React, { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import axios from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { Order, Pen } from "@/types";
 
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+interface EditOrderProps {
+    params: {
+        id: string;
+    };
+}
 
-// 型定義
-type Customer = {
-  id: string;
-  name: string;
-};
+const EditOrder = ({ params }: EditOrderProps) => {
+    const router = useRouter();
+    const [pens, setPens] = useState<Pen[]>([]);
+    const [selectedPen, setSelectedPen] = useState("");
+    const [quantity, setQuantity] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
 
-type Pen = {
-  id: string;
-  name: string;
-};
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [orderResponse, pensResponse] = await Promise.all([
+                    axios.get<{ data: Order }>(`/api/orders/${params.id}`),
+                    axios.get<{ data: { data: Pen[] } }>("/api/pens"),
+                ]);
 
-type Order = {
-  id: string;
-  customer_id: string;
-  pen_id: string;
-  num: number;
-};
+                const order = orderResponse.data.data;
+                setSelectedPen(order.pen_id.toString());
+                setQuantity(order.quantity.toString());
+                setPens(pensResponse.data.data.data);
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+            } finally {
+                setIsFetching(false);
+            }
+        };
 
-const EditPage = ({ params }: { params: { id: string } }) => {
-  const [customer_idMessage, setCustomer_idMessage] = useState<string>('');
-  const [pen_idMessage, setPen_idMessage] = useState<string>('');
-  const [numMessage, setNumMessage] = useState<string>('');
+        fetchData();
+    }, [params.id]);
 
-  // ★ Record<string, any> を Order 型に変更
-  const [order, setOrder] = useState<Order>({
-    id: '',
-    customer_id: '',
-    pen_id: '',
-    num: 0,
-  });
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
 
-  // ★ Record<string, any>[] を Pen[] 型に変更
-  const [pens, setPens] = useState<Pen[]>([]);
-
-  // ★ Record<string, any>[] を Customer[] 型に変更
-  const [customers, setCustomers] = useState<Customer[]>([]);
-
-  const router = useRouter();
-
-  const getOrder = async () => {
-    const response = await fetch(
-      `http://localhost:8000/api/orders/${params.id}`,
-    );
-    const json = await response.json();
-    setOrder(json.data);
-    setPens(json.pens);
-    setCustomers(json.customers);
-  };
-
-  useEffect(() => {
-    getOrder();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const updateOrder = async () => {
-    const requestBody = {
-      customer_id: order.customer_id,
-      pen_id: order.pen_id,
-      num: order.num,
+        try {
+            await axios.put(`/api/orders/${params.id}`, {
+                pen_id: parseInt(selectedPen),
+                quantity: parseInt(quantity),
+            });
+            router.push("/orders");
+        } catch (error) {
+            console.error("Failed to update order:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    console.log(requestBody);
+    const handlePenChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setSelectedPen(e.target.value);
+    };
 
-    // この1行下がAPIリクエスト
-    http
-      .patch(`/api/orders/${order.id}`, requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(() => {
-        router.push('/orders');
-      })
-      .catch(function (error) {
-        setCustomer_idMessage(error.response.data.errors.customer_id || '');
-        setPen_idMessage(error.response.data.errors.pen_id || '');
-        setNumMessage(error.response.data.errors.num || '');
-      });
-  };
+    const handleQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setQuantity(e.target.value);
+    };
 
-  return (
-    <div className="relative p-3">
-      <div className="flex flex-col bg-white border shadow-sm rounded-xl p-4 md:p-5 dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
-        <div className="py-2 px-4">
-          <p>
-            IDが{params.id}
-            の注文の顧客IDとペンID、注文数を入力して、登録ボタンをクリックしてください
-          </p>
-        </div>
-        <select
-          id="customerSelect"
-          onChange={e => {
-            setOrder({
-              ...order,
-              customer_id: e.target.value,
-            });
-          }}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
-        >
-          <option value="">顧客を選択してください</option>
-          {customers.map(customer => (
-            <option
-              key={customer.id}
-              value={customer.id}
-              selected={customer.id === order.customer_id}
-            >
-              {customer.name}
-            </option>
-          ))}
-        </select>
-        <div className="ml-4 text-red-500">{customer_idMessage}</div>
-        <select
-          id="penSelect"
-          onChange={e => {
-            setOrder({
-              ...order,
-              pen_id: e.target.value,
-            });
-          }}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
-        >
-          <option value="">ペンを選択してください</option>
-          {pens.map(pen => (
-            <option
-              key={pen.id}
-              value={pen.id}
-              selected={pen.id === order.pen_id}
-            >
-              {pen.name}
-            </option>
-          ))}
-        </select>
-        <div className="ml-4 text-red-500">{pen_idMessage}</div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="数量"
-          value={order.num}
-          onChange={e => {
-            setOrder({
-              ...order,
-              num: Number(e.target.value),
-            });
-          }}
-        />
-        <div className="ml-4 text-red-500">{numMessage}</div>
-        <div>
-          <button
-            className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-            onClick={() => {
-              updateOrder();
-            }}
-          >
-            編集
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    if (isFetching) {
+        return <div>読み込み中...</div>;
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label
+                    htmlFor="pen"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                    ペン
+                </label>
+                <select
+                    id="pen"
+                    value={selectedPen}
+                    onChange={handlePenChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    required
+                >
+                    <option value="">選択してください</option>
+                    {pens.map((pen) => (
+                        <option key={pen.id} value={pen.id}>
+                            {pen.name} - {pen.price}円
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div>
+                <label
+                    htmlFor="quantity"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                    数量
+                </label>
+                <input
+                    type="number"
+                    id="quantity"
+                    value={quantity}
+                    onChange={handleQuantityChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    required
+                    min="1"
+                />
+            </div>
+            <div className="flex justify-end space-x-4">
+                <button
+                    type="button"
+                    onClick={() => router.push("/orders")}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                    キャンセル
+                </button>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isLoading ? "保存中..." : "保存"}
+                </button>
+            </div>
+        </form>
+    );
 };
-export default EditPage;
+
+export default EditOrder;
