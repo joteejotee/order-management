@@ -34,3 +34,10 @@ CORS Configuration
 -   CORS headers must ONLY be set in Laravel's config/cors.php
 -   NEVER add CORS headers in Nginx configuration files
 -   This prevents duplicate headers that cause browser errors
+
+Project Structure and Deployment
+
+-   All frontend files MUST be placed in the `breeze_next_chikaraemon` directory
+-   Automatic deployment is configured:
+    -   Frontend: Vercel deployment triggered by GitHub push
+    -   Backend: EC2 deployment triggered by GitHub push
