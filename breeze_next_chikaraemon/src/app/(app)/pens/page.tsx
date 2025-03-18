@@ -71,7 +71,7 @@ const Pens: React.FC = () => {
     const deletePen = async (id: number) => {
         if (confirm("削除しますか？")) {
             try {
-                await axios.delete(`/api/pens/${id}`);
+                await axios.delete(`/pens/${id}`);
                 getPens(page);
             } catch (error) {
                 console.error("Failed to delete pen:", error);
