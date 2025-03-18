@@ -4,11 +4,6 @@ import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { ApiResponse, Pen, Customer, Order, OrderEditResponse } from "@/types";
 
-const http = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000",
-    withCredentials: true,
-});
-
 const EditPage = ({ params }: { params: { id: string } }) => {
     const [customer_idMessage, setCustomer_idMessage] = useState<string>("");
     const [pen_idMessage, setPen_idMessage] = useState<string>("");
@@ -45,7 +40,7 @@ const EditPage = ({ params }: { params: { id: string } }) => {
 
     const getOrder = async () => {
         try {
-            const response = await http.get<ApiResponse<OrderEditResponse>>(
+            const response = await axios.get<ApiResponse<OrderEditResponse>>(
                 `/api/orders/${params.id}`
             );
             const { data, pens, customers } = response.data.data;
@@ -72,20 +67,21 @@ const EditPage = ({ params }: { params: { id: string } }) => {
         console.log(requestBody);
 
         // この1行下がAPIリクエスト
-        http.patch(`/api/orders/${order.id}`, requestBody, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
+        axios
+            .patch(`/api/orders/${order.id}`, requestBody, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
             .then(() => {
                 router.push("/orders");
             })
             .catch(function (error) {
                 setCustomer_idMessage(
-                    error.response.data.errors.customer_id || ""
+                    error.response?.data?.errors?.customer_id || ""
                 );
-                setPen_idMessage(error.response.data.errors.pen_id || "");
-                setNumMessage(error.response.data.errors.num || "");
+                setPen_idMessage(error.response?.data?.errors?.pen_id || "");
+                setNumMessage(error.response?.data?.errors?.num || "");
             });
     };
 

@@ -4,11 +4,6 @@ import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { ApiResponse, Pen, Customer, OrderCreateResponse } from "@/types";
 
-const http = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000",
-    withCredentials: true,
-});
-
 const CreatePage = () => {
     const [customer_id, setCustomer_id] = useState("");
     const [customer_idMessage, setCustomer_idMessage] = useState("");
@@ -27,7 +22,7 @@ const CreatePage = () => {
 
     const getJsons = async () => {
         try {
-            const response = await http.get<ApiResponse<OrderCreateResponse>>(
+            const response = await axios.get<ApiResponse<OrderCreateResponse>>(
                 "/api/orders/create"
             );
             const { pens, customers } = response.data.data;
@@ -49,21 +44,24 @@ const CreatePage = () => {
             pen_id: pen_id,
             num: num,
         };
-        http.post("/api/orders", requestBody, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
+        axios
+            .post("/api/orders", requestBody, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
             .then(() => {
                 router.push("/orders");
             })
             .catch(function (error) {
-                console.log(error.response.data.errors.customer_id);
-                console.log(error.response.data.errors.pen_id);
-                console.log(error.response.data.errors.num);
-                setCustomer_idMessage(error.response.data.errors.customer_id);
-                setPen_idMessage(error.response.data.errors.pen_id);
-                setNumMessage(error.response.data.errors.num);
+                console.log(error.response?.data?.errors?.customer_id);
+                console.log(error.response?.data?.errors?.pen_id);
+                console.log(error.response?.data?.errors?.num);
+                setCustomer_idMessage(
+                    error.response?.data?.errors?.customer_id || ""
+                );
+                setPen_idMessage(error.response?.data?.errors?.pen_id || "");
+                setNumMessage(error.response?.data?.errors?.num || "");
             });
     };
 
