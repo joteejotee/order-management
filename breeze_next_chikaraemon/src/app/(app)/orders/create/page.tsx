@@ -1,16 +1,18 @@
 "use client";
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { Order, Pen } from "@/types";
 
-const CreateOrder = () => {
+interface CreateOrderProps {}
+
+const CreateOrder: React.FC<CreateOrderProps> = () => {
     const router = useRouter();
     const [pens, setPens] = useState<Pen[]>([]);
-    const [selectedPen, setSelectedPen] = useState("");
-    const [quantity, setQuantity] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [isFetching, setIsFetching] = useState(true);
+    const [selectedPen, setSelectedPen] = useState<string>("");
+    const [quantity, setQuantity] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isFetching, setIsFetching] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchPens = async () => {
@@ -75,7 +77,7 @@ const CreateOrder = () => {
                     required
                 >
                     <option value="">選択してください</option>
-                    {pens.map((pen) => (
+                    {pens.map((pen: Pen) => (
                         <option key={pen.id} value={pen.id}>
                             {pen.name} - {pen.price}円
                         </option>
