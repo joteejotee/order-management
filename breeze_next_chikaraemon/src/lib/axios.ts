@@ -1,9 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL:
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
-        "https://api.order-management1.com",
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
     headers: {
         "X-Requested-With": "XMLHttpRequest",
         Accept: "application/json",
@@ -26,6 +24,11 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        if (error.response?.status === 401) {
+            // 認証エラーの場合、ログインページにリダイレクト
+            window.location.href = "/login";
+            return Promise.reject(error);
+        }
         console.error("Axios error:", error.response || error);
         return Promise.reject(error);
     }
@@ -43,6 +46,19 @@ function getCookie(name: string): string | null {
     }
 
     return null;
+}
+
+// 開発時のデバッグ用
+if (process.env.NODE_ENV === "development") {
+    axiosInstance.interceptors.request.use(request => {
+        console.log('Starting Request:', request);
+        return request;
+    });
+
+    axiosInstance.interceptors.response.use(response => {
+        console.log('Response:', response);
+        return response;
+    });
 }
 
 export default axiosInstance;
