@@ -18,7 +18,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         const fetchPens = async () => {
             try {
                 const response = await axios.get<{ data: { data: Pen[] } }>(
-                    "/api/pens"
+                    "/pens"
                 );
                 setPens(response.data.data.data);
             } catch (error) {
@@ -36,7 +36,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         setIsLoading(true);
 
         try {
-            await axios.post("/api/orders", {
+            await axios.post("/orders", {
                 pen_id: parseInt(selectedPen),
                 quantity: parseInt(quantity),
             });

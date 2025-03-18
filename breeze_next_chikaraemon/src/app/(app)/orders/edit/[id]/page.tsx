@@ -22,8 +22,8 @@ const EditOrder = ({ params }: EditOrderProps) => {
         const fetchData = async () => {
             try {
                 const [orderResponse, pensResponse] = await Promise.all([
-                    axios.get<{ data: Order }>(`/api/orders/${params.id}`),
-                    axios.get<{ data: { data: Pen[] } }>("/api/pens"),
+                    axios.get<{ data: Order }>(`/orders/${params.id}`),
+                    axios.get<{ data: { data: Pen[] } }>("/pens"),
                 ]);
 
                 const order = orderResponse.data.data;
@@ -45,7 +45,7 @@ const EditOrder = ({ params }: EditOrderProps) => {
         setIsLoading(true);
 
         try {
-            await axios.put(`/api/orders/${params.id}`, {
+            await axios.put(`/orders/${params.id}`, {
                 pen_id: parseInt(selectedPen),
                 quantity: parseInt(quantity),
             });

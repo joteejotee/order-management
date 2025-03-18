@@ -21,7 +21,7 @@ const EditPen = ({ params }: EditPenProps) => {
         const fetchPen = async () => {
             try {
                 const response = await axios.get<{ data: Pen }>(
-                    `/api/pens/${params.id}`
+                    `/pens/${params.id}`
                 );
                 const pen = response.data.data;
                 setName(pen.name);
@@ -41,7 +41,7 @@ const EditPen = ({ params }: EditPenProps) => {
         setIsLoading(true);
 
         try {
-            await axios.put(`/api/pens/${params.id}`, {
+            await axios.put(`/pens/${params.id}`, {
                 name,
                 price: parseInt(price),
             });

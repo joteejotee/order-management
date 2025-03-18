@@ -92,7 +92,7 @@ export function useAuth({
     const fetchUser = async () => {
         try {
             console.log("Auth - Fetching user data with key:", cacheKey);
-            const response = await axios.get<ApiResponse<User>>("/api/user", {
+            const response = await axios.get<ApiResponse<User>>("/user", {
                 headers: {
                     "Cache-Control": "no-cache, no-store, must-revalidate",
                     Pragma: "no-cache",
@@ -175,7 +175,7 @@ export function useAuth({
 
             // ログイン処理
             console.log("Auth - Sending login request");
-            await axios.post("/api/login", {
+            await axios.post("/login", {
                 email,
                 password,
                 remember: false,

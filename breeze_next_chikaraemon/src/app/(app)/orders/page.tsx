@@ -42,7 +42,7 @@ const Orders = () => {
         setIsLoading(true);
         try {
             const response = await axios.get<OrdersResponse>(
-                `/api/orders?page=${pageNum}`
+                `/orders?page=${pageNum}`
             );
             if (abortControllerRef.current === controller) {
                 setOrders(response.data.data.data);

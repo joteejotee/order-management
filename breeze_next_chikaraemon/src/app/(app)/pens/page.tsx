@@ -42,7 +42,7 @@ const Pens: React.FC = () => {
         setIsLoading(true);
         try {
             const response = await axios.get<PensResponse>(
-                `/api/pens?page=${pageNum}`
+                `/pens?page=${pageNum}`
             );
             if (abortControllerRef.current === controller) {
                 setPens(response.data.data.data);
