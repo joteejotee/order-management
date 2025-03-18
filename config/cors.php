@@ -19,9 +19,11 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         'https://www.order-management1.com',
+        'https://order-management1.com',
         'http://localhost:3000',
         'https://order-management-frontend.vercel.app',
-        'https://order-management-git-frontend-integration-joteejotee.vercel.app'
+        'https://order-management-git-frontend-integration-joteejotee.vercel.app',
+        'https://order-management-joteejotee.vercel.app'
     ],
     'allowed_origins_patterns' => [
         'https://order-management-.*\.vercel\.app'
