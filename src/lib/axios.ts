@@ -46,3 +46,4 @@ function getCookie(name: string): string | null {
 }
 
 export default axiosInstance;
+// 環境変数の値を確認しました

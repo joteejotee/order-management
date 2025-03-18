@@ -15,6 +15,7 @@ const CreatePage = () => {
   const [priceMessage, setPriceMessage] = useState('');
   const router = useRouter();
 
+  // ペンの登録
   const createPen = async () => {
     const requestBody = {
       name: name,
