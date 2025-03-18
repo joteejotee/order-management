@@ -20,6 +20,7 @@ rsync -avz --exclude '.git' --exclude '.github' \
   --exclude '.cursorrules' --exclude 'api-test.http' \
   --exclude 'README_LOCAL.md' \
   --exclude 'deploy-ec2.sh' \
+  --exclude '.env' \
   -e "ssh -i ${SSH_KEY}" \
   ./ ${EC2_USER}@${EC2_HOST}:${DEPLOY_DIR}/
 

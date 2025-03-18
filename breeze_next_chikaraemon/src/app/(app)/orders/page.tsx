@@ -71,7 +71,7 @@ const Orders = () => {
     const deleteOrder = async (id: number) => {
         if (confirm("削除しますか？")) {
             try {
-                await axios.delete(`/api/orders/${id}`);
+                await axios.delete(`/orders/${id}`);
                 getOrders(page);
             } catch (error) {
                 console.error("Failed to delete order:", error);

@@ -54,7 +54,7 @@ export function useAuth({
     const [isRouting, setIsRouting] = useState(false);
     const [localUser, setLocalUser] = useState<User | undefined>(undefined);
     const [cacheKey, setCacheKey] = useState<string>(
-        `/api/user?t=${Date.now()}`
+        `/user?t=${Date.now()}`
     );
 
     // ユーザーデータをローカルストレージから取得する試み
@@ -82,7 +82,7 @@ export function useAuth({
         try {
             localStorage.removeItem("user");
             setLocalUser(undefined);
-            setCacheKey(`/api/user?t=${Date.now()}`);
+            setCacheKey(`/user?t=${Date.now()}`);
             console.log("Auth - Cache cleared, new key:", cacheKey);
         } catch (error) {
             console.error("Auth - Error clearing cache:", error);
@@ -160,7 +160,7 @@ export function useAuth({
     const forceRefresh = async () => {
         console.log("Auth - Force refreshing user data");
         // キャッシュキーを更新して強制的に再取得
-        const newKey = `/api/user?t=${Date.now()}`;
+        const newKey = `/user?t=${Date.now()}`;
         setCacheKey(newKey);
         console.log("Auth - New cache key:", newKey);
         return mutate();
@@ -182,7 +182,7 @@ export function useAuth({
             });
 
             // キャッシュキーを更新
-            const newKey = `/api/user?t=${Date.now()}`;
+            const newKey = `/user?t=${Date.now()}`;
             setCacheKey(newKey);
             await mutate();
             setIsRouting(true);
@@ -229,7 +229,7 @@ export function useAuth({
             })
             .then(() => {
                 // キャッシュキーを更新
-                const newKey = `/api/user?t=${Date.now()}`;
+                const newKey = `/user?t=${Date.now()}`;
                 setCacheKey(newKey);
                 mutate();
                 window.location.href = "/dashboard"; // フルページリロードを強制
