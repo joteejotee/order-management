@@ -1,4 +1,7 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+
+// 環境変数のログ出力
+console.log('🌍 NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -11,19 +14,29 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 // CSRFトークンを自動的に処理するインターセプター
-axiosInstance.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     // クッキーからCSRFトークンを取得
     const token = getCookie("XSRF-TOKEN");
     if (token) {
         config.headers["X-XSRF-TOKEN"] = decodeURIComponent(token);
     }
+    
+    // リクエストURLを詳細にログ出力
+    console.log('🔍 Complete Request URL:', config.baseURL + config.url);
+    console.log('🔧 Request Config:', {
+        baseURL: config.baseURL,
+        url: config.url,
+        method: config.method,
+        withCredentials: config.withCredentials
+    });
+    
     return config;
 });
 
 // レスポンスインターセプター（エラーハンドリング）
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    (response: AxiosResponse) => response,
+    (error: any) => {
         if (error.response?.status === 401) {
             // 認証エラーの場合、ログインページにリダイレクト
             window.location.href = "/login";
@@ -50,12 +63,12 @@ function getCookie(name: string): string | null {
 
 // 開発時のデバッグ用
 if (process.env.NODE_ENV === "development") {
-    axiosInstance.interceptors.request.use(request => {
+    axiosInstance.interceptors.request.use((request: InternalAxiosRequestConfig) => {
         console.log('Starting Request:', request);
         return request;
     });
 
-    axiosInstance.interceptors.response.use(response => {
+    axiosInstance.interceptors.response.use((response: AxiosResponse) => {
         console.log('Response:', response);
         return response;
     });
