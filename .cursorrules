@@ -41,3 +41,5 @@ Project Structure and Deployment
 -   Automatic deployment is configured:
     -   Frontend: Vercel deployment triggered by GitHub push
     -   Backend: EC2 deployment triggered by GitHub push
+
+When pushing changes, use `git push` without explicitly specifying the branch

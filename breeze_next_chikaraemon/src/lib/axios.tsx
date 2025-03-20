@@ -1,9 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL:
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
-        "https://api.order-management1.com",
+    // 環境変数ではなく直接URLをハードコード
+    baseURL: "https://api.order-management1.com",
     headers: {
         "X-Requested-With": "XMLHttpRequest",
         Accept: "application/json",
@@ -19,6 +18,10 @@ axiosInstance.interceptors.request.use((config) => {
     if (token) {
         config.headers["X-XSRF-TOKEN"] = decodeURIComponent(token);
     }
+    
+    // リクエストURLを確認用にログ出力
+    console.log('🔍 Request URL:', config.baseURL + config.url);
+    
     return config;
 });
 
@@ -31,17 +34,13 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-// クッキーを取得するヘルパー関数
+// Helper to get cookie
 function getCookie(name: string): string | null {
-    if (typeof document === "undefined") return null;
-
+    if (typeof document === 'undefined') return null;
+    
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-
-    if (parts.length === 2) {
-        return parts.pop()?.split(";").shift() || null;
-    }
-
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
     return null;
 }
 
