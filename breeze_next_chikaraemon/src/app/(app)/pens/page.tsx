@@ -42,7 +42,7 @@ const Pens: React.FC = () => {
         setIsLoading(true);
         try {
             const response = await axios.get<PensResponse>(
-                `/pens?page=${pageNum}`
+                `/api/pens?page=${pageNum}`
             );
             if (abortControllerRef.current === controller) {
                 setPens(response.data.data.data);
@@ -71,7 +71,7 @@ const Pens: React.FC = () => {
     const deletePen = async (id: number) => {
         if (confirm("削除しますか？")) {
             try {
-                await axios.delete(`/pens/${id}`);
+                await axios.delete(`/api/pens/${id}`);
                 getPens(page);
             } catch (error) {
                 console.error("Failed to delete pen:", error);
