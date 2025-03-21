@@ -28,6 +28,7 @@ const Orders = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = React.useRef<AbortController | null>(null);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     const getOrders = async (pageNum: number) => {
         if (isLoading) return;
@@ -42,7 +43,7 @@ const Orders = () => {
         setIsLoading(true);
         try {
             const response = await axios.get<OrdersResponse>(
-                `/api/orders?page=${pageNum}`
+                `${backendUrl}/api/orders?page=${pageNum}`
             );
             if (abortControllerRef.current === controller) {
                 setOrders(response.data.data.data);
@@ -71,7 +72,7 @@ const Orders = () => {
     const deleteOrder = async (id: number) => {
         if (confirm("削除しますか？")) {
             try {
-                await axios.delete(`/api/orders/${id}`);
+                await axios.delete(`${backendUrl}/api/orders/${id}`);
                 getOrders(page);
             } catch (error) {
                 console.error("Failed to delete order:", error);

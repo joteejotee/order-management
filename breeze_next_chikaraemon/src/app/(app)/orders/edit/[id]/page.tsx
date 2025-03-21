@@ -17,13 +17,14 @@ const EditOrder = ({ params }: EditOrderProps) => {
     const [quantity, setQuantity] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [orderResponse, pensResponse] = await Promise.all([
-                    axios.get<{ data: Order }>(`/orders/${params.id}`),
-                    axios.get<{ data: { data: Pen[] } }>("/pens"),
+                    axios.get<{ data: Order }>(`${backendUrl}/api/orders/${params.id}`),
+                    axios.get<{ data: { data: Pen[] } }>(`${backendUrl}/api/pens`),
                 ]);
 
                 const order = orderResponse.data.data;
@@ -45,7 +46,7 @@ const EditOrder = ({ params }: EditOrderProps) => {
         setIsLoading(true);
 
         try {
-            await axios.put(`/orders/${params.id}`, {
+            await axios.put(`${backendUrl}/api/orders/${params.id}`, {
                 pen_id: parseInt(selectedPen),
                 quantity: parseInt(quantity),
             });

@@ -28,6 +28,7 @@ const Pens: React.FC = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = React.useRef<AbortController | null>(null);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     const getPens = async (pageNum: number) => {
         if (isLoading) return;
@@ -42,7 +43,7 @@ const Pens: React.FC = () => {
         setIsLoading(true);
         try {
             const response = await axios.get<PensResponse>(
-                `/api/pens?page=${pageNum}`
+                `${backendUrl}/api/pens?page=${pageNum}`
             );
             if (abortControllerRef.current === controller) {
                 setPens(response.data.data.data);
@@ -71,7 +72,7 @@ const Pens: React.FC = () => {
     const deletePen = async (id: number) => {
         if (confirm("削除しますか？")) {
             try {
-                await axios.delete(`/api/pens/${id}`);
+                await axios.delete(`${backendUrl}/api/pens/${id}`);
                 getPens(page);
             } catch (error) {
                 console.error("Failed to delete pen:", error);

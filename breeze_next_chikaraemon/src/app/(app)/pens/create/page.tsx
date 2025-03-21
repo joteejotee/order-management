@@ -18,6 +18,7 @@ const CreatePen = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,7 +26,7 @@ const CreatePen = () => {
         setError(null);
 
         try {
-            await axios.post("/api/pens", {
+            await axios.post(`${backendUrl}/api/pens`, {
                 name: formData.name,
                 price: parseInt(formData.price),
                 stock: parseInt(formData.stock),

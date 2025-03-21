@@ -16,12 +16,13 @@ const EditPen = ({ params }: EditPenProps) => {
     const [price, setPrice] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     useEffect(() => {
         const fetchPen = async () => {
             try {
                 const response = await axios.get<{ data: Pen }>(
-                    `/pens/${params.id}`
+                    `${backendUrl}/api/pens/${params.id}`
                 );
                 const pen = response.data.data;
                 setName(pen.name);
@@ -41,7 +42,7 @@ const EditPen = ({ params }: EditPenProps) => {
         setIsLoading(true);
 
         try {
-            await axios.put(`/pens/${params.id}`, {
+            await axios.put(`${backendUrl}/api/pens/${params.id}`, {
                 name,
                 price: parseInt(price),
             });
