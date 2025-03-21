@@ -25,7 +25,7 @@ const CreatePen = () => {
         setError(null);
 
         try {
-            await axios.post("/pens", {
+            await axios.post("/api/pens", {
                 name: formData.name,
                 price: parseInt(formData.price),
                 stock: parseInt(formData.stock),

@@ -36,7 +36,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         setIsLoading(true);
 
         try {
-            await axios.post("/orders", {
+            await axios.post("/api/orders", {
                 pen_id: parseInt(selectedPen),
                 quantity: parseInt(quantity),
             });

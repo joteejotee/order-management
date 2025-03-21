@@ -43,3 +43,10 @@ Project Structure and Deployment
     -   Backend: EC2 deployment triggered by GitHub push
 
 When pushing changes, use `git push` without explicitly specifying the branch
+
+/\*\*
+
+-   Authentication Routes
+-   All authentication routes for Next.js frontend must be defined in api.php.
+-   auth.php is kept empty to maintain Laravel Breeze's standard structure.
+    \*/

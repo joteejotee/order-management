@@ -92,7 +92,7 @@ export function useAuth({
     const fetchUser = async () => {
         try {
             console.log("Auth - Fetching user data with key:", cacheKey);
-            const response = await axios.get<ApiResponse<User>>("/user", {
+            const response = await axios.get<ApiResponse<User>>("/api/user", {
                 headers: {
                     "Cache-Control": "no-cache, no-store, must-revalidate",
                     Pragma: "no-cache",
@@ -175,7 +175,7 @@ export function useAuth({
 
             // ログイン処理
             console.log("Auth - Sending login request");
-            await axios.post("/login", {
+            await axios.post("/api/login", {
                 email,
                 password,
                 remember: false,
@@ -198,7 +198,7 @@ export function useAuth({
     const logout = async () => {
         setIsLoading(true);
         try {
-            await axios.post("/logout");
+            await axios.post("/api/logout");
             // ローカルストレージからユーザー情報を削除
             clearCache();
             await mutate(null, { revalidate: false });
@@ -221,7 +221,7 @@ export function useAuth({
         setErrors({});
 
         axios
-            .post("/register", {
+            .post("/api/register", {
                 name,
                 email,
                 password,
@@ -253,7 +253,7 @@ export function useAuth({
         setStatus(null);
 
         axios
-            .post("/reset-password", {
+            .post("/api/reset-password", {
                 email,
                 password,
                 password_confirmation,
