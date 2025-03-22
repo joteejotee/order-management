@@ -3,8 +3,12 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
 // 環境変数のログ出力
 console.log('🌍 NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
+// バックエンドURLのデフォルト値を設定
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.order-management1.com';
+console.log('🌐 Using backendUrl:', backendUrl);
+
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+    baseURL: backendUrl,
     headers: {
         "X-Requested-With": "XMLHttpRequest",
         Accept: "application/json",
