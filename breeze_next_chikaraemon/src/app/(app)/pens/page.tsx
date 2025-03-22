@@ -28,7 +28,16 @@ const Pens: React.FC = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = React.useRef<AbortController | null>(null);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    
+    // 環境変数を取得し、未定義の場合は本番環境のURLをデフォルト値として使用
+    const backendUrl = typeof window !== 'undefined' 
+        ? (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.order-management1.com')
+        : 'https://api.order-management1.com';
+    
+    // コンポーネントマウント時にコンソールに設定を出力（デバッグ用）
+    useEffect(() => {
+        console.log('🔍 Pens - Using backendUrl:', backendUrl);
+    }, []);
 
     const getPens = async (pageNum: number) => {
         if (isLoading) return;
@@ -42,9 +51,11 @@ const Pens: React.FC = () => {
 
         setIsLoading(true);
         try {
-            const response = await axios.get<PensResponse>(
-                `${backendUrl}/api/pens?page=${pageNum}`
-            );
+            // APIリクエスト送信前にURLをログ出力
+            const requestUrl = `${backendUrl}/api/pens?page=${pageNum}`;
+            console.log('📡 Fetching pens from:', requestUrl);
+            
+            const response = await axios.get<PensResponse>(requestUrl);
             if (abortControllerRef.current === controller) {
                 setPens(response.data.data.data);
                 setPageInfo(response.data.data.meta);
