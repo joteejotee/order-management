@@ -2,9 +2,16 @@
 
 import useSWR, { SWRResponse } from "swr";
 import axios from "@/lib/axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ApiResponse, User } from "@/types";
+
+// エラーレスポンスの型定義
+interface ErrorResponse {
+  errors?: Record<string, string[]>;
+  message?: string;
+}
 
 interface LoginCredentials {
     email: string;
@@ -16,7 +23,7 @@ interface RegisterCredentials {
     email: string;
     password: string;
     password_confirmation: string;
-    setErrors: (errors: any) => void;
+    setErrors: (errors: Record<string, string[]>) => void;
 }
 
 interface ResetPasswordCredentials {
@@ -24,7 +31,7 @@ interface ResetPasswordCredentials {
     password: string;
     password_confirmation: string;
     token: string;
-    setErrors: (errors: any) => void;
+    setErrors: (errors: Record<string, string[]>) => void;
     setStatus: (status: string | null) => void;
 }
 
@@ -121,6 +128,32 @@ export function useAuth({
             return userData;
         } catch (error) {
             console.error("Auth - Error fetching user data:", error);
+            
+            // 401エラーの場合は認証が必要。ログインに移動したりループを引き起こさない
+            if ((error as AxiosError).response?.status === 401) {
+                // ローカルストレージからユーザー情報を削除（認証されていないため）
+                try {
+                    localStorage.removeItem("user");
+                    setLocalUser(undefined);
+                } catch (storageError) {
+                    console.error("Auth - Error clearing localStorage:", storageError);
+                }
+                
+                // ミドルウェアがguestの場合は、何もしない（ログインページなどで期待される動作）
+                if (middleware === 'guest') {
+                    return null;
+                }
+                
+                // ミドルウェアがauthの場合で、まだルーティングが行われていない場合のみ
+                if (middleware === 'auth' && !isRouting) {
+                    setIsRouting(true);
+                    router.push('/login');
+                }
+            }
+            
+            // 3秒以上経過した場合にのみ再試行するためのタイムアウト
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
             return null;
         }
     };
@@ -131,7 +164,7 @@ export function useAuth({
         error,
         mutate,
         isValidating,
-    }: SWRResponse<ApiResponse<User> | null, any> = useSWR(
+    }: SWRResponse<ApiResponse<User> | null, Error> = useSWR(
         cacheKey,
         fetchUser,
         {
@@ -139,15 +172,17 @@ export function useAuth({
             revalidateOnFocus: false,
             revalidateOnReconnect: false,
             refreshInterval: 0,
-            dedupingInterval: 0, // 重複リクエストを完全に防止
-            shouldRetryOnError: true,
-            errorRetryCount: 3,
+            dedupingInterval: 5000, // 5秒間の重複リクエスト防止
+            shouldRetryOnError: false, // エラー時の自動リトライを無効化
+            errorRetryCount: 0, // リトライ回数を0に設定
+            errorRetryInterval: 5000, // リトライ間隔を5秒に設定
             focusThrottleInterval: 10000,
-            loadingTimeout: 3000,
+            loadingTimeout: 10000, // タイムアウトを10秒に延長
             onSuccess: (data: ApiResponse<User> | null) => {
                 console.log("Auth - SWR onSuccess:", data);
             },
-            onError: (err: any) => {
+            onError: (err: Error) => {
+                // エラーメッセージを1回だけ表示
                 console.error("Auth - SWR onError:", err);
             },
             fallbackData: localUser
@@ -234,7 +269,7 @@ export function useAuth({
                 mutate();
                 window.location.href = "/dashboard"; // フルページリロードを強制
             })
-            .catch((error) => {
+            .catch((error: AxiosError<ErrorResponse>) => {
                 if (error.response?.data?.errors) {
                     setErrors(error.response.data.errors);
                 }
@@ -259,11 +294,11 @@ export function useAuth({
                 password_confirmation,
                 token,
             })
-            .then((response) => {
+            .then((response: AxiosResponse<{status: string}>) => {
                 window.location.href =
                     "/login?reset=" + btoa(response.data.status); // フルページリロードを強制
             })
-            .catch((error) => {
+            .catch((error: AxiosError<ErrorResponse>) => {
                 if (error.response?.data?.errors) {
                     setErrors(error.response.data.errors);
                 }

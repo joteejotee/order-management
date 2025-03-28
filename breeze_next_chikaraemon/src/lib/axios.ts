@@ -1,4 +1,14 @@
-import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig, AxiosError } from "axios";
+
+// 環境変数の型宣言
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      NEXT_PUBLIC_BACKEND_URL?: string;
+      NODE_ENV?: 'development' | 'production';
+    }
+  }
+}
 
 // 環境変数のログ出力
 console.log('🌍 NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
@@ -40,9 +50,12 @@ axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // レスポンスインターセプター（エラーハンドリング）
 axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => response,
-    (error: any) => {
-        if (error.response?.status === 401) {
-            // 認証エラーの場合、ログインページにリダイレクト
+    (error: AxiosError) => {
+        // APIリクエストではリダイレクトをスキップ
+        const isApiRequest = error.config?.url?.startsWith('/api/');
+        
+        if (error.response?.status === 401 && !isApiRequest) {
+            // APIリクエスト以外の認証エラーの場合のみ、ログインページにリダイレクト
             window.location.href = "/login";
             return Promise.reject(error);
         }

@@ -8,7 +8,7 @@ services:
         volumes:
             - .:/var/www/html
             - ./docker/php/logs:/var/log
-            - ./storage/logs:/var/www/html/storage/logs  # Laravelログの永続化
+            - ./storage/logs:/var/www/html/storage/logs # Laravelログの永続化
         expose:
             - 9000
         depends_on:
@@ -31,6 +31,7 @@ services:
             dockerfile: docker/frontend/Dockerfile
         volumes:
             - ./breeze_next_chikaraemon:/app:delegated
+            - /app/node_modules
         ports:
             - "3000:3000"
         networks:
@@ -38,6 +39,7 @@ services:
         environment:
             - NEXT_TELEMETRY_DISABLED=1
             - NODE_ENV=development
+            - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
         deploy:
             resources:
                 limits:

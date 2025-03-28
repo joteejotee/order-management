@@ -25,5 +25,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 // 認証関連のルート (より単純に設定)
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth:sanctum');
