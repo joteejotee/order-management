@@ -20,6 +20,9 @@ COPY docker/backend/php-fpm.conf /usr/local/etc/php-fpm.d/zz-log.conf
 WORKDIR /var/www/html
 COPY . .
 
+# 本番用の .env.productionを .envにコピー
+RUN cp /var/www/html/.env.production /var/www/html/.env
+
 # 必要なディレクトリを作成
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     && mkdir -p /var/log \
@@ -30,6 +33,6 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# ENTRYPOINT と CMD の設定
+# ENTRYPOINTとCMDの設定
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["php-fpm"]

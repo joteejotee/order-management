@@ -28,16 +28,7 @@ const Orders = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = React.useRef<AbortController | null>(null);
-    
-    // 環境変数を取得し、未定義の場合は本番環境のURLをデフォルト値として使用
-    const backendUrl = typeof window !== 'undefined' 
-        ? (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.order-management1.com')
-        : 'https://api.order-management1.com';
-    
-    // コンポーネントマウント時にコンソールに設定を出力（デバッグ用）
-    useEffect(() => {
-        console.log('🔍 Orders - Using backendUrl:', backendUrl);
-    }, []);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     const getOrders = async (pageNum: number) => {
         if (isLoading) return;
@@ -51,11 +42,9 @@ const Orders = () => {
 
         setIsLoading(true);
         try {
-            // APIリクエスト送信前にURLをログ出力
-            const requestUrl = `${backendUrl}/api/orders?page=${pageNum}`;
-            console.log('📡 Fetching orders from:', requestUrl);
-            
-            const response = await axios.get<OrdersResponse>(requestUrl);
+            const response = await axios.get<OrdersResponse>(
+                `${backendUrl}/api/orders?page=${pageNum}`
+            );
             if (abortControllerRef.current === controller) {
                 setOrders(response.data.data.data);
                 setPageInfo(response.data.data.meta);
