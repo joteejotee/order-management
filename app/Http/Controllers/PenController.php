@@ -26,6 +26,7 @@ class PenController extends Controller
     $pen = new Pen(); //新しいpenのインスタンスを作成
     $pen->name = $request->name; //リクエストのnameを代入
     $pen->price = $request->price; //リクエストのpriceを代入
+    $pen->stock = $request->stock; //リクエストのstockを代入
     $pen->save(); //保存
     return response()->json([ //json形式で返す
       'data' => $pen //dataに$penを代入

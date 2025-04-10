@@ -10,7 +10,7 @@ class Authenticate extends Middleware
 {
     /**
      * APIリクエストの場合はJSON形式の401レスポンスを返し、
-     * それ以外の場合はloginルートにリダイレクトする
+     * それ以外の場合はloginページにリダイレクトする
      */
     protected function redirectTo(Request $request): ?string
     {
@@ -18,7 +18,8 @@ class Authenticate extends Middleware
             return null;
         }
 
-        return route('login');
+        // フロントエンドのログインページを使用（Next.js）
+        return '/login';
     }
 
     /**

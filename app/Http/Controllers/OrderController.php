@@ -17,15 +17,20 @@ class OrderController extends Controller
    */
   public function index()
   {
-    $orders = Order::paginate(4);
-    $ordersQuery = Order::orderBy('id', 'desc');
-    $ordersPaginator = $ordersQuery->paginate(4); // ページネーション
-    $orders = OrderResource::collection($ordersPaginator->items());
+    $ordersQuery = Order::with(['pen', 'customer'])->orderBy('id', 'desc');
+    $ordersPaginator = $ordersQuery->paginate(4);
+
+    $orders = OrderResource::collection($ordersPaginator);
+
     return response()->json([
       'data' => $orders,
       'meta' => [
         'current_page' => $ordersPaginator->currentPage(),
+        'from' => $ordersPaginator->firstItem(),
+        'last_page' => $ordersPaginator->lastPage(),
+        'path' => $ordersPaginator->path(),
         'per_page' => $ordersPaginator->perPage(),
+        'to' => $ordersPaginator->lastItem(),
         'total' => $ordersPaginator->total(),
         'next_page_url' => $ordersPaginator->nextPageUrl(),
         'prev_page_url' => $ordersPaginator->previousPageUrl(),

@@ -9,13 +9,18 @@ RUN apt-get update && apt-get install -y \
     unzip \
     tini \
     git \
-    && docker-php-ext-install pdo_mysql mbstring zip
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
 
 # Composerをインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # PHP-FPMの設定ファイルをコピー
-COPY docker/backend/php-fpm.conf /usr/local/etc/php-fpm.d/zz-log.conf
+# COPY docker/backend/php-fpm.conf /usr/local/etc/php-fpm.d/zz-log.conf
 
 # アプリケーションコードをコピー
 WORKDIR /var/www/html

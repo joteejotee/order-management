@@ -11,14 +11,6 @@ const nextConfig = {
     // type checkをbuild時にoff
     ignoreBuildErrors: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'https://api.order-management1.com/:path*',
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig;

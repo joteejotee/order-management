@@ -13,22 +13,26 @@ class PenSeeder extends Seeder
    */
   public function run(): void //Seederを実行するためのメソッド
   {
+    // 文字コードを明示的に設定
+    DB::statement('SET NAMES utf8mb4');
+
     $pens = [ //挿入するデータ
-      ['name' => '黒ボールペン', 'price' => 201],
-      ['name' => '赤ボールペン', 'price' => 202],
-      ['name' => '青ボールペン', 'price' => 203],
-      ['name' => '緑ボールペン', 'price' => 204],
-      ['name' => '紫ボールペン', 'price' => 205],
-      ['name' => '黒シャープペン', 'price' => 206],
-      ['name' => '赤シャープペン', 'price' => 207],
-      ['name' => '青シャープペン', 'price' => 208],
-      ['name' => '緑シャープペン', 'price' => 209],
-      ['name' => '紫シャープペン', 'price' => 210],
+      ['name' => '黒ボールペン', 'price' => 201, 'stock' => 0],
+      ['name' => '赤ボールペン', 'price' => 202, 'stock' => 0],
+      ['name' => '青ボールペン', 'price' => 203, 'stock' => 5],
+      ['name' => '緑ボールペン', 'price' => 204, 'stock' => 8],
+      ['name' => '紫ボールペン', 'price' => 205, 'stock' => 12],
+      ['name' => '黒シャープペン', 'price' => 206, 'stock' => 3],
+      ['name' => '赤シャープペン', 'price' => 207, 'stock' => 7],
+      ['name' => '青シャープペン', 'price' => 208, 'stock' => 2],
+      ['name' => '緑シャープペン', 'price' => 209, 'stock' => 10],
+      ['name' => '紫シャープペン', 'price' => 210, 'stock' => 15],
     ];
     foreach ($pens as $pen) { //データを1つずつ取り出して繰り返す
       DB::table('pens')->insert([ //pensテーブルにデータを挿入
         'name' => $pen['name'], //nameカラムに$pen['name']を挿入
         'price' => $pen['price'], //priceカラムに$pen['price']を挿入
+        'stock' => $pen['stock'], //stockカラムに$pen['stock']を挿入
         'created_at' => Carbon::now(), //created_atカラムに現在時刻を挿入
         'updated_at' => Carbon::now() //updated_atカラムに現在時刻を挿入
       ]);

@@ -17,10 +17,12 @@ class OrderResource extends JsonResource
     return [
       'id' => $this->id,
       'num' => $this->num,
+      'quantity' => $this->num,
       'orderday' => $this->orderday,
       'customer' => CustomerResource::make($this->customer),
       'pen' => PenResource::make($this->pen),
       'shipping' => $this->shipping,
+      'status' => $this->shipping ? 'shipped' : 'pending',
     ];
   }
 }

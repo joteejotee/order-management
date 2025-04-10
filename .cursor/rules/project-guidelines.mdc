@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 ---
 title: "プロジェクト共通ルール"
@@ -64,28 +64,45 @@ title: "プロジェクト共通ルール"
 # 環境変数ファイル（.env）
 
 - フロントエンド：
-  - `.env`：公開してよい変数のみを記述し、Git に含める。
-  - `.env.local`：APIキーなどの機密情報はここに記述し、Git に含めない。
-  - `.env.example`：すべての環境変数のテンプレートを記述し、Git に含める。
+  - `.env.example`：テンプレート（雛形）。全開発者に共有したい変数のテンプレートを記述し、Git に含める。（公開）
+  - `.env.local`：ローカル開発用。APIキーや開発用の変数を記述し、Git に含めない。（機密）
+  - ※ 本番環境用の記述をするための.envファイルは作らない。Vercel上で設定する。
 
 - バックエンド：
-  - `.env`：機密情報を含むため、Git に含めない。
-  - `.env.production`：本番用の環境変数を記述。Git に含めず、Dockerfile により `.env` にコピーされる。
-  - `.env.example`：すべての環境変数のテンプレートを記述し、Git に含める。
+  - `.env.example`：テンプレート（雛形）。すべての環境変数を記述し、Git に含める。（公開）
+  - `.env`：ローカル（開発）環境用の記述。機密情報を含むため、Git に含めない。（機密）
+  - `.env.production`：本番環境用の記述。Git に含めず、Dockerfile により `.env` にコピーされる。（機密）
 
 # 開発・デプロイの基本方針
 
 - フロントエンド（Next.js）：
-  - 開発時：Docker を使用（Next.js + Node.js）
+  - 開発環境：Docker を使用（Next.js + Node.js）
   - 本番環境：Vercel にコードを直接デプロイ（Docker 不要）
 
 - バックエンド（Laravel）：
-  - 開発時：Docker を使用（Laravel + MySQL）
+  - 開発環境：Docker を使用（Laravel + MySQL）
   - 本番環境：Docker コンテナごと AWS EC2 にデプロイ
+
+- ※ フロントエンド、バックエンド共に、現在は本番環境ではなく、開発環境で進めていく。
+
+# Docker環境でのURL設定の注意点
+
+- コンテナ間通信（サーバーサイド）では`http://nginx`を使用
+  - サーバーサイドのみ: `BACKEND_URL=http://nginx`
+  - Laravel内部: `APP_URL=http://nginx`
+
+- ブラウザからの通信（クライアントサイド）では`localhost`を使用
+  - クライアントサイド: `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
+  - ブラウザからアクセス: フロントエンド `http://localhost:3000`、API `http://localhost:8000`
 
 # Docker構成ファイル
 
-- `docker-compose.yml`：開発環境用の Docker 定義ファイル。Next.js フロントエンド、Laravel バックエンド、MySQL、Nginx を含むローカル開発用の構成。
+- `docker-compose.yml`：開発環境用のDocker定義ファイル。Next.jsフロントエンド、Laravel バックエンド、MySQL、Nginxを含むローカル開発用の構成。
 
-- `docker-compose.prod.yml`：本番環境用の Docker 定義ファイル。主に EC2 へのデプロイ時に使用され、開発用ボリュームやホストポートの露出を減らし、本番向けにリソース制限やパフォーマンス最適化が施されている。
+- `docker-compose.prod.yml`：本番環境用のDocker定義ファイル。主にEC2へのデプロイ時に使用され、開発用ボリュームやホストポートの露出を減らし、本番向けにリソース制限やパフォーマンス最適化が施されている。
+
+# APIリクエスト管理
+
+- HTTPリクエストには標準axiosライブラリではなく、`@/lib/axios`からインポートしたカスタムaxiosインスタンスを使用してください。
+- これにより、認証処理、エラーハンドリング、リクエストキャンセルの動作が統一されます。
 
