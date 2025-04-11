@@ -1,41 +1,279 @@
-import useSWR from 'swr';
-import axios from 'axios';
-import { useEffect, useCallback } from 'react';
+'use client';
+
+import useSWR, { SWRResponse } from 'swr';
+import axios from '@/lib/axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction } from 'react';
-import { User } from '@/types/user';
+import { useState, useEffect } from 'react';
+import { ApiResponse, User } from '@/types';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+// エラーレスポンスの型定義
+interface ErrorResponse {
+  message: string;
+  errors?: Record<string, string[]>;
+}
 
-// axiosの設定を更新
-axios.defaults.baseURL = apiUrl;
-axios.defaults.withCredentials = true;
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-// オプションの型定義
-interface UseAuthOptions {
-  middleware?: 'guest' | 'auth';
+interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  setErrors: (errors: Record<string, string[]>) => void;
+}
+
+interface ResetPasswordCredentials {
+  email: string;
+  password: string;
+  password_confirmation: string;
+  token: string;
+  setErrors: (errors: Record<string, string[]>) => void;
+  setStatus: (status: string | null) => void;
+}
+
+interface AuthHook {
+  user: User | undefined;
+  isValidating: boolean;
+  isLoading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
+  resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
+  forceRefresh: () => Promise<void>;
+  clearCache: () => void;
+}
+
+interface AuthConfig {
+  middleware?: string;
   redirectIfAuthenticated?: string;
 }
 
-export const useAuth = ({
+export function useAuth({
   middleware,
   redirectIfAuthenticated,
-}: UseAuthOptions = {}) => {
+}: AuthConfig = {}): AuthHook {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+  const [localUser, setLocalUser] = useState<User | null>(null);
 
-  const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
-    axios
-      .get('/api/user')
-      .then(res => res.data)
-      .catch(error => {
-        if (error.response?.status === 401) {
-          return null;
+  // ミドルウェアがguestの場合は自動フェッチを無効化
+  const shouldFetch = middleware !== 'guest';
+  // URLを/api/userに固定
+  const swrKey = shouldFetch ? '/api/user' : null;
+
+  // ユーザーデータをローカルストレージから取得する試み
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setLocalUser(parsedUser);
+        console.log('Auth - Loaded user from localStorage:', parsedUser);
+      }
+    } catch (error) {
+      console.error('Auth - Error loading user from localStorage:', error);
+    }
+  }, []);
+
+  // キャッシュをクリアする関数
+  const clearCache = () => {
+    localStorage.removeItem('user');
+  };
+
+  // ユーザー情報を取得する関数
+  const fetchUser = async (url: string): Promise<any> => {
+    try {
+      console.log('Auth - Fetching user data from:', url);
+      const response = await axios.get(url, {
+        withCredentials: true,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('Auth - User data fetch success:', response.data);
+
+      // 成功した場合はユーザー情報をローカルストレージに保存
+      if (response.data && response.data.data) {
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Auth - Error fetching user:', error);
+
+      // Axiosエラーの場合
+      const axiosError = error as AxiosError<ErrorResponse>;
+
+      // 401エラー（認証が必要）の場合
+      if (axiosError.response?.status === 401) {
+        console.log('Auth - 401 Unauthorized response');
+        // ローカルストレージからユーザー情報を削除
+        localStorage.removeItem('user');
+      }
+
+      // エラーを再スロー
+      throw error;
+    }
+  };
+
+  // SWRの設定を改善
+  const { data, error, mutate, isValidating } = useSWR(swrKey, fetchUser, {
+    dedupingInterval: 5000, // 5秒間は重複リクエストを防止
+    revalidateIfStale: false, // 古いデータの自動再検証を無効化
+    revalidateOnFocus: false, // フォーカス時の再検証を無効化
+    revalidateOnReconnect: false, // 再接続時の再検証を無効化
+    shouldRetryOnError: false, // エラー時の自動再試行を無効化
+    errorRetryCount: 0, // エラー時の再試行回数を0に設定
+    errorRetryInterval: 5000, // エラー時の再試行間隔を5秒に設定
+    loadingTimeout: 10000, // ローディングタイムアウトを10秒に設定
+    onLoadingSlow: () =>
+      console.log('Auth - Loading is taking longer than expected'),
+    onError: (err: Error) => {
+      console.error('Auth - SWR Error:', err);
+    },
+  });
+
+  // 強制的にデータを再取得するメソッド
+  const forceRefresh = async (): Promise<void> => {
+    console.log('Auth - Force refreshing user data');
+    await mutate();
+  };
+
+  const login = async ({ email, password }: LoginCredentials) => {
+    setIsLoading(true);
+    try {
+      console.log('Auth - ログイン処理を開始します');
+
+      // バックエンドURLを確認
+      console.log('Auth - 現在のAPI URLを確認:', axios.defaults.baseURL);
+
+      // CSRFトークンの取得を試行
+      console.log('Auth - CSRFトークンを取得中...');
+      try {
+        const csrfResponse = await axios.get('/sanctum/csrf-cookie', {
+          withCredentials: true,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Auth - CSRFトークン取得成功:', csrfResponse);
+      } catch (csrfError: any) {
+        console.error('Auth - CSRFトークン取得失敗:', csrfError.message);
+        if (csrfError.response) {
+          console.error('- ステータス:', csrfError.response.status);
+          console.error('- データ:', csrfError.response.data);
+          console.error('- ヘッダー:', csrfError.response.headers);
+        } else if (csrfError.request) {
+          console.error('- リクエスト:', csrfError.request);
         }
-        throw error;
-      }),
-  );
+        throw new Error(
+          'CSRFトークンの取得に失敗しました。ネットワーク接続を確認してください。',
+        );
+      }
 
-  const csrf = () => axios.get('/sanctum/csrf-cookie');
+      // 現在のCookieを確認
+      console.log('Auth - 現在のCookie:', document.cookie);
+
+      // ログイン処理
+      console.log('Auth - ログインリクエストを送信中...');
+      try {
+        const loginData = {
+          email,
+          password,
+          remember: false,
+        };
+        console.log(
+          'Auth - ログインリクエストデータ:',
+          JSON.stringify(loginData),
+        );
+
+        const loginResponse = await axios.post('/api/login', loginData, {
+          withCredentials: true,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Auth - ログイン成功:', loginResponse);
+      } catch (loginError: any) {
+        console.error('Auth - ログイン処理失敗:', loginError.message);
+        if (loginError.response) {
+          console.error('- ステータス:', loginError.response.status);
+          console.error('- データ:', loginError.response.data);
+          console.error('- ヘッダー:', loginError.response.headers);
+        } else if (loginError.request) {
+          console.error('- リクエスト:', loginError.request);
+        }
+
+        if (loginError.response && loginError.response.status === 422) {
+          throw new Error('メールアドレスまたはパスワードが正しくありません。');
+        }
+
+        throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
+      }
+
+      // ログイン後の処理
+      console.log('Auth - ログイン後のユーザー情報を取得中...');
+
+      try {
+        // ユーザー情報を取得
+        const userResponse = await axios.get('/api/user', {
+          withCredentials: true,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Auth - ユーザー情報取得成功:', userResponse.data);
+
+        // SWRキャッシュを更新
+        await mutate();
+        console.log('Auth - ユーザー情報の更新完了');
+      } catch (userError: any) {
+        console.error('Auth - ユーザー情報取得エラー:', userError);
+        if (userError.response) {
+          console.error('- ステータス:', userError.response.status);
+          console.error('- データ:', userError.response.data);
+        }
+        // ユーザー情報取得エラーは致命的ではないため、処理を続行
+      }
+
+      // Cookieを再確認
+      console.log('Auth - 最終Cookie状態:', document.cookie);
+
+      setIsRouting(true);
+      console.log('Auth - ダッシュボードへリダイレクト');
+      window.location.href = '/dashboard'; // フルページリロードを強制
+    } catch (error) {
+      console.error('ログインエラー:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await axios.post('/api/logout');
+      // ローカルストレージからユーザー情報を削除
+      clearCache();
+      await mutate(null, { revalidate: false });
+      setIsRouting(true);
+      window.location.href = '/login'; // フルページリロードを強制
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const register = async ({
     name,
@@ -43,85 +281,24 @@ export const useAuth = ({
     password,
     password_confirmation,
     setErrors,
-  }: {
-    name: string;
-    email: string;
-    password: string;
-    password_confirmation: string;
-    setErrors: Dispatch<
-      SetStateAction<{
-        name?: string[];
-        email?: string[];
-        password?: string[];
-        password_confirmation?: string[];
-      }>
-    >;
-  }) => {
-    await csrf();
-
+  }: RegisterCredentials) => {
     setErrors({});
 
     axios
-      .post('/register', { name, email, password, password_confirmation })
-      .then(() => mutate())
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const login = async ({
-    email,
-    password,
-    remember,
-    setErrors,
-    setStatus,
-  }: {
-    email: string;
-    password: string;
-    remember: boolean;
-    setErrors: Dispatch<
-      SetStateAction<{ email?: string[]; password?: string[] }>
-    >;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
-    setErrors({});
-    setStatus(null);
-
-    axios
-      .post('/login', { email, password, remember })
-      .then(() => mutate())
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const forgotPassword = async ({
-    email,
-    setErrors,
-    setStatus,
-  }: {
-    email: string;
-    setErrors: Dispatch<SetStateAction<{ email?: string[] }>>;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
-    setErrors({});
-    setStatus(null);
-
-    axios
-      .post('/forgot-password', { email })
-      .then(response => setStatus(response.data.status))
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
+      .post('/api/register', {
+        name,
+        email,
+        password,
+        password_confirmation,
+      })
+      .then(() => {
+        mutate();
+        window.location.href = '/dashboard'; // フルページリロードを強制
+      })
+      .catch((error: AxiosError<ErrorResponse>) => {
+        if (error.response?.data?.errors) {
+          setErrors(error.response.data.errors);
+        }
       });
   };
 
@@ -132,80 +309,101 @@ export const useAuth = ({
     token,
     setErrors,
     setStatus,
-  }: {
-    email: string;
-    password: string;
-    password_confirmation: string;
-    token: string;
-    setErrors: Dispatch<
-      SetStateAction<{
-        email?: string[];
-        password?: string[];
-        password_confirmation?: string[];
-      }>
-    >;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
+  }: ResetPasswordCredentials) => {
     setErrors({});
     setStatus(null);
 
     axios
-      .post('/reset-password', {
-        token,
+      .post('/api/reset-password', {
         email,
         password,
         password_confirmation,
+        token,
       })
-      .then(response =>
-        router.push('/login?reset=' + btoa(response.data.status)),
-      )
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
+      .then((response: AxiosResponse<{ status: string }>) => {
+        window.location.href = '/login?reset=' + btoa(response.data.status); // フルページリロードを強制
+      })
+      .catch((error: AxiosError<ErrorResponse>) => {
+        if (error.response?.data?.errors) {
+          setErrors(error.response.data.errors);
+        }
       });
   };
 
-  const resendEmailVerification = ({
-    setStatus,
-  }: {
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    axios
-      .post('/email/verification-notification')
-      .then(response => setStatus(response.data.status));
-  };
-
-  const logout = useCallback(async () => {
-    if (!error) {
-      await axios.post('/logout').then(() => mutate());
-    }
-
-    window.location.pathname = '/login';
-  }, [error, mutate]);
-
+  // ミドルウェアの効果を処理
   useEffect(() => {
-    if (middleware === 'guest' && redirectIfAuthenticated && user)
-      router.push(redirectIfAuthenticated);
-    if (
-      window.location.pathname === '/verify-email' &&
-      user?.email_verified_at !== undefined &&
-      redirectIfAuthenticated !== undefined
-    ) {
-      router.push(redirectIfAuthenticated);
+    if (!isValidating) {
+      const authState = {
+        path: window.location.pathname,
+        user: data?.data || localUser,
+        error,
+        middleware,
+        redirectIfAuthenticated,
+        isRouting,
+      };
+      console.log('Auth - Middleware Effect:', authState);
+
+      // ホームページのリダイレクト処理（特別なケース）
+      if (window.location.pathname === '/' && !isRouting) {
+        if (data?.data || localUser) {
+          setIsRouting(true);
+          console.log('Auth - Home page with user -> redirecting to dashboard');
+          window.location.href = '/dashboard';
+        } else if (error || (!data && !localUser && !isValidating)) {
+          setIsRouting(true);
+          console.log('Auth - Home page without user -> redirecting to login');
+          window.location.href = '/login';
+        }
+      }
+
+      // 未認証ユーザーのリダイレクト
+      if (middleware === 'auth' && error && !localUser && !isRouting) {
+        setIsRouting(true);
+        console.log('Auth - Auth middleware, no user -> redirecting to login');
+        window.location.href = '/login'; // フルページリロードを強制
+      }
+
+      // 認証済みユーザーのリダイレクト
+      if (redirectIfAuthenticated && (data?.data || localUser) && !isRouting) {
+        setIsRouting(true);
+        console.log(
+          `Auth - Authenticated user -> redirecting to ${redirectIfAuthenticated}`,
+        );
+        window.location.href = redirectIfAuthenticated; // フルページリロードを強制
+      }
     }
-    if (middleware === 'auth' && error) logout();
-  }, [user, error, middleware, redirectIfAuthenticated, router, logout]);
+  }, [
+    data,
+    localUser,
+    error,
+    middleware,
+    redirectIfAuthenticated,
+    isValidating,
+    isRouting,
+  ]);
+
+  // ルーティング状態をリセットするエフェクト
+  useEffect(() => {
+    if (isRouting) {
+      const timer = setTimeout(() => {
+        setIsRouting(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRouting]);
+
+  // 実際のユーザーデータ（APIレスポンスまたはローカルストレージから）
+  const actualUser = data?.data || localUser;
 
   return {
-    user,
-    register,
+    user: actualUser,
     login,
-    forgotPassword,
-    resetPassword,
-    resendEmailVerification,
     logout,
+    register,
+    resetPassword,
+    isLoading,
+    isValidating,
+    forceRefresh,
+    clearCache,
   };
-};
+}

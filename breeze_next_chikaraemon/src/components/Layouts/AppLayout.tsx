@@ -1,7 +1,7 @@
 'use client';
 
-import Navigation from '@/components/Layouts/Navigation';
 import { ReactNode } from 'react';
+import Navigation from './Navigation';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navigation />
+      <Navigation /> 
       <main>{children}</main>
     </div>
   );

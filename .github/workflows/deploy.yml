@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, frontend-integration]
 
 jobs:
   deploy:
@@ -18,7 +18,9 @@ jobs:
       - name: Add EC2 to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || echo "ssh-keyscan failed but continuing"
+          # EC2のホスト情報を直接追加（代替手段）
+          echo "${{ secrets.EC2_HOST_KEY }}" >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         run: |
@@ -31,13 +33,13 @@ jobs:
             --exclude 'deploy-aws.sh' --exclude '.env.local' \
             --exclude '.cursorrules' --exclude 'api-test.http' \
             --exclude 'README_LOCAL.md' \
-            ./ ec2-user@${{ secrets.EC2_HOST }}:/usr/share/nginx/html/
+            ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/order-management/ || exit 1
 
       - name: Restart services & run migrations
         run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} 'cd /usr/share/nginx/html && 
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/order-management && 
             php artisan migrate --force && 
             php artisan cache:clear && 
             php artisan route:clear && 
             php artisan optimize &&
-            sudo systemctl restart nginx'
+            sudo systemctl restart nginx' || exit 1

@@ -53,13 +53,18 @@ const Login = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    await login({
-      email: values.email,
-      password: values.password,
-      remember: values.remember,
-      setErrors: () => {},
-      setStatus,
-    });
+    try {
+      console.log('Attempting login with:', values);
+      await login({
+        email: values.email,
+        password: values.password,
+      });
+    } catch (error) {
+      console.error('Login failed:', error);
+      setStatus(
+        '認証に失敗しました。メールアドレスとパスワードを確認してください。',
+      );
+    }
   };
 
   return (

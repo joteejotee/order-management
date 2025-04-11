@@ -11,6 +11,7 @@ class Pen extends Model
   protected $fillable = [
     'name',
     'price',
+    'stock',
   ];
   public function orders()
   {

@@ -1,101 +1,115 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from '@/lib/axios';
+"use client";
+import React, { useEffect, useState } from "react";
+import axios from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { Pen } from "@/types";
 
-const EditPage = ({ params }: { params: { id: string } }) => {
-  const [pen, setPen] = useState<Record<string, any>>({});
-  const [nameMessage, setNameMessage] = useState<string>('');
-  const [priceMessage, setPriceMessage] = useState<string>('');
-  const router = useRouter();
-
-  useEffect(() => {
-    const getPen = async () => {
-      try {
-        const response = await axios.get(`/api/pens/${params.id}`);
-        setPen(response.data.data);
-      } catch (error) {
-        console.error('ペンの取得に失敗しました', error);
-      }
+interface EditPenProps {
+    params: {
+        id: string;
     };
-    getPen();
-  }, [params.id]);
+}
 
-  const updatePen = async () => {
-    const requestBody = {
-      name: pen.name,
-      price: pen.price,
+const EditPen = ({ params }: EditPenProps) => {
+    const router = useRouter();
+    const [name, setName] = useState("");
+    const [price, setPrice] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+    useEffect(() => {
+        const fetchPen = async () => {
+            try {
+                const response = await axios.get<{ data: Pen }>(
+                    `${backendUrl}/api/pens/${params.id}`
+                );
+                const pen = response.data.data;
+                setName(pen.name);
+                setPrice(pen.price.toString());
+            } catch (error) {
+                console.error("Failed to fetch pen:", error);
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        fetchPen();
+    }, [params.id]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            await axios.put(`${backendUrl}/api/pens/${params.id}`, {
+                name,
+                price: parseInt(price),
+            });
+            router.push("/pens");
+        } catch (error) {
+            console.error("Failed to update pen:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    try {
-      setNameMessage('');
-      setPriceMessage('');
-
-      await axios.put(`/api/pens/${params.id}`, requestBody);
-      router.push('/pens');
-    } catch (error: any) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errors = error.response.data.errors;
-        if (errors.name) {
-          setNameMessage(errors.name[0]);
-        }
-        if (errors.price) {
-          setPriceMessage(errors.price[0]);
-        }
-      } else {
-        console.error('更新に失敗しました', error);
-      }
+    if (isFetching) {
+        return <div>読み込み中...</div>;
     }
-  };
 
-  return (
-    <div className="relative p-3">
-      <div className="flex flex-col bg-white border shadow-sm rounded-xl p-4 md:p-5 dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
-        <div className="py-2 px-4">
-          <p>
-            IDが{params.id}
-            のペンの名前と価格を入力して、編集ボタンをクリックしてください
-          </p>
-        </div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="名前"
-          defaultValue={pen.name}
-          onChange={e => {
-            setPen({
-              ...pen,
-              name: e.target.value,
-            });
-          }}
-        />
-        <div className="ml-4 text-red-500">{nameMessage}</div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="価格"
-          defaultValue={pen.price}
-          onChange={e => {
-            setPen({
-              ...pen,
-              price: e.target.value,
-            });
-          }}
-        />
-        <div className="ml-4 text-red-500">{priceMessage}</div>
-        <div>
-          <button
-            className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-            onClick={() => {
-              updatePen();
-            }}
-          >
-            編集
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                    名前
+                </label>
+                <input
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    required
+                />
+            </div>
+            <div>
+                <label
+                    htmlFor="price"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                    価格
+                </label>
+                <input
+                    type="number"
+                    id="price"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    required
+                />
+            </div>
+            <div className="flex justify-end space-x-4">
+                <button
+                    type="button"
+                    onClick={() => router.push("/pens")}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                    キャンセル
+                </button>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isLoading ? "保存中..." : "保存"}
+                </button>
+            </div>
+        </form>
+    );
 };
 
-export default EditPage;
+export default EditPen;

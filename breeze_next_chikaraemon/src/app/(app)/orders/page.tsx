@@ -1,180 +1,247 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { Order, PaginationMeta } from '@/types';
 
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+interface OrdersResponse {
+  data: Order[];
+  meta: PaginationMeta;
+}
 
-const Orders = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+const Orders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
-  const [info, setInfo] = useState<{
-    next_page_url?: string;
-    prev_page_url?: string;
-  }>({});
-  const url = 'http://localhost:8000/api/orders';
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState<PaginationMeta>({
+    current_page: 1,
+    from: 1,
+    last_page: 1,
+    path: '',
+    per_page: 10,
+    to: 1,
+    total: 0,
+    next_page_url: null,
+    prev_page_url: null,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const getOrders = async (url: string) => {
-    if (!url) {
-      url = 'http://localhost:8000/api/orders';
+  const getOrders = async (pageNum: number) => {
+    if (isLoading) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-    const response = await fetch(url);
-    const json = await response.json();
-    setOrders(json.data);
-    console.log(json.data);
-    setInfo(json.meta);
-    console.log(json.meta);
-    //setOrders(json.data.data);
-    //console.log(json.data.data);
-    //setInfo(json.data);
-    //console.log(json.data);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setIsLoading(true);
+    try {
+      console.log(
+        'APIリクエスト開始:',
+        `${backendUrl}/api/orders?page=${pageNum}`,
+      );
+      const response = await axios.get(`/api/orders?page=${pageNum}`, {
+        signal: controller.signal,
+      });
+      console.log('API レスポンス 成功:', response.data);
+      console.log('API レスポンス ステータス:', response.status);
+      console.log('API レスポンス データ構造:', Object.keys(response.data));
+
+      if (abortControllerRef.current === controller) {
+        if (response.data && response.data.data) {
+          setOrders(response.data.data);
+          const metaData = response.data.meta;
+          console.log('ページネーション メタデータ (raw):', metaData);
+          console.log('last_page:', metaData.last_page);
+          console.log('current_page:', metaData.current_page);
+          console.log('next_page_url:', metaData.next_page_url);
+
+          setPageInfo({
+            current_page: metaData.current_page,
+            from: metaData.from || 0,
+            last_page: metaData.last_page || 1,
+            path: metaData.path || '',
+            per_page: metaData.per_page,
+            to: metaData.to || 0,
+            total: metaData.total,
+            next_page_url: metaData.next_page_url,
+            prev_page_url: metaData.prev_page_url,
+          });
+          console.log('ページネーション情報:', {
+            current_page: metaData.current_page,
+            last_page: metaData.last_page,
+            next_page_url: metaData.next_page_url,
+            prev_page_url: metaData.prev_page_url,
+          });
+          console.log('ステート更新完了: setOrders と setPageInfo を実行');
+        } else {
+          console.error('API レスポンスの形式が予期しない形式:', response.data);
+          setOrders([]);
+        }
+      }
+    } catch (error) {
+      console.error('APIリクエスト失敗 - 詳細:');
+      if (error instanceof Error) {
+        console.error('エラーメッセージ:', error.message);
+        console.error('エラータイプ:', error.name);
+        console.error('スタックトレース:', error.stack);
+      }
+
+      if (axios.isAxiosError(error)) {
+        console.error('Axiosエラー設定:', error.config);
+        console.error('Axiosエラーレスポンス:', error.response);
+        console.error('Axiosエラーリクエスト:', error.request);
+      }
+
+      console.error('エラーの完全な内容:', error);
+      setOrders([]);
+    } finally {
+      if (abortControllerRef.current === controller) {
+        setIsLoading(false);
+        console.log('ローディング状態をfalseに設定');
+      }
+    }
   };
 
   useEffect(() => {
-    getOrders(url);
-  }, []);
+    getOrders(page);
+
+    // グローバルナビゲーションイベントのリスナーを追加
+    const handleNavigation = () => {
+      console.log('Navigation detected, aborting pending requests');
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+
+    window.addEventListener('navigationStart', handleNavigation);
+
+    return () => {
+      window.removeEventListener('navigationStart', handleNavigation);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [page]);
+
+  useEffect(() => {
+    console.log('orders の中身:', orders);
+    console.log('pageInfo の中身:', pageInfo);
+  }, [orders, pageInfo]);
 
   const deleteOrder = async (id: number) => {
     if (confirm('削除しますか？')) {
-      http.delete(`/api/orders/${id}`).then(() => {
-        getOrders(url);
-      });
+      try {
+        await axios.delete(`/api/orders/${id}`);
+        getOrders(page);
+      } catch (error) {
+        console.error('Failed to delete order:', error);
+      }
     }
   };
+
   const handleNextPage = () => {
-    if (info.next_page_url) {
-      getOrders(info.next_page_url);
+    if (pageInfo?.next_page_url) {
+      setPage(page + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (info.prev_page_url) {
-      getOrders(info.prev_page_url);
-    }
-  };
-
-  const shipOrder = async (id: number) => {
-    // 即座にUIを更新
-    const updatedOrders = orders.map(order =>
-      order.id === id ? { ...order, shipping: 1 } : order,
-    );
-    setOrders(updatedOrders);
-
-    try {
-      await http.put(`/api/orders/${id}`);
-    } catch (error: any) {
-      // エラー時は元に戻す
-      const originalOrders = orders.map(order =>
-        order.id === id ? { ...order, shipping: 0 } : order,
-      );
-      setOrders(originalOrders);
-      console.error('出荷状態の更新に失敗しました:', error.message);
+    if (pageInfo?.prev_page_url && page > 1) {
+      setPage(page - 1);
     }
   };
 
   return (
-    <div className="relative overflow-x-auto p-5">
-      <table className="min-w-full divide-y dark:divide-neutral-700">
+    <div className="relative overflow-x-auto">
+      <table className="min-w-full dark:divide-neutral-700">
         <thead>
           <tr>
             <th scope="col" className="px-6 py-4">
               ID
             </th>
             <th scope="col" className="px-6 py-4 text-left">
-              顧客
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
               ペン
             </th>
             <th scope="col" className="px-6 py-4 text-left">
-              価格
+              数量
             </th>
             <th scope="col" className="px-6 py-4 text-left">
-              注文数
+              合計金額
             </th>
             <th scope="col" className="px-6 py-4 text-left">
-              注文日
+              ステータス
             </th>
-            <th scope="col" className="px-6 py-4">
-              出荷・未出荷
-            </th>
+            <th scope="col" className="px-3 py-4" />
             <th scope="col" className="px-3 py-4">
               <button
                 className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={() => {
-                  router.push('/orders/create');
-                }}
+                onClick={() => router.push('/orders/create')}
               >
                 新規登録
               </button>
             </th>
-            <th scope="col" className="px-3 py-4" />
           </tr>
         </thead>
         <tbody>
-          {orders.map((order: any) => {
-            return (
-              <tr key={order.id} className="bg-white border-b">
+          {orders && orders.length > 0 ? (
+            orders.map(order => (
+              <tr key={order.id} className="bg-white">
                 <th scope="row" className="px-6 py-2">
                   {order.id}
                 </th>
-                <td className="px-6 py-2">{order.customer.name}</td>
-                <td className="px-6 py-2">{order.pen.name}</td>
-                <td className="px-6 py-2">{order.pen.price}</td>
-                <td className="px-6 py-2">{order.num}</td>
-                <td className="px-6 py-2">{order.orderday}</td>
-                <td className="px-6 py-2 text-center">
-                  {order.shipping === 0 ? (
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        shipOrder(order.id);
-                      }}
-                    >
-                      未
-                    </button>
-                  ) : order.shipping === 1 ? (
-                    <span>出荷済</span>
-                  ) : null}
+                <td className="px-6 py-2">{order.pen?.name || 'データなし'}</td>
+                <td className="px-6 py-2">{order.quantity}</td>
+                <td className="px-6 py-2">
+                  {order.pen ? order.pen.price * order.quantity : 0}円
+                </td>
+                <td className="px-6 py-2">
+                  {order.status === 'pending' ? (
+                    <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                      未発送
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                      発送済み
+                    </span>
+                  )}
                 </td>
                 <td className="px-3 py-2 text-right">
-                  {order.shipping === 0 ? (
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        router.push(`/orders/edit/${order.id}`);
-                      }}
-                    >
-                      編集
-                    </button>
-                  ) : null}
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => router.push(`/orders/edit/${order.id}`)}
+                  >
+                    編集
+                  </button>
                 </td>
                 <td className="px-3 py-2">
-                  {order.shipping === 0 ? (
-                    <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        deleteOrder(order.id);
-                      }}
-                    >
-                      削除
-                    </button>
-                  ) : null}
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => deleteOrder(order.id)}
+                  >
+                    削除
+                  </button>
                 </td>
               </tr>
-            );
-          })}
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="px-6 py-4 text-center">
+                {isLoading ? '読み込み中...' : 'データがありません'}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
-
       <div className="w-1/2 items-center px-4 mt-6">
-        <div className="join grid grid-cols-2">
-          {info.prev_page_url ? (
+        <div className="flex gap-x-2">
+          {(page > 1 || pageInfo.prev_page_url) && (
             <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
+              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
               onClick={handlePreviousPage}
             >
               <svg
@@ -185,18 +252,18 @@ const Orders = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
               <span>PreviousPage</span>
             </button>
-          ) : null}
-          {info.next_page_url ? (
+          )}
+          {(pageInfo.last_page > page || pageInfo.next_page_url) && (
             <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
+              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
               onClick={handleNextPage}
             >
               <span>NextPage</span>
@@ -208,17 +275,18 @@ const Orders = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
   );
 };
+
 export default Orders;
