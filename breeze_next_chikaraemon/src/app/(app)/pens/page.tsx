@@ -3,13 +3,60 @@ import React, { useEffect, useState } from 'react';
 import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
+import useSWR from 'swr';
+
+// fetcherの定義を追加
+const fetcher = async (url: string) => {
+  const response = await axios.get(url);
+  return response.data;
+};
 
 interface PensResponse {
   data: {
     data: Pen[];
-    meta: PaginationMeta;
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
   };
 }
+
+const TableSkeleton = () => {
+  return (
+    <>
+      {[...Array(4)].map((_, index) => (
+        <tr
+          key={index}
+          className="animate-pulse bg-white border-b border-gray-200"
+        >
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-8"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-32"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-16"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-12"></div>
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+};
 
 const Pens: React.FC = () => {
   const [pens, setPens] = useState<Pen[]>([]);
@@ -29,6 +76,33 @@ const Pens: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  // SWRの設定を最適化
+  const { data: swrResponse, mutate, isValidating } = useSWR<PensResponse>(
+    `/api/pens?page=${page}`,
+    fetcher,
+    {
+      onSuccess: data => {
+        if (data?.data) {
+          setPens(data.data.data);
+          setPageInfo({
+            current_page: data.data.current_page,
+            from: data.data.from,
+            last_page: data.data.last_page,
+            path: data.data.path,
+            per_page: data.data.per_page,
+            to: data.data.to,
+            total: data.data.total,
+            next_page_url: data.data.next_page_url,
+            prev_page_url: data.data.prev_page_url,
+          });
+        }
+      },
+      onError: error => {
+        console.error('Failed to fetch pens:', error);
+      },
+    },
+  );
 
   const getPens = async (pageNum: number) => {
     if (isLoading) return;
@@ -131,13 +205,24 @@ const Pens: React.FC = () => {
   }, [pens, pageInfo]);
 
   const deletePen = async (id: number) => {
-    if (confirm('削除しますか？')) {
-      try {
-        await axios.delete(`/api/pens/${id}`);
-        getPens(page);
-      } catch (error) {
-        console.error('Failed to delete pen:', error);
-      }
+    if (!swrResponse?.data) return;
+
+    // 即時にUIを更新
+    const optimisticData: PensResponse = {
+      data: {
+        ...swrResponse.data,
+        data: pens.filter(pen => pen.id !== id),
+      },
+    };
+    mutate(optimisticData, false);
+
+    try {
+      await axios.delete(`/api/pens/${id}`);
+      mutate(); // サーバーから最新データを取得
+    } catch (error) {
+      // エラー時は元のデータに戻す
+      mutate(swrResponse);
+      console.error('Failed to delete pen:', error);
     }
   };
 
@@ -182,7 +267,9 @@ const Pens: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {pens && pens.length > 0 ? (
+          {isLoading || isValidating ? (
+            <TableSkeleton />
+          ) : pens && pens.length > 0 ? (
             pens.map(pen => (
               <tr key={pen.id} className="bg-white border-b border-gray-200">
                 <th scope="row" className="px-6 py-2">

@@ -15,28 +15,61 @@ const Navigation = () => {
   const pathname = usePathname();
   const router = useRouter();
 
+  // 主要なページのプリフェッチを実装
+  useEffect(() => {
+    // よく使用されるページをプリフェッチ
+    router.prefetch('/dashboard');
+    router.prefetch('/pens');
+    router.prefetch('/orders');
+    router.prefetch('/profile');
+  }, [router]);
+
   useEffect(() => {
     forceRefresh();
   }, []);
 
-  // クライアントサイドナビゲーションを使用
+  // ナビゲーション処理を最適化
   const handleNavigation = (
     e: React.MouseEvent<HTMLAnchorElement>,
     path: string,
   ) => {
     e.preventDefault();
 
+    // 認証状態を確認
+    if (!user || isValidating) {
+      console.log('Navigation - Waiting for auth state to stabilize...');
+      return;
+    }
+
     // 遷移前にすべてのリクエストをキャンセル
     window.dispatchEvent(new CustomEvent('navigationStart'));
 
-    // 少し時間を置いてからリダイレクト（キャンセル処理の完了を待つ）
-    console.log(
-      `Navigation - Redirecting to ${path} with client-side navigation`,
-    );
-    setTimeout(() => {
-      router.push(path);
-    }, 10);
+    // 即時に遷移を開始
+    router.push(path);
   };
+
+  // ナビゲーションリンクコンポーネント
+  const NavLink = ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+      <a
+        href={href}
+        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
+          pathname === href
+            ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'
+        }`}
+        onClick={e => handleNavigation(e, href)}
+      >
+        {children}
+      </a>
+    </div>
+  );
 
   return (
     <nav className="bg-white border-b border-gray-100">
@@ -54,47 +87,9 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <a
-                href="/dashboard"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
-                  pathname === '/dashboard'
-                    ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'
-                }`}
-                onClick={e => handleNavigation(e, '/dashboard')}
-              >
-                Dashboard
-              </a>
-            </div>
-            {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <a
-                href="/pens"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
-                  pathname === '/pens'
-                    ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'
-                }`}
-                onClick={e => handleNavigation(e, '/pens')}
-              >
-                Pen Master
-              </a>
-            </div>
-            {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <a
-                href="/orders"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
-                  pathname === '/orders'
-                    ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'
-                }`}
-                onClick={e => handleNavigation(e, '/orders')}
-              >
-                Order Master
-              </a>
-            </div>
+            <NavLink href="/dashboard">Dashboard</NavLink>
+            <NavLink href="/pens">Pen Master</NavLink>
+            <NavLink href="/orders">Order Master</NavLink>
           </div>
 
           {/* Settings Dropdown */}

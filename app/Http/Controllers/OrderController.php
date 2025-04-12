@@ -81,14 +81,15 @@ class OrderController extends Controller
    */
   public function edit($id)
   {
+    $order = Order::findOrFail($id);
     $pens = Pen::all();
     $customers = Customer::all();
-    $order = Order::find($id);
+
     return response()->json([
       'data' => $order,
       'pens' => $pens,
       'customers' => $customers,
-    ], 200);
+    ]);
   }
 
   /**

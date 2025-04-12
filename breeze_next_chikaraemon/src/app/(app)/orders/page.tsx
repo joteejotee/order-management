@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { Order, PaginationMeta } from '@/types';
@@ -9,28 +9,57 @@ interface OrdersResponse {
   meta: PaginationMeta;
 }
 
+const TableSkeleton = () => {
+  return (
+    <>
+      {[...Array(4)].map((_, index) => (
+        <tr
+          key={index}
+          className="animate-pulse bg-white border-b border-gray-200"
+        >
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-8"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-24"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-32"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-12"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-20"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-36"></div>
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+};
+
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [pageInfo, setPageInfo] = useState<PaginationMeta>({
-    current_page: 1,
-    from: 1,
-    last_page: 1,
-    path: '',
-    per_page: 10,
-    to: 1,
-    total: 0,
-    next_page_url: null,
-    prev_page_url: null,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const abortControllerRef = React.useRef<AbortController | null>(null);
+  const [pageInfo, setPageInfo] = useState<PaginationMeta | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const getOrders = async (pageNum: number) => {
-    if (isLoading) return;
-
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -156,6 +185,27 @@ const Orders: React.FC = () => {
     }
   };
 
+  // ステータス更新関数を追加
+  const toggleStatus = async (order: Order) => {
+    // 即時にUIを更新
+    const optimisticOrders = orders.map(o =>
+      o.id === order.id
+        ? { ...o, status: o.status === 'pending' ? 'shipped' : 'pending' }
+        : o,
+    );
+    setOrders(optimisticOrders);
+
+    try {
+      await axios.put(`/api/orders/${order.id}`, {
+        status: order.status === 'pending' ? 'shipped' : 'pending',
+      });
+    } catch (error) {
+      // エラー時は元に戻す
+      setOrders(orders);
+      console.error('Failed to update status:', error);
+    }
+  };
+
   return (
     <div className="relative overflow-x-auto p-4">
       <table className="min-w-full dark:divide-neutral-700">
@@ -194,7 +244,9 @@ const Orders: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {orders && orders.length > 0 ? (
+          {isLoading ? (
+            <TableSkeleton />
+          ) : orders && orders.length > 0 ? (
             orders.map(order => (
               <tr key={order.id} className="bg-white border-b border-gray-200">
                 <th scope="row" className="px-6 py-2">
@@ -226,15 +278,16 @@ const Orders: React.FC = () => {
                     : 'データなし'}
                 </td>
                 <td className="px-6 py-2">
-                  {order.status === 'pending' ? (
-                    <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
-                      未発送
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
-                      発送済み
-                    </span>
-                  )}
+                  <button
+                    onClick={() => toggleStatus(order)}
+                    className={`px-2 py-1 text-xs font-medium rounded-full cursor-pointer ${
+                      order.status === 'pending'
+                        ? 'text-red-800 bg-red-100'
+                        : 'text-blue-800 bg-blue-100'
+                    }`}
+                  >
+                    {order.status === 'pending' ? '未出荷' : '出荷済'}
+                  </button>
                 </td>
                 <td className="px-3 py-2 text-right">
                   <button
@@ -265,7 +318,7 @@ const Orders: React.FC = () => {
       </table>
       <div className="w-1/2 items-center px-4 mt-6">
         <div className="flex gap-x-2">
-          {(page > 1 || pageInfo.prev_page_url) && (
+          {pageInfo && (page > 1 || pageInfo.prev_page_url) && (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
               onClick={handlePreviousPage}
@@ -287,7 +340,7 @@ const Orders: React.FC = () => {
               <span>PreviousPage</span>
             </button>
           )}
-          {(pageInfo.last_page > page || pageInfo.next_page_url) && (
+          {pageInfo && (pageInfo.last_page > page || pageInfo.next_page_url) && (
             <button
               className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
               onClick={handleNextPage}

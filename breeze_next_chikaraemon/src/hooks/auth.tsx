@@ -124,18 +124,28 @@ export function useAuth({
 
   // SWRの設定を改善
   const { data, error, mutate, isValidating } = useSWR(swrKey, fetchUser, {
-    dedupingInterval: 5000, // 5秒間は重複リクエストを防止
-    revalidateIfStale: false, // 古いデータの自動再検証を無効化
-    revalidateOnFocus: false, // フォーカス時の再検証を無効化
-    revalidateOnReconnect: false, // 再接続時の再検証を無効化
-    shouldRetryOnError: false, // エラー時の自動再試行を無効化
-    errorRetryCount: 0, // エラー時の再試行回数を0に設定
-    errorRetryInterval: 5000, // エラー時の再試行間隔を5秒に設定
-    loadingTimeout: 10000, // ローディングタイムアウトを10秒に設定
+    dedupingInterval: 2000, // 2秒間は重複リクエストを防止
+    revalidateIfStale: true, // 古いデータの自動再検証を有効化
+    revalidateOnFocus: true, // フォーカス時の再検証を有効化
+    revalidateOnReconnect: true, // 再接続時の再検証を有効化
+    shouldRetryOnError: true, // エラー時の自動再試行を有効化
+    errorRetryCount: 3, // エラー時の再試行回数を3回に設定
+    errorRetryInterval: 2000, // エラー時の再試行間隔を2秒に設定
+    loadingTimeout: 5000, // ローディングタイムアウトを5秒に設定
+    focusThrottleInterval: 5000, // フォーカス時の再検証を5秒間隔に制限
     onLoadingSlow: () =>
       console.log('Auth - Loading is taking longer than expected'),
+    onSuccess: data => {
+      console.log('Auth - Successfully fetched user data:', data);
+      if (data?.data) {
+        localStorage.setItem('user', JSON.stringify(data.data));
+      }
+    },
     onError: (err: Error) => {
       console.error('Auth - SWR Error:', err);
+      if (err.message.includes('401')) {
+        localStorage.removeItem('user');
+      }
     },
   });
 
@@ -343,34 +353,49 @@ export function useAuth({
       };
       console.log('Auth - Middleware Effect:', authState);
 
-      // ホームページのリダイレクト処理（特別なケース）
-      if (window.location.pathname === '/' && !isRouting) {
-        if (data?.data || localUser) {
+      // 認証状態が安定するまで待機
+      const stabilityTimer = setTimeout(() => {
+        // ホームページのリダイレクト処理（特別なケース）
+        if (window.location.pathname === '/' && !isRouting) {
+          if (data?.data || localUser) {
+            setIsRouting(true);
+            console.log(
+              'Auth - Home page with user -> redirecting to dashboard',
+            );
+            window.location.href = '/dashboard';
+          } else if (error || (!data && !localUser && !isValidating)) {
+            setIsRouting(true);
+            console.log(
+              'Auth - Home page without user -> redirecting to login',
+            );
+            window.location.href = '/login';
+          }
+        }
+
+        // 未認証ユーザーのリダイレクト
+        if (middleware === 'auth' && error && !localUser && !isRouting) {
           setIsRouting(true);
-          console.log('Auth - Home page with user -> redirecting to dashboard');
-          window.location.href = '/dashboard';
-        } else if (error || (!data && !localUser && !isValidating)) {
-          setIsRouting(true);
-          console.log('Auth - Home page without user -> redirecting to login');
+          console.log(
+            'Auth - Auth middleware, no user -> redirecting to login',
+          );
           window.location.href = '/login';
         }
-      }
 
-      // 未認証ユーザーのリダイレクト
-      if (middleware === 'auth' && error && !localUser && !isRouting) {
-        setIsRouting(true);
-        console.log('Auth - Auth middleware, no user -> redirecting to login');
-        window.location.href = '/login'; // フルページリロードを強制
-      }
+        // 認証済みユーザーのリダイレクト
+        if (
+          redirectIfAuthenticated &&
+          (data?.data || localUser) &&
+          !isRouting
+        ) {
+          setIsRouting(true);
+          console.log(
+            `Auth - Authenticated user -> redirecting to ${redirectIfAuthenticated}`,
+          );
+          window.location.href = redirectIfAuthenticated;
+        }
+      }, 500); // 500ミリ秒の安定化待機時間
 
-      // 認証済みユーザーのリダイレクト
-      if (redirectIfAuthenticated && (data?.data || localUser) && !isRouting) {
-        setIsRouting(true);
-        console.log(
-          `Auth - Authenticated user -> redirecting to ${redirectIfAuthenticated}`,
-        );
-        window.location.href = redirectIfAuthenticated; // フルページリロードを強制
-      }
+      return () => clearTimeout(stabilityTimer);
     }
   }, [
     data,
