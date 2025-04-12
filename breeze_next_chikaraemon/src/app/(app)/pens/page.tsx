@@ -154,7 +154,7 @@ const Pens: React.FC = () => {
   };
 
   return (
-    <div className="relative overflow-x-auto">
+    <div className="relative overflow-x-auto p-4">
       <table className="min-w-full dark:divide-neutral-700">
         <thead>
           <tr>
@@ -182,32 +182,40 @@ const Pens: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {pens.map(pen => (
-            <tr key={pen.id} className="bg-white">
-              <th scope="row" className="px-6 py-2">
-                {pen.id}
-              </th>
-              <td className="px-6 py-2">{pen.name}</td>
-              <td className="px-6 py-2">{pen.price}円</td>
-              <td className="px-6 py-2">{pen.stock}</td>
-              <td className="px-3 py-2 text-right">
-                <button
-                  className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                  onClick={() => router.push(`/pens/edit/${pen.id}`)}
-                >
-                  編集
-                </button>
-              </td>
-              <td className="px-3 py-2">
-                <button
-                  className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                  onClick={() => deletePen(pen.id)}
-                >
-                  削除
-                </button>
+          {pens && pens.length > 0 ? (
+            pens.map(pen => (
+              <tr key={pen.id} className="bg-white border-b border-gray-200">
+                <th scope="row" className="px-6 py-2">
+                  {pen.id}
+                </th>
+                <td className="px-6 py-2">{pen.name}</td>
+                <td className="px-6 py-2">{pen.price}円</td>
+                <td className="px-6 py-2">{pen.stock}</td>
+                <td className="px-3 py-2 text-right">
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => router.push(`/pens/edit/${pen.id}`)}
+                  >
+                    編集
+                  </button>
+                </td>
+                <td className="px-3 py-2">
+                  <button
+                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => deletePen(pen.id)}
+                  >
+                    削除
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center">
+                ペンが見つかりませんでした。
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
       <div className="w-1/2 items-center px-4 mt-6">

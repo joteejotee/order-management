@@ -157,12 +157,15 @@ const Orders: React.FC = () => {
   };
 
   return (
-    <div className="relative overflow-x-auto">
+    <div className="relative overflow-x-auto p-4">
       <table className="min-w-full dark:divide-neutral-700">
         <thead>
           <tr>
             <th scope="col" className="px-6 py-4">
-              ID
+              注文ID
+            </th>
+            <th scope="col" className="px-6 py-4 text-left">
+              顧客
             </th>
             <th scope="col" className="px-6 py-4 text-left">
               ペン
@@ -172,6 +175,9 @@ const Orders: React.FC = () => {
             </th>
             <th scope="col" className="px-6 py-4 text-left">
               合計金額
+            </th>
+            <th scope="col" className="px-6 py-4 text-left">
+              注文日
             </th>
             <th scope="col" className="px-6 py-4 text-left">
               ステータス
@@ -190,14 +196,34 @@ const Orders: React.FC = () => {
         <tbody>
           {orders && orders.length > 0 ? (
             orders.map(order => (
-              <tr key={order.id} className="bg-white">
+              <tr key={order.id} className="bg-white border-b border-gray-200">
                 <th scope="row" className="px-6 py-2">
                   {order.id}
                 </th>
+                <td className="px-6 py-2">
+                  {order.customer?.name || 'データなし'}
+                </td>
                 <td className="px-6 py-2">{order.pen?.name || 'データなし'}</td>
                 <td className="px-6 py-2">{order.quantity}</td>
                 <td className="px-6 py-2">
-                  {order.pen ? order.pen.price * order.quantity : 0}円
+                  {order.pen
+                    ? new Intl.NumberFormat('ja-JP').format(
+                        order.pen.price * order.quantity,
+                      )
+                    : 0}
+                  円
+                </td>
+                <td className="px-6 py-2">
+                  {order.orderday
+                    ? new Date(order.orderday).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      })
+                    : 'データなし'}
                 </td>
                 <td className="px-6 py-2">
                   {order.status === 'pending' ? (
