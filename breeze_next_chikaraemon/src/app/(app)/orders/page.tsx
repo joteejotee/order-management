@@ -230,7 +230,7 @@ const Orders: React.FC = () => {
               注文日
             </th>
             <th scope="col" className="px-6 py-4 text-left">
-              ステータス
+              出荷
             </th>
             <th scope="col" className="px-3 py-4" />
             <th scope="col" className="px-3 py-4">

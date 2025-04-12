@@ -65,8 +65,27 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
     setQuantity(e.target.value);
   };
 
+  const FormSkeleton = () => {
+    return (
+      <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+            <div className="flex justify-end mt-6 space-x-4">
+              <div className="h-10 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded w-24"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isFetching) {
-    return <div>読み込み中...</div>;
+    return <FormSkeleton />;
   }
 
   return (

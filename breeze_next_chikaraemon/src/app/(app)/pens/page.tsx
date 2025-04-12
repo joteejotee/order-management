@@ -82,6 +82,10 @@ const Pens: React.FC = () => {
     `/api/pens?page=${page}`,
     fetcher,
     {
+      revalidateOnFocus: false, // フォーカス時の再検証を無効化
+      revalidateIfStale: false, // 古いデータの自動再検証を無効化
+      dedupingInterval: 5000, // 5秒間は同じリクエストを重複させない
+      keepPreviousData: true, // 新しいデータがロードされるまで古いデータを表示
       onSuccess: data => {
         if (data?.data) {
           setPens(data.data.data);
@@ -96,6 +100,33 @@ const Pens: React.FC = () => {
             next_page_url: data.data.next_page_url,
             prev_page_url: data.data.prev_page_url,
           });
+
+          // プリフェッチを非同期で実行
+          const prefetchNextPage = async () => {
+            if (data.data.next_page_url) {
+              try {
+                await fetcher(`/api/pens?page=${data.data.current_page + 1}`);
+              } catch (error) {
+                console.error('Failed to prefetch next page:', error);
+              }
+            }
+          };
+
+          const prefetchPrevPage = async () => {
+            if (data.data.prev_page_url) {
+              try {
+                await fetcher(`/api/pens?page=${data.data.current_page - 1}`);
+              } catch (error) {
+                console.error('Failed to prefetch previous page:', error);
+              }
+            }
+          };
+
+          // プリフェッチを実行（ただし現在のページのデータ取得後）
+          if (!isValidating) {
+            prefetchNextPage();
+            prefetchPrevPage();
+          }
         }
       },
       onError: error => {
@@ -104,83 +135,7 @@ const Pens: React.FC = () => {
     },
   );
 
-  const getPens = async (pageNum: number) => {
-    if (isLoading) return;
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    setIsLoading(true);
-    try {
-      console.log('APIリクエスト開始:', `/api/pens?page=${pageNum}`);
-      const response = await axios.get(`/api/pens?page=${pageNum}`, {
-        signal: controller.signal,
-      });
-      console.log('API レスポンス 成功:', response.data);
-      console.log('API レスポンス ステータス:', response.status);
-      console.log('API レスポンス データ構造:', Object.keys(response.data));
-
-      if (abortControllerRef.current === controller) {
-        if (response.data && response.data.data) {
-          setPens(response.data.data.data);
-          setPageInfo({
-            current_page: response.data.data.current_page,
-            from: response.data.data.from,
-            last_page: response.data.data.last_page,
-            path: response.data.data.path,
-            per_page: response.data.data.per_page,
-            to: response.data.data.to,
-            total: response.data.data.total,
-            next_page_url: response.data.data.next_page_url,
-            prev_page_url: response.data.data.prev_page_url,
-          });
-          console.log('ページネーション情報:', {
-            current_page: response.data.data.current_page,
-            last_page: response.data.data.last_page,
-            next_page_url: response.data.data.next_page_url,
-            prev_page_url: response.data.data.prev_page_url,
-          });
-          console.log('ステート更新完了: setPens と setPageInfo を実行');
-        } else {
-          console.error('API レスポンスの形式が予期しない形式:', response.data);
-        }
-      }
-    } catch (error) {
-      // カスタムキャンセルエラーを確認
-      if ((error as any)?._isSilent || (error as any)?.isCanceled) {
-        console.log('リクエストがキャンセルされました - 正常な動作');
-        return; // キャンセルの場合は静かに終了、UIは更新しない
-      }
-
-      console.error('APIリクエスト失敗 - 詳細:');
-      if (error instanceof Error) {
-        console.error('エラーメッセージ:', error.message);
-        console.error('エラータイプ:', error.name);
-        console.error('スタックトレース:', error.stack);
-      }
-
-      if (axios.isAxiosError(error)) {
-        console.error('Axiosエラー設定:', error.config);
-        console.error('Axiosエラーレスポンス:', error.response);
-        console.error('Axiosエラーリクエスト:', error.request);
-      }
-
-      console.error('エラーの完全な内容:', error);
-    } finally {
-      if (abortControllerRef.current === controller) {
-        setIsLoading(false);
-        console.log('ローディング状態をfalseに設定');
-      }
-    }
-  };
-
   useEffect(() => {
-    getPens(page);
-
     // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
       console.log('Navigation detected, aborting pending requests');
@@ -197,7 +152,7 @@ const Pens: React.FC = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [page]);
+  }, []);
 
   useEffect(() => {
     console.log(' pens の中身:', pens);
@@ -207,33 +162,32 @@ const Pens: React.FC = () => {
   const deletePen = async (id: number) => {
     if (!swrResponse?.data) return;
 
-    // 即時にUIを更新
-    const optimisticData: PensResponse = {
+    // 即時にUIを更新（オプティミスティックUI）
+    const optimisticData = {
       data: {
         ...swrResponse.data,
-        data: pens.filter(pen => pen.id !== id),
+        data: swrResponse.data.data.filter(pen => pen.id !== id),
       },
     };
-    mutate(optimisticData, false);
 
     try {
+      mutate(optimisticData, false);
       await axios.delete(`/api/pens/${id}`);
       mutate(); // サーバーから最新データを取得
     } catch (error) {
-      // エラー時は元のデータに戻す
-      mutate(swrResponse);
+      mutate(swrResponse); // エラー時は元のデータに戻す
       console.error('Failed to delete pen:', error);
     }
   };
 
   const handleNextPage = () => {
-    if (pageInfo?.next_page_url) {
+    if (swrResponse?.data?.next_page_url) {
       setPage(page + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (pageInfo?.prev_page_url && page > 1) {
+    if (swrResponse?.data?.prev_page_url && page > 1) {
       setPage(page - 1);
     }
   };
@@ -244,7 +198,7 @@ const Pens: React.FC = () => {
         <thead>
           <tr>
             <th scope="col" className="px-6 py-4">
-              ID
+              商品ID
             </th>
             <th scope="col" className="px-6 py-4 text-left">
               名前
