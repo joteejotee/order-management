@@ -7,13 +7,18 @@ import Link from 'next/link';
 import ApplicationLogo from '@/components/ApplicationLogo';
 import Dropdown from '@/components/Dropdown';
 import DropdownLink from '@/components/DropdownLink';
-import { User } from '@/types/user';
+import { User, UserData, ApiResponse } from '@/types';
 
 const Navigation = () => {
   const { user, logout, isValidating, forceRefresh } = useAuth();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // デバッグ用のログ追加
+  useEffect(() => {
+    console.log('Navigation - Current user:', user);
+  }, [user]);
 
   // 主要なページのプリフェッチを実装
   useEffect(() => {
@@ -25,6 +30,7 @@ const Navigation = () => {
   }, [router]);
 
   useEffect(() => {
+    // 初回マウント時にユーザー情報を強制的に更新
     forceRefresh();
   }, []);
 
@@ -103,7 +109,9 @@ const Navigation = () => {
                     type="button"
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
                   >
-                    {isValidating ? '読み込み中...' : user?.name || 'ゲスト'}
+                    {isValidating
+                      ? '読み込み中...'
+                      : user?.data?.name || 'ゲスト'}
                     <svg
                       className="ml-2 -mr-0.5 h-4 w-4"
                       xmlns="http://www.w3.org/2000/svg"

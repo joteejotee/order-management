@@ -5,7 +5,7 @@ import axios from '@/lib/axios';
 import { AxiosError, AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ApiResponse, User } from '@/types';
+import { ApiResponse, User, UserData } from '@/types';
 
 // エラーレスポンスの型定義
 interface ErrorResponse {
@@ -36,7 +36,7 @@ interface ResetPasswordCredentials {
 }
 
 interface AuthHook {
-  user: User | undefined;
+  user: ApiResponse<UserData> | undefined;
   isValidating: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -59,7 +59,9 @@ export function useAuth({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
-  const [localUser, setLocalUser] = useState<User | null>(null);
+  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(
+    null,
+  );
 
   // ミドルウェアがguestの場合は自動フェッチを無効化
   const shouldFetch = middleware !== 'guest';
