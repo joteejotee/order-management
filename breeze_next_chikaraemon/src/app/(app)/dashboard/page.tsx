@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import type { User } from '@/types';
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -68,7 +69,7 @@ const DashboardPage = () => {
       ...debugInfo,
       renderCount: debugInfo.renderCount + 1,
       currentTime,
-      user: user ? { id: user.id, name: user.name } : 'なし',
+      user: user ? { id: user.data.id, name: user.data.name } : 'なし',
       isValidating,
     });
   }, [user, isValidating]);
@@ -76,7 +77,7 @@ const DashboardPage = () => {
   // ユーザー状態の変更を監視
   useEffect(() => {
     console.log('Dashboard - Auth State Changed:', {
-      user: user ? { id: user.id, name: user.name } : '存在しません',
+      user: user ? { id: user.data.id, name: user.data.name } : '存在しません',
       isValidating,
       mounted,
       time: currentTime,
@@ -121,7 +122,7 @@ const DashboardPage = () => {
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div className="p-6 bg-white border-b border-gray-200">
-              <div className="mb-4">ようこそ {user.name} さん！</div>
+              <div className="mb-4">ようこそ {user.data.name} さん！</div>
               <div className="text-xs text-gray-500">
                 <div>マウント時刻: {mountTime}</div>
                 <div>レンダリング回数: {debugInfo.renderCount}</div>
