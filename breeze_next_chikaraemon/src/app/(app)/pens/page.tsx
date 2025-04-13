@@ -77,15 +77,45 @@ const Pens: React.FC = () => {
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // 初期データ取得の保証
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const response = await fetcher(`/api/pens?page=1`);
+        if (response?.data) {
+          setPens(response.data.data);
+          setPageInfo({
+            current_page: response.data.current_page,
+            from: response.data.from,
+            last_page: response.data.last_page,
+            path: response.data.path,
+            per_page: response.data.per_page,
+            to: response.data.to,
+            total: response.data.total,
+            next_page_url: response.data.next_page_url,
+            prev_page_url: response.data.prev_page_url,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
   // SWRの設定を最適化
   const { data: swrResponse, mutate, isValidating } = useSWR<PensResponse>(
     `/api/pens?page=${page}`,
     fetcher,
     {
-      revalidateOnFocus: false, // フォーカス時の再検証を無効化
-      revalidateIfStale: false, // 古いデータの自動再検証を無効化
-      dedupingInterval: 5000, // 5秒間は同じリクエストを重複させない
+      revalidateOnFocus: true, // フォーカス時の再検証を有効化
+      revalidateIfStale: true, // 古いデータの自動再検証を有効化
+      dedupingInterval: 2000, // 2秒間は同じリクエストを重複させない
       keepPreviousData: true, // 新しいデータがロードされるまで古いデータを表示
+      suspense: false,
+      refreshInterval: 0,
+      errorRetryCount: 3,
       onSuccess: data => {
         if (data?.data) {
           setPens(data.data.data);
@@ -138,10 +168,14 @@ const Pens: React.FC = () => {
   useEffect(() => {
     // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
-      console.log('Navigation detected, aborting pending requests');
+      console.log('Navigation detected, preparing for new request');
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+        // 新しいAbortControllerを作成
+        abortControllerRef.current = new AbortController();
       }
+      // 直ちに再フェッチ
+      mutate();
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -152,11 +186,11 @@ const Pens: React.FC = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, []);
+  }, [mutate]);
 
   useEffect(() => {
-    console.log(' pens の中身:', pens);
-    console.log(' pageInfo の中身:', pageInfo);
+    console.log('pens の中身:', pens);
+    console.log('pageInfo の中身:', pageInfo);
   }, [pens, pageInfo]);
 
   const deletePen = async (id: number) => {
