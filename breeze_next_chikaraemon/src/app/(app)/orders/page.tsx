@@ -227,9 +227,9 @@ const Orders: React.FC = () => {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="relative overflow-x-auto p-4">
-        <table className="min-w-full dark:divide-neutral-700">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
           <thead>
-            <tr>
+            <tr className="border-b border-gray-200">
               <th scope="col" className="px-6 py-4">
                 注文ID
               </th>
@@ -269,7 +269,7 @@ const Orders: React.FC = () => {
               orders.map(order => (
                 <tr
                   key={order.id}
-                  className={`transition-all duration-700 ease-out ${
+                  className={`border-b border-gray-200 transition-all duration-700 ease-out ${
                     highlightedId === order.id
                       ? 'bg-yellow-200'
                       : 'bg-white hover:bg-gray-50'
@@ -365,7 +365,7 @@ const Orders: React.FC = () => {
                 >
                   <path d="m15 18-6-6 6-6" />
                 </svg>
-                <span>PreviousPage</span>
+                <span>前へ</span>
               </button>
             )}
             {pageInfo && (pageInfo.last_page > page || pageInfo.next_page_url) && (
@@ -373,7 +373,7 @@ const Orders: React.FC = () => {
                 className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={handleNextPage}
               >
-                <span>NextPage</span>
+                <span>次へ</span>
                 <svg
                   className="flex-shrink-0 size-3.5"
                   xmlns="http://www.w3.org/2000/svg"
