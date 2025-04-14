@@ -31,7 +31,7 @@ const CreatePen = () => {
         price: parseInt(formData.price),
         stock: parseInt(formData.stock),
       });
-      router.push('/pens');
+      router.push('/pens?from=create');
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);

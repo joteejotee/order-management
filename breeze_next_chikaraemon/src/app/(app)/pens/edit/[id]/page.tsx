@@ -17,6 +17,7 @@ const EditPen = ({ params }: EditPenProps) => {
   const [stock, setStock] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
@@ -42,16 +43,24 @@ const EditPen = ({ params }: EditPenProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      await axios.put(`${backendUrl}/api/pens/${params.id}`, {
+      await axios.patch(`${backendUrl}/api/pens/${params.id}`, {
         name,
         price: parseInt(price),
         stock: parseInt(stock),
       });
-      router.push('/pens');
+
+      await router.push('/pens');
+      router.refresh();
     } catch (error) {
       console.error('Failed to update pen:', error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +93,11 @@ const EditPen = ({ params }: EditPenProps) => {
   return (
     <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
       <p>商品情報を入力して、保存ボタンをクリックしてください</p>
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="mt-4">
         <div className="mb-4">
           <input

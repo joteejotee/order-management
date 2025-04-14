@@ -13,7 +13,7 @@ class PenController extends Controller
   public function index()
   {
     // $pens = Pen::all(); //penモデルの全データを取得
-    $pens = Pen::paginate(4); //ページネーション
+    $pens = Pen::orderBy('id', 'desc')->paginate(4); //ページネーション、IDの降順で並び替え
     return response()->json([ //json形式で返す
       'data' => $pens //dataに$pensを代入
     ], 200); //ステータスコード200

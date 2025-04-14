@@ -49,6 +49,7 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
   const [quantity, setQuantity] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
@@ -81,16 +82,24 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      await axios.put(`${backendUrl}/api/orders/${params.id}`, {
+      await axios.patch(`${backendUrl}/api/orders/${params.id}`, {
         pen_id: parseInt(selectedPen),
         customer_id: parseInt(selectedCustomer),
         num: parseInt(quantity),
       });
-      router.push('/orders');
+
+      await router.push('/orders');
+      router.refresh();
     } catch (error) {
       console.error('Failed to update order:', error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +124,11 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
   return (
     <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
       <p>顧客と商品、数量を入力して、保存ボタンをクリックしてください</p>
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="mt-4">
         <div className="mb-4">
           <select
@@ -172,14 +186,14 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
           <button
             type="button"
             onClick={() => router.push('/orders')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-2 mr-2 bg-gray-200 text-gray-700 rounded-md"
           >
             キャンセル
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
           >
             {isLoading ? '保存中...' : '保存'}
           </button>

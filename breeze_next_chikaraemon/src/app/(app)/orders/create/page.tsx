@@ -45,7 +45,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         customer_id: parseInt(selectedCustomer),
         num: parseInt(quantity),
       });
-      router.push('/orders');
+      router.push('/orders?from=create');
     } catch (error) {
       console.error('Failed to create order:', error);
     } finally {

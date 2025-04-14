@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import axios from '@/lib/axios';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
 import useSWR from 'swr';
 
@@ -61,7 +61,10 @@ const TableSkeleton = () => {
 const Pens: React.FC = () => {
   const [pens, setPens] = useState<Pen[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [previousPensLength, setPreviousPensLength] = useState<number>(0);
   const [pageInfo, setPageInfo] = useState<PaginationMeta>({
     current_page: 1,
     from: 1,
@@ -109,16 +112,35 @@ const Pens: React.FC = () => {
     `/api/pens?page=${page}`,
     fetcher,
     {
-      revalidateOnFocus: true, // フォーカス時の再検証を有効化
-      revalidateIfStale: true, // 古いデータの自動再検証を有効化
-      dedupingInterval: 2000, // 2秒間は同じリクエストを重複させない
-      keepPreviousData: true, // 新しいデータがロードされるまで古いデータを表示
+      revalidateOnFocus: true,
+      revalidateIfStale: true,
+      dedupingInterval: 2000,
+      keepPreviousData: true,
       suspense: false,
       refreshInterval: 0,
       errorRetryCount: 3,
       onSuccess: data => {
         if (data?.data) {
+          // 新規登録後の判定
+          const isNewPenAdded =
+            page === 1 && // 1ページ目の時のみチェック
+            data.data.data.length > previousPensLength && // レコード数が増えている
+            !isValidating; // ページネーションによる再取得ではない
+
           setPens(data.data.data);
+          setPreviousPensLength(data.data.data.length);
+
+          // 新規登録後の遷移かどうかを確認
+          const isFromCreate = searchParams.get('from') === 'create';
+
+          if (isFromCreate && data.data.data.length > 0) {
+            const newPen = data.data.data[0];
+            setHighlightedId(newPen.id);
+            requestAnimationFrame(() => {
+              setHighlightedId(null);
+            });
+          }
+
           setPageInfo({
             current_page: data.data.current_page,
             from: data.data.from,
@@ -196,21 +218,23 @@ const Pens: React.FC = () => {
   const deletePen = async (id: number) => {
     if (!swrResponse?.data) return;
 
-    // 即時にUIを更新（オプティミスティックUI）
-    const optimisticData = {
-      data: {
-        ...swrResponse.data,
-        data: swrResponse.data.data.filter(pen => pen.id !== id),
-      },
-    };
+    if (confirm('本当に削除しますか？')) {
+      // 即時にUIを更新（オプティミスティックUI）
+      const optimisticData = {
+        data: {
+          ...swrResponse.data,
+          data: swrResponse.data.data.filter(pen => pen.id !== id),
+        },
+      };
 
-    try {
-      mutate(optimisticData, false);
-      await axios.delete(`/api/pens/${id}`);
-      mutate(); // サーバーから最新データを取得
-    } catch (error) {
-      mutate(swrResponse); // エラー時は元のデータに戻す
-      console.error('Failed to delete pen:', error);
+      try {
+        mutate(optimisticData, false);
+        await axios.delete(`/api/pens/${id}`);
+        mutate(); // サーバーから最新データを取得
+      } catch (error) {
+        mutate(swrResponse); // エラー時は元のデータに戻す
+        console.error('Failed to delete pen:', error);
+      }
     }
   };
 
@@ -227,118 +251,127 @@ const Pens: React.FC = () => {
   };
 
   return (
-    <div className="relative overflow-x-auto p-4">
-      <table className="min-w-full dark:divide-neutral-700">
-        <thead>
-          <tr>
-            <th scope="col" className="px-6 py-4">
-              商品ID
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              名前
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              価格
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              在庫数
-            </th>
-            <th scope="col" className="px-3 py-4" />
-            <th scope="col" className="px-3 py-4">
-              <button
-                className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={() => router.push('/pens/create')}
-              >
-                新規登録
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading || isValidating ? (
-            <TableSkeleton />
-          ) : pens && pens.length > 0 ? (
-            pens.map(pen => (
-              <tr key={pen.id} className="bg-white border-b border-gray-200">
-                <th scope="row" className="px-6 py-2">
-                  {pen.id}
-                </th>
-                <td className="px-6 py-2">{pen.name}</td>
-                <td className="px-6 py-2">{pen.price}円</td>
-                <td className="px-6 py-2">{pen.stock}</td>
-                <td className="px-3 py-2 text-right">
-                  <button
-                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                    onClick={() => router.push(`/pens/edit/${pen.id}`)}
-                  >
-                    編集
-                  </button>
-                </td>
-                <td className="px-3 py-2">
-                  <button
-                    className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                    onClick={() => deletePen(pen.id)}
-                  >
-                    削除
-                  </button>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative overflow-x-auto p-4">
+        <table className="min-w-full dark:divide-neutral-700">
+          <thead>
+            <tr>
+              <th scope="col" className="px-6 py-4">
+                商品ID
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                商品名
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                価格
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                在庫数
+              </th>
+              <th scope="col" className="px-3 py-4" />
+              <th scope="col" className="px-3 py-4">
+                <button
+                  className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+                  onClick={() => router.push('/pens/create')}
+                >
+                  新規登録
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isValidating ? (
+              <TableSkeleton />
+            ) : pens && pens.length > 0 ? (
+              pens.map(pen => (
+                <tr
+                  key={pen.id}
+                  className={`transition-all duration-700 ease-out ${
+                    highlightedId === pen.id
+                      ? 'bg-yellow-200'
+                      : 'bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  <th scope="row" className="px-6 py-2">
+                    {pen.id}
+                  </th>
+                  <td className="px-6 py-2">{pen.name}</td>
+                  <td className="px-6 py-2">{pen.price}円</td>
+                  <td className="px-6 py-2">{pen.stock}</td>
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => router.push(`/pens/edit/${pen.id}`)}
+                    >
+                      編集
+                    </button>
+                  </td>
+                  <td className="px-3 py-2">
+                    <button
+                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => deletePen(pen.id)}
+                    >
+                      削除
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center">
+                  ペンが見つかりませんでした。
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={6} className="px-6 py-4 text-center">
-                ペンが見つかりませんでした。
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <div className="w-1/2 items-center px-4 mt-6">
-        <div className="flex gap-x-2">
-          {page > 1 && (
-            <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-              onClick={handlePreviousPage}
-            >
-              <svg
-                className="flex-shrink-0 size-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            )}
+          </tbody>
+        </table>
+        <div className="w-1/2 items-center px-4 mt-6">
+          <div className="flex gap-x-2">
+            {page > 1 && (
+              <button
+                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                onClick={handlePreviousPage}
               >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-              <span>PreviousPage</span>
-            </button>
-          )}
-          {pageInfo.last_page > page && (
-            <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-              onClick={handleNextPage}
-            >
-              <span>NextPage</span>
-              <svg
-                className="flex-shrink-0 size-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                <svg
+                  className="flex-shrink-0 size-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span>PreviousPage</span>
+              </button>
+            )}
+            {pageInfo.last_page > page && (
+              <button
+                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                onClick={handleNextPage}
               >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
-          )}
+                <span>NextPage</span>
+                <svg
+                  className="flex-shrink-0 size-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
