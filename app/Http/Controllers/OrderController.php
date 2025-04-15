@@ -7,8 +7,10 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Requests\OrderStoreRequest;
+use App\Http\Requests\OrderUpdateRequest;
 use App\Models\Pen;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -95,12 +97,24 @@ class OrderController extends Controller
   /**
    * Update the specified resource in storage.
    */
-  public function update(OrderStoreRequest $request, Order $order)
+  public function update(OrderUpdateRequest $request, Order $order)
   {
-    $order->fill($request->all());
+    Log::info('注文更新リクエスト', [
+      'order_id' => $order->id,
+      'input' => $request->all()
+    ]);
+
+    $order->fill($request->validated());
     $order->save();
+
+    Log::info('注文を更新しました', [
+      'order_id' => $order->id,
+      'updated_data' => $request->validated()
+    ]);
+
     return response()->json([
-      'data' => $order
+      'data' => $order,
+      'message' => '注文を更新しました'
     ], 200);
   }
 

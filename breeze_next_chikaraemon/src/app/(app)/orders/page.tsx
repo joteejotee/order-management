@@ -205,31 +205,34 @@ const Orders: React.FC = () => {
 
   // ステータス更新関数を追加
   const toggleStatus = async (order: Order) => {
-    // 即時にUIを更新
-    const optimisticOrders = orders.map(o =>
-      o.id === order.id
-        ? {
-            ...o,
-            status:
-              o.status === 'pending'
-                ? ('shipped' as const)
-                : ('pending' as const),
-          }
-        : o,
-    );
-    setOrders(optimisticOrders);
-
-    try {
-      await axios.put(`/api/orders/${order.id}`, {
-        status:
-          order.status === 'pending'
-            ? ('shipped' as const)
-            : ('pending' as const),
-      });
-    } catch (error) {
-      // エラー時は元に戻す
-      setOrders(orders);
-      console.error('Failed to update status:', error);
+    const newShipping = order.status === 'pending' ? 1 : 0;
+    const actionText = newShipping === 1 ? '出荷済' : '未出荷';
+    
+    // 確認ダイアログを表示
+    if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
+      try {
+        // APIリクエストを先に実行
+        const response = await axios.put(`/api/orders/${order.id}`, {
+          shipping: newShipping
+        });
+        
+        // レスポンスを確認
+        if (response.status === 200) {
+          // 成功後にUIを更新
+          const updatedOrders = orders.map(o =>
+            o.id === order.id
+              ? { ...o, status: newShipping === 1 ? 'shipped' : 'pending' }
+              : o
+          );
+          setOrders(updatedOrders);
+          console.log('出荷状態を更新しました:', { orderId: order.id, newShipping });
+        } else {
+          throw new Error('ステータスの更新に失敗しました');
+        }
+      } catch (error) {
+        console.error('Failed to update status:', error);
+        alert('ステータスの更新に失敗しました。');
+      }
     }
   };
 

@@ -25,7 +25,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
   Route::get('/orders/{order:id}', 'App\Http\Controllers\OrderController@edit');
   Route::patch('/orders/{order:id}', 'App\Http\Controllers\OrderController@update');
   Route::delete('/orders/{order:id}', 'App\Http\Controllers\OrderController@delete');
-  Route::put('/orders/{order:id}', 'App\Http\Controllers\OrderController@ship');
+  Route::put('/orders/{order:id}', 'App\Http\Controllers\OrderController@update');
   Route::get('/orders/{order}/edit', 'App\Http\Controllers\OrderController@edit');
 });
 

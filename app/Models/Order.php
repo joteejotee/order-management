@@ -25,6 +25,12 @@ class Order extends Model
 
     // このorderdayは、注文日を表す
     'orderday',
+
+    // 注文のステータス
+    'status',
+
+    // 出荷状態
+    'shipping',
   ];
   public function customer()
   {
