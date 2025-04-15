@@ -1,4 +1,8 @@
-export interface UserData {
+/**
+ * ユーザーデータの基本型
+ * @interface UserData
+ */
+interface UserData {
   id: number;
   name: string;
   email: string;
@@ -7,6 +11,12 @@ export interface UserData {
   updated_at: string;
 }
 
-export interface User {
+/**
+ * APIレスポンスのユーザー型
+ * @interface User
+ */
+interface User {
   data: UserData;
 }
+// 型のエクスポート
+export type { UserData, User };

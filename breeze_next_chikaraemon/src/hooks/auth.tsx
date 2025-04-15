@@ -5,7 +5,7 @@ import axios from '@/lib/axios';
 import { AxiosError, AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ApiResponse, User, UserData } from '@/types';
+import type { ApiResponse, User, UserData } from '@/types';
 
 // エラーレスポンスの型定義
 interface ErrorResponse {
@@ -35,6 +35,16 @@ interface ResetPasswordCredentials {
   setStatus: (status: string | null) => void;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+  setErrors: (errors: Record<string, string[]>) => void;
+  setStatus?: (status: string | null) => void;
+}
+
+interface EmailVerificationRequest {
+  setStatus?: (status: string | null) => void;
+}
+
 interface AuthHook {
   user: ApiResponse<UserData> | undefined;
   isValidating: boolean;
@@ -45,6 +55,8 @@ interface AuthHook {
   resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
   forceRefresh: () => Promise<void>;
   clearCache: () => void;
+  forgotPassword: (request: ForgotPasswordRequest) => Promise<void>;
+  resendEmailVerification: (request: EmailVerificationRequest) => Promise<void>;
 }
 
 interface AuthConfig {
@@ -342,6 +354,43 @@ export function useAuth({
       });
   };
 
+  const forgotPassword = async ({
+    email,
+    setErrors,
+    setStatus,
+  }: ForgotPasswordRequest): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('/forgot-password', { email });
+      console.log('Auth - パスワードリセットメール送信成功:', response.data);
+      setStatus?.('パスワードリセットメールを送信しました。');
+    } catch (error) {
+      console.error('Auth - パスワードリセットメール送信失敗:', error);
+      if (error instanceof AxiosError && error.response?.data?.errors) {
+        setErrors?.(error.response.data.errors);
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendEmailVerification = async ({
+    setStatus,
+  }: EmailVerificationRequest): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('/email/verification-notification');
+      console.log('Auth - メール認証再送信成功:', response.data);
+      setStatus?.('認証メールを再送信しました。');
+    } catch (error) {
+      console.error('Auth - メール認証再送信失敗:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // ミドルウェアの効果を処理
   useEffect(() => {
     if (!isValidating) {
@@ -432,5 +481,7 @@ export function useAuth({
     isValidating,
     forceRefresh,
     clearCache,
+    forgotPassword,
+    resendEmailVerification,
   };
 }

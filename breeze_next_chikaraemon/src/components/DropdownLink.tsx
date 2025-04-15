@@ -6,14 +6,20 @@ interface DropdownLinkProps {
   href: string;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => Promise<void> | void;
 }
 
 const DropdownLink = ({
   href,
   children,
   className = '',
+  onClick,
 }: DropdownLinkProps) => (
-  <Link href={href} className={`block px-4 py-2 text-sm ${className}`}>
+  <Link
+    href={href}
+    className={`block px-4 py-2 text-sm ${className}`}
+    onClick={onClick}
+  >
     {children}
   </Link>
 );

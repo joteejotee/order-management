@@ -7,7 +7,7 @@ import Link from 'next/link';
 import ApplicationLogo from '@/components/ApplicationLogo';
 import Dropdown from '@/components/Dropdown';
 import DropdownLink from '@/components/DropdownLink';
-import { User, UserData, ApiResponse } from '@/types';
+import type { User, UserData } from '@/types';
 
 const Navigation = () => {
   const { user, logout, isValidating, forceRefresh } = useAuth();

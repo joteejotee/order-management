@@ -1,4 +1,9 @@
-import axios, { AxiosError } from 'axios';
+import axios, {
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosHeaders,
+  AxiosResponse,
+} from 'axios';
 
 // 環境変数の確認用ログ
 console.log('✅ axios.ts loaded');
@@ -61,7 +66,7 @@ if (isBrowser) {
 
 // リクエスト・レスポンスのインターセプター
 axios.interceptors.request.use(
-  config => {
+  (config: InternalAxiosRequestConfig) => {
     // ブラウザ環境かつURLがnginxの場合は適切なURLに変換
     if (isBrowser && config.url?.includes('http://nginx')) {
       config.url = config.url.replace('http://nginx', 'http://localhost:8000');
@@ -77,9 +82,14 @@ axios.interceptors.request.use(
     if (config.signal) {
       // 元のシグナルとこのコントローラーを連携
       const originalSignal = config.signal;
-      originalSignal.addEventListener('abort', () => {
-        controller.abort();
-      });
+      if (
+        originalSignal &&
+        typeof originalSignal.addEventListener === 'function'
+      ) {
+        originalSignal.addEventListener('abort', () => {
+          controller.abort();
+        });
+      }
     }
 
     // 新しいシグナルを設定
@@ -87,10 +97,10 @@ axios.interceptors.request.use(
     cancelTokens[requestId] = controller;
 
     // リクエストIDをヘッダーに設定
-    config.headers = {
-      ...config.headers,
-      'X-Request-ID': requestId,
-    };
+    if (!config.headers) {
+      config.headers = new AxiosHeaders();
+    }
+    config.headers.set('X-Request-ID', requestId);
 
     // クリーンアップ関数を設定（レスポンスまたはエラー時）
     const cleanupToken = () => {
@@ -116,7 +126,7 @@ axios.interceptors.request.use(
 );
 
 axios.interceptors.response.use(
-  response => {
+  (response: AxiosResponse) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
 
     // リクエストトークンをクリーンアップ
@@ -127,44 +137,45 @@ axios.interceptors.response.use(
 
     return response;
   },
-  (error: AxiosError) => {
+  (error: unknown) => {
     // エラーがキャンセルによるものかをチェック
     if (axios.isCancel(error)) {
       console.log(
         '⚠️ Request canceled:',
-        error.message || 'Navigation or manual cancellation',
+        error instanceof Error
+          ? error.message
+          : 'Navigation or manual cancellation',
       );
 
-      // キャンセルによるエラーは静かに処理（特殊な形式のエラーにして識別しやすくする）
+      // キャンセルによるエラーは静かに処理
       return Promise.reject({
         name: 'CanceledError',
         code: 'ERR_CANCELED',
         message: 'canceled',
         isAxiosError: false,
         isCanceled: true,
-        _isSilent: true, // 独自フラグ
+        _isSilent: true,
       });
     }
 
+    // エラーをAxiosErrorとして扱う
+    const axiosError = error as AxiosError;
+
     // リクエストトークンをクリーンアップ
-    try {
-      const requestId = (error.config as any)?._requestId;
-      if (requestId && cancelTokens[requestId]) {
-        delete cancelTokens[requestId];
-      }
-    } catch (e) {
-      console.log('Error cleaning up cancel token:', e);
+    const config = axiosError.config as any;
+    if (config?._requestId && cancelTokens[config._requestId]) {
+      delete cancelTokens[config._requestId];
     }
 
-    if (error.response) {
+    if (axiosError.response) {
       console.error(
-        `❌ API Error: ${error.response.status} ${error.config?.url}`,
-        error.response.data,
+        `❌ API Error: ${axiosError.response.status} ${config?.url}`,
+        axiosError.response.data,
       );
-    } else if (error.request) {
-      console.error('❌ No response received:', error.request);
+    } else if (axiosError.request) {
+      console.error('❌ No response received:', axiosError.request);
     } else {
-      console.error('❌ Request setup error:', error.message);
+      console.error('❌ Request setup error:', axiosError.message);
     }
 
     return Promise.reject(error);

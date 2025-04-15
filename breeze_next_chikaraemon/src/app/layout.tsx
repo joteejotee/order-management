@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import "./globals.css";
-import { ReactNode } from "react";
+import './globals.css';
+import { ReactNode } from 'react';
 
 interface RootLayoutProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-    return (
-        <html lang="ja">
-            <body className="antialiased">{children}</body>
-        </html>
-    );
+  return (
+    <html lang="ja">
+      <body className="antialiased">{children}</body>
+    </html>
+  );
 }

@@ -108,84 +108,84 @@ const Pens: React.FC = () => {
   }, []);
 
   // SWRの設定を最適化
-  const { data: swrResponse, mutate, isValidating } = useSWR<PensResponse>(
-    `/api/pens?page=${page}`,
-    fetcher,
-    {
-      revalidateOnFocus: true,
-      revalidateIfStale: true,
-      dedupingInterval: 2000,
-      keepPreviousData: true,
-      suspense: false,
-      refreshInterval: 0,
-      errorRetryCount: 3,
-      onSuccess: data => {
-        if (data?.data) {
-          // 新規登録後の判定
-          const isNewPenAdded =
-            page === 1 && // 1ページ目の時のみチェック
-            data.data.data.length > previousPensLength && // レコード数が増えている
-            !isValidating; // ページネーションによる再取得ではない
+  const {
+    data: swrResponse,
+    mutate,
+    isValidating,
+  } = useSWR<PensResponse>(`/api/pens?page=${page}`, fetcher, {
+    revalidateOnFocus: true,
+    revalidateIfStale: true,
+    dedupingInterval: 2000,
+    keepPreviousData: true,
+    suspense: false,
+    refreshInterval: 0,
+    errorRetryCount: 3,
+    onSuccess: data => {
+      if (data?.data) {
+        // 新規登録後の判定
+        const isNewPenAdded =
+          page === 1 && // 1ページ目の時のみチェック
+          data.data.data.length > previousPensLength && // レコード数が増えている
+          !isValidating; // ページネーションによる再取得ではない
 
-          setPens(data.data.data);
-          setPreviousPensLength(data.data.data.length);
+        setPens(data.data.data);
+        setPreviousPensLength(data.data.data.length);
 
-          // 新規登録後の遷移かどうかを確認
-          const isFromCreate = searchParams.get('from') === 'create';
+        // 新規登録後の遷移かどうかを確認
+        const isFromCreate = searchParams.get('from') === 'create';
 
-          if (isFromCreate && data.data.data.length > 0) {
-            const newPen = data.data.data[0];
-            setHighlightedId(newPen.id);
-            requestAnimationFrame(() => {
-              setHighlightedId(null);
-            });
-          }
-
-          setPageInfo({
-            current_page: data.data.current_page,
-            from: data.data.from,
-            last_page: data.data.last_page,
-            path: data.data.path,
-            per_page: data.data.per_page,
-            to: data.data.to,
-            total: data.data.total,
-            next_page_url: data.data.next_page_url,
-            prev_page_url: data.data.prev_page_url,
+        if (isFromCreate && data.data.data.length > 0) {
+          const newPen = data.data.data[0];
+          setHighlightedId(newPen.id);
+          requestAnimationFrame(() => {
+            setHighlightedId(null);
           });
-
-          // プリフェッチを非同期で実行
-          const prefetchNextPage = async () => {
-            if (data.data.next_page_url) {
-              try {
-                await fetcher(`/api/pens?page=${data.data.current_page + 1}`);
-              } catch (error) {
-                console.error('Failed to prefetch next page:', error);
-              }
-            }
-          };
-
-          const prefetchPrevPage = async () => {
-            if (data.data.prev_page_url) {
-              try {
-                await fetcher(`/api/pens?page=${data.data.current_page - 1}`);
-              } catch (error) {
-                console.error('Failed to prefetch previous page:', error);
-              }
-            }
-          };
-
-          // プリフェッチを実行（ただし現在のページのデータ取得後）
-          if (!isValidating) {
-            prefetchNextPage();
-            prefetchPrevPage();
-          }
         }
-      },
-      onError: error => {
-        console.error('Failed to fetch pens:', error);
-      },
+
+        setPageInfo({
+          current_page: data.data.current_page,
+          from: data.data.from,
+          last_page: data.data.last_page,
+          path: data.data.path,
+          per_page: data.data.per_page,
+          to: data.data.to,
+          total: data.data.total,
+          next_page_url: data.data.next_page_url,
+          prev_page_url: data.data.prev_page_url,
+        });
+
+        // プリフェッチを非同期で実行
+        const prefetchNextPage = async () => {
+          if (data.data.next_page_url) {
+            try {
+              await fetcher(`/api/pens?page=${data.data.current_page + 1}`);
+            } catch (error) {
+              console.error('Failed to prefetch next page:', error);
+            }
+          }
+        };
+
+        const prefetchPrevPage = async () => {
+          if (data.data.prev_page_url) {
+            try {
+              await fetcher(`/api/pens?page=${data.data.current_page - 1}`);
+            } catch (error) {
+              console.error('Failed to prefetch previous page:', error);
+            }
+          }
+        };
+
+        // プリフェッチを実行（ただし現在のページのデータ取得後）
+        if (!isValidating) {
+          prefetchNextPage();
+          prefetchPrevPage();
+        }
+      }
     },
-  );
+    onError: error => {
+      console.error('Failed to fetch pens:', error);
+    },
+  });
 
   useEffect(() => {
     // グローバルナビゲーションイベントのリスナーを追加
