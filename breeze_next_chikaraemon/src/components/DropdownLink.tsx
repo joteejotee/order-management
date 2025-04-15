@@ -15,13 +15,22 @@ const DropdownLink = ({
   className = '',
   onClick,
 }: DropdownLinkProps) => (
-  <Link
-    href={href}
-    className={`block px-4 py-2 text-sm ${className}`}
-    onClick={onClick}
-  >
-    {children}
-  </Link>
+  <Menu.Item>
+    {({ close }) => (
+      <Link
+        href={href}
+        className={`block px-4 py-2 text-sm ${className}`}
+        onClick={(e) => {
+          if (onClick) {
+            onClick();
+          }
+          close();
+        }}
+      >
+        {children}
+      </Link>
+    )}
+  </Menu.Item>
 );
 
 interface DropdownButtonProps {
