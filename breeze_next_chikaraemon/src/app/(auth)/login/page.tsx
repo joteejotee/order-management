@@ -41,6 +41,7 @@ const Login = () => {
 
   const [status, setStatus] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -53,6 +54,7 @@ const Login = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
     try {
       console.log('Attempting login with:', values);
       await login({
@@ -64,6 +66,8 @@ const Login = () => {
       setStatus(
         '認証に失敗しました。メールアドレスとパスワードを確認してください。',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -173,8 +177,12 @@ const Login = () => {
             )}
           />
 
-          <Button type="submit" className="w-full text-lg h-12">
-            Login
+          <Button 
+            type="submit" 
+            className="w-full text-lg h-12"
+            disabled={isLoading}
+          >
+            {isLoading ? 'ログイン中...' : 'Login'}
           </Button>
         </form>
       </Form>

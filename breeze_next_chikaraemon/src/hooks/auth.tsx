@@ -71,9 +71,7 @@ export function useAuth({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
-  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(
-    null,
-  );
+  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(null);
 
   // ミドルウェアがguestの場合は自動フェッチを無効化
   const shouldFetch = middleware !== 'guest';
@@ -138,9 +136,9 @@ export function useAuth({
 
   // SWRの設定を改善
   const { data, error, mutate, isValidating } = useSWR(swrKey, fetchUser, {
-    dedupingInterval: 2000, // 2秒間は重複リクエストを防止
-    revalidateIfStale: true, // 古いデータの自動再検証を有効化
-    revalidateOnFocus: true, // フォーカス時の再検証を有効化
+    dedupingInterval: 5000, // 5秒間は重複リクエストを防止
+    revalidateIfStale: false, // 古いデータの自動再検証を無効化
+    revalidateOnFocus: false, // フォーカス時の再検証を無効化
     revalidateOnReconnect: true, // 再接続時の再検証を有効化
     shouldRetryOnError: true, // エラー時の自動再試行を有効化
     errorRetryCount: 3, // エラー時の再試行回数を3回に設定
@@ -174,110 +172,33 @@ export function useAuth({
     try {
       console.log('Auth - ログイン処理を開始します');
 
-      // バックエンドURLを確認
-      console.log('Auth - 現在のAPI URLを確認:', axios.defaults.baseURL);
-
       // CSRFトークンの取得を試行
       console.log('Auth - CSRFトークンを取得中...');
-      try {
-        const csrfResponse = await axios.get('/sanctum/csrf-cookie', {
-          withCredentials: true,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        console.log('Auth - CSRFトークン取得成功:', csrfResponse);
-      } catch (csrfError: any) {
-        console.error('Auth - CSRFトークン取得失敗:', csrfError.message);
-        if (csrfError.response) {
-          console.error('- ステータス:', csrfError.response.status);
-          console.error('- データ:', csrfError.response.data);
-          console.error('- ヘッダー:', csrfError.response.headers);
-        } else if (csrfError.request) {
-          console.error('- リクエスト:', csrfError.request);
-        }
-        throw new Error(
-          'CSRFトークンの取得に失敗しました。ネットワーク接続を確認してください。',
-        );
-      }
-
-      // 現在のCookieを確認
-      console.log('Auth - 現在のCookie:', document.cookie);
+      await axios.get('/sanctum/csrf-cookie');
 
       // ログイン処理
       console.log('Auth - ログインリクエストを送信中...');
-      try {
-        const loginData = {
-          email,
-          password,
-          remember: false,
-        };
-        console.log(
-          'Auth - ログインリクエストデータ:',
-          JSON.stringify(loginData),
-        );
+      const loginResponse = await axios.post('/api/login', {
+        email,
+        password,
+        remember: false,
+      });
 
-        const loginResponse = await axios.post('/api/login', loginData, {
-          withCredentials: true,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        console.log('Auth - ログイン成功:', loginResponse);
-      } catch (loginError: any) {
-        console.error('Auth - ログイン処理失敗:', loginError.message);
-        if (loginError.response) {
-          console.error('- ステータス:', loginError.response.status);
-          console.error('- データ:', loginError.response.data);
-          console.error('- ヘッダー:', loginError.response.headers);
-        } else if (loginError.request) {
-          console.error('- リクエスト:', loginError.request);
-        }
-
-        if (loginError.response && loginError.response.status === 422) {
-          throw new Error('メールアドレスまたはパスワードが正しくありません。');
-        }
-
-        throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
+      // ユーザー情報を取得して保存
+      const userResponse = await axios.get('/api/user');
+      if (userResponse.data) {
+        localStorage.setItem('user', JSON.stringify(userResponse.data));
+        await mutate(userResponse.data);
       }
 
-      // ログイン後の処理
-      console.log('Auth - ログイン後のユーザー情報を取得中...');
-
-      try {
-        // ユーザー情報を取得
-        const userResponse = await axios.get('/api/user', {
-          withCredentials: true,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        console.log('Auth - ユーザー情報取得成功:', userResponse.data);
-
-        // SWRキャッシュを更新
-        await mutate();
-        console.log('Auth - ユーザー情報の更新完了');
-      } catch (userError: any) {
-        console.error('Auth - ユーザー情報取得エラー:', userError);
-        if (userError.response) {
-          console.error('- ステータス:', userError.response.status);
-          console.error('- データ:', userError.response.data);
-        }
-        // ユーザー情報取得エラーは致命的ではないため、処理を続行
+      // ダッシュボードへリダイレクト
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Auth - Login error:', error);
+      if (error.response?.status === 422) {
+        throw new Error('メールアドレスまたはパスワードが正しくありません。');
       }
-
-      // Cookieを再確認
-      console.log('Auth - 最終Cookie状態:', document.cookie);
-
-      setIsRouting(true);
-      console.log('Auth - ダッシュボードへリダイレクト');
-      window.location.href = '/dashboard'; // フルページリロードを強制
-    } catch (error) {
-      console.error('ログインエラー:', error);
-      throw error;
+      throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
     } finally {
       setIsLoading(false);
     }
