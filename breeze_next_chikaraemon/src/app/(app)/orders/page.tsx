@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Order, PaginationMeta } from '@/types';
+import { Order, PaginationMeta, convertToOrderModel } from '@/types';
 
 interface OrdersResponse {
   data: Order[];
@@ -205,27 +205,26 @@ const Orders: React.FC = () => {
 
   // ステータス更新関数を追加
   const toggleStatus = async (order: Order) => {
-    const newShipping = order.status === 'pending' ? 1 : 0;
-    const actionText = newShipping === 1 ? '出荷済' : '未出荷';
+    const newStatus = order.status === 'pending' ? 'shipped' : 'pending';
+    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
     
     // 確認ダイアログを表示
     if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
       try {
-        // APIリクエストを先に実行
-        const response = await axios.put(`/api/orders/${order.id}`, {
-          shipping: newShipping
-        });
+        // モデル変換してAPIリクエストを実行
+        const modelData = convertToOrderModel({ status: newStatus });
+        const response = await axios.put(`/api/orders/${order.id}`, modelData);
         
         // レスポンスを確認
         if (response.status === 200) {
           // 成功後にUIを更新
           const updatedOrders = orders.map(o =>
             o.id === order.id
-              ? { ...o, status: newShipping === 1 ? 'shipped' : 'pending' }
+              ? { ...o, status: newStatus }
               : o
           );
           setOrders(updatedOrders);
-          console.log('出荷状態を更新しました:', { orderId: order.id, newShipping });
+          console.log('出荷状態を更新しました:', { orderId: order.id, newStatus });
         } else {
           throw new Error('ステータスの更新に失敗しました');
         }
