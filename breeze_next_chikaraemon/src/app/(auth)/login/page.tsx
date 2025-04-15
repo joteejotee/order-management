@@ -29,6 +29,7 @@ const loginSchema = z.object({
     .min(8, 'パスワードは8文字以上である必要があります')
     .regex(/^[a-zA-Z0-9]+$/, '半角英数字のみ使用できます')
     .regex(/[A-Z]/, '大文字を1文字以上含める必要があります')
+    .regex(/[a-z]/, '小文字を1文字以上含める必要があります')
     .regex(/[0-9]/, '数字を1文字以上含める必要があります'),
   remember: z.boolean().default(false),
 });
