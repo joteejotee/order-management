@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
@@ -65,6 +65,7 @@ const Pens: React.FC = () => {
   const [page, setPage] = useState(1);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [previousPensLength, setPreviousPensLength] = useState<number>(0);
+  const isFirstRender = useRef(true);
   const [pageInfo, setPageInfo] = useState<PaginationMeta>({
     current_page: 1,
     from: 1,
@@ -134,12 +135,13 @@ const Pens: React.FC = () => {
         // 新規登録後の遷移かどうかを確認
         const isFromCreate = searchParams.get('from') === 'create';
 
-        if (isFromCreate && data.data.data.length > 0) {
+        if (isFirstRender.current && isFromCreate && data.data.data.length > 0) {
           const newPen = data.data.data[0];
           setHighlightedId(newPen.id);
-          requestAnimationFrame(() => {
+          setTimeout(() => {
             setHighlightedId(null);
-          });
+          }, 100);
+          isFirstRender.current = false;
         }
 
         setPageInfo({
