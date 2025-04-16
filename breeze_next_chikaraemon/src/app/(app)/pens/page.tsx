@@ -64,7 +64,6 @@ const Pens: React.FC = () => {
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
-  const [previousPensLength, setPreviousPensLength] = useState<number>(0);
   const isFirstRender = useRef(true);
   const [pageInfo, setPageInfo] = useState<PaginationMeta>({
     current_page: 1,
@@ -81,33 +80,6 @@ const Pens: React.FC = () => {
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  // 初期データ取得の保証
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await fetcher(`/api/pens?page=1`);
-        if (response?.data) {
-          setPens(response.data.data);
-          setPageInfo({
-            current_page: response.data.current_page,
-            from: response.data.from,
-            last_page: response.data.last_page,
-            path: response.data.path,
-            per_page: response.data.per_page,
-            to: response.data.to,
-            total: response.data.total,
-            next_page_url: response.data.next_page_url,
-            prev_page_url: response.data.prev_page_url,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
-
   // SWRの設定を最適化
   const {
     data: swrResponse,
@@ -123,15 +95,8 @@ const Pens: React.FC = () => {
     errorRetryCount: 3,
     onSuccess: data => {
       if (data?.data) {
-        // 新規登録後の判定
-        const isNewPenAdded =
-          page === 1 && // 1ページ目の時のみチェック
-          data.data.data.length > previousPensLength && // レコード数が増えている
-          !isValidating; // ページネーションによる再取得ではない
-
         setPens(data.data.data);
-        setPreviousPensLength(data.data.data.length);
-
+        
         // 新規登録後の遷移かどうかを確認
         const isFromCreate = searchParams.get('from') === 'create';
 
@@ -155,37 +120,7 @@ const Pens: React.FC = () => {
           next_page_url: data.data.next_page_url,
           prev_page_url: data.data.prev_page_url,
         });
-
-        // プリフェッチを非同期で実行
-        const prefetchNextPage = async () => {
-          if (data.data.next_page_url) {
-            try {
-              await fetcher(`/api/pens?page=${data.data.current_page + 1}`);
-            } catch (error) {
-              console.error('Failed to prefetch next page:', error);
-            }
-          }
-        };
-
-        const prefetchPrevPage = async () => {
-          if (data.data.prev_page_url) {
-            try {
-              await fetcher(`/api/pens?page=${data.data.current_page - 1}`);
-            } catch (error) {
-              console.error('Failed to prefetch previous page:', error);
-            }
-          }
-        };
-
-        // プリフェッチを実行（ただし現在のページのデータ取得後）
-        if (!isValidating) {
-          prefetchNextPage();
-          prefetchPrevPage();
-        }
       }
-    },
-    onError: error => {
-      console.error('Failed to fetch pens:', error);
     },
   });
 
