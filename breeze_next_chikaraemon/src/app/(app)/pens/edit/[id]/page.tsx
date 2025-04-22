@@ -19,12 +19,13 @@ const EditPen = ({ params }: EditPenProps) => {
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const id = React.use(params).id;
 
   useEffect(() => {
     const fetchPen = async () => {
       try {
         const response = await axios.get<{ data: Pen }>(
-          `${backendUrl}/api/pens/${params.id}`,
+          `${backendUrl}/api/pens/${id}`,
         );
         const pen = response.data.data;
         setName(pen.name);
@@ -38,7 +39,7 @@ const EditPen = ({ params }: EditPenProps) => {
     };
 
     fetchPen();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +47,7 @@ const EditPen = ({ params }: EditPenProps) => {
     setError(null);
 
     try {
-      await axios.patch(`${backendUrl}/api/pens/${params.id}`, {
+      await axios.patch(`${backendUrl}/api/pens/${id}`, {
         name,
         price: parseInt(price),
         stock: parseInt(stock),

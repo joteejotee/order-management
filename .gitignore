@@ -1,32 +1,51 @@
+# Laravel/PHP関連
 /.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
 /vendor
-.env
-.env.local
-.env.backup
-.env.production
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
 auth.json
+
+# Node.js関連
+/node_modules
 npm-debug.log
 yarn-error.log
+
+# ビルド/公開ディレクトリ
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+
+# 環境設定ファイル
+.env
+.env.local
+.env.backup
+.env.production
+
+# エディタ設定
 /.fleet
 /.idea
 /.vscode
+/.cursor/
 
+# デプロイ関連
 .vercel
 
-# Added temporarily for development
-cookies*.txt
-*-fix.sh
-fix-*.php
+# OS固有ファイル
+## macOS
+.DS_Store
+**/.DS_Store
+
+# ログとキャッシュ
 *.log
 /storage/logs/
 /logs/
 /docker/nginx/logs/
+.cache/
+
+# 開発用一時ファイル
+cookies*.txt
+*-fix.sh
+fix-*.php

@@ -1,0 +1,12 @@
+node_modules
+vendor
+.git
+.github
+.vscode
+.idea
+*.log
+.env*
+!.env.example
+storage/logs/*
+.vercel
+.cursor 
