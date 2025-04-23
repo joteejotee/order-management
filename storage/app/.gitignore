@@ -1,3 +1,4 @@
+# ストレージファイル（publicディレクトリ以外）
 *
 !public/
 !.gitignore
