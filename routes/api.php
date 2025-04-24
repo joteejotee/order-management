@@ -5,10 +5,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-  return response()->json(['data' => $request->user()]);
-});
-
 // 認証なしでアクセスできるPenController
 Route::get('/pens', 'App\Http\Controllers\PenController@index'); //一覧を取得
 
