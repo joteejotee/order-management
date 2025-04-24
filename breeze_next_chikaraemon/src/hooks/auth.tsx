@@ -5,7 +5,8 @@ import axios from '@/lib/axios';
 import { AxiosError, AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import type { ApiResponse, User, UserData } from '@/types';
+import { ApiResponse } from '@/types';
+import type { UserData, User } from '@/types/user';
 
 // エラーレスポンスの型定義
 interface ErrorResponse {
@@ -71,7 +72,9 @@ export function useAuth({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
-  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(null);
+  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(
+    null,
+  );
 
   // ミドルウェアがguestの場合は自動フェッチを無効化
   const shouldFetch = middleware !== 'guest';
@@ -170,31 +173,22 @@ export function useAuth({
   const login = async ({ email, password }: LoginCredentials) => {
     setIsLoading(true);
     try {
-      console.log('Auth - ログイン処理を開始します');
-
-      // CSRFトークンの取得を試行
-      console.log('Auth - CSRFトークンを取得中...');
+      // CSRFトークンの取得
       await axios.get('/sanctum/csrf-cookie');
 
       // ログイン処理
-      console.log('Auth - ログインリクエストを送信中...');
-      const loginResponse = await axios.post('/api/login', {
+      await axios.post('/api/login', {
         email,
         password,
         remember: false,
       });
 
-      // ユーザー情報を取得して保存
-      const userResponse = await axios.get('/api/user');
-      if (userResponse.data) {
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
-        await mutate(userResponse.data);
-      }
+      // SWRキャッシュを更新（バックグラウンドでの再取得なし）
+      await mutate(undefined, { revalidate: false });
 
       // ダッシュボードへリダイレクト
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Auth - Login error:', error);
       if (error.response?.status === 422) {
         throw new Error('メールアドレスまたはパスワードが正しくありません。');
       }
