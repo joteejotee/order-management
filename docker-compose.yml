@@ -19,7 +19,7 @@ services:
             resources:
                 limits:
                     memory: 1G
-                    cpus: "1"
+                    cpus: "2"
         environment:
             PHP_OPCACHE_ENABLE: 1
             PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1

@@ -20,10 +20,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // ログ追加
-        \Log::info('ログイン後のユーザー', ['user' => auth()->user()]);
+        // ユーザー情報を取得
+        $user = Auth::user();
 
-        return response()->noContent();
+        // ログ追加（最小限にとどめる）
+        Log::info('ログイン成功', ['user_id' => $user->id]);
+
+        // ユーザー情報をレスポンスヘッダーに含める
+        return response()
+            ->noContent()
+            ->header('X-User-Data', json_encode(['data' => $user]));
     }
 
     /**
