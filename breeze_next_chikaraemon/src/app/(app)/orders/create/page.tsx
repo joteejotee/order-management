@@ -26,7 +26,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         setPens(response.data.pens);
         setCustomers(response.data.customers);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        // エラー処理
       } finally {
         setIsFetching(false);
       }
@@ -47,7 +47,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
       });
       router.push('/orders?from=create');
     } catch (error) {
-      console.error('Failed to create order:', error);
+      // エラー処理
     } finally {
       setIsLoading(false);
     }

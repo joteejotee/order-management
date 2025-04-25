@@ -15,11 +15,6 @@ const Navigation = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // デバッグ用のログ追加
-  useEffect(() => {
-    console.log('Navigation - Current user:', user);
-  }, [user]);
-
   // 主要なページのプリフェッチを実装
   useEffect(() => {
     // よく使用されるページをプリフェッチ
@@ -43,7 +38,6 @@ const Navigation = () => {
 
     // 認証状態を確認
     if (!user || isValidating) {
-      console.log('Navigation - Waiting for auth state to stabilize...');
       return;
     }
 

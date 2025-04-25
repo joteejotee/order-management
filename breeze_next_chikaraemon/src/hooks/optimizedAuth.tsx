@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ApiResponse } from '@/types';
 import type { UserData } from '@/types/user';
 import {
@@ -13,19 +13,22 @@ import {
   ResetPasswordCredentials,
   ForgotPasswordRequest,
   EmailVerificationRequest,
-  ErrorResponse,
 } from './authTypes';
+import { fetchUser } from './authFunctions';
 import {
-  fetchUser,
-  performLogin,
-  performLogout,
-  performRegister,
-  performResetPassword,
-  performForgotPassword,
-  performResendEmailVerification,
-} from './authFunctions';
+  loadLoginFunction,
+  loadLogoutFunction,
+  loadRegisterFunction,
+  loadResetPasswordFunction,
+  loadForgotPasswordFunction,
+  loadResendEmailVerificationFunction,
+} from './dynamicAuth';
 
-export function useAuth({
+/**
+ * 最適化された認証フック
+ * 必要な認証機能だけを動的にロードして使用します
+ */
+export function useOptimizedAuth({
   middleware,
   redirectIfAuthenticated,
 }: AuthConfig = {}): AuthHook {
@@ -38,10 +41,9 @@ export function useAuth({
 
   // ミドルウェアがguestの場合は自動フェッチを無効化
   const shouldFetch = middleware !== 'guest';
-  // URLを/api/userに固定
   const swrKey = shouldFetch ? '/api/user' : null;
 
-  // ユーザーデータをローカルストレージから取得する試み
+  // ユーザーデータをローカルストレージから取得
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
@@ -55,24 +57,19 @@ export function useAuth({
   }, []);
 
   // キャッシュをクリアする関数
-  const clearCache = () => {
+  const clearCache = useCallback(() => {
     localStorage.removeItem('user');
-  };
+  }, []);
 
-  // SWRの設定を改善
+  // SWRの設定
   const { data, error, mutate, isValidating } = useSWR(swrKey, fetchUser, {
-    dedupingInterval: 5000, // 5秒間は重複リクエストを防止
-    revalidateIfStale: false, // 古いデータの自動再検証を無効化
-    revalidateOnFocus: false, // フォーカス時の再検証を無効化
-    revalidateOnReconnect: true, // 再接続時の再検証を有効化
-    shouldRetryOnError: true, // エラー時の自動再試行を有効化
-    errorRetryCount: 3, // エラー時の再試行回数を3回に設定
-    errorRetryInterval: 2000, // エラー時の再試行間隔を2秒に設定
-    loadingTimeout: 5000, // ローディングタイムアウトを5秒に設定
-    focusThrottleInterval: 5000, // フォーカス時の再検証を5秒間隔に制限
-    onLoadingSlow: () => {
-      // ローディングが遅い場合の処理
-    },
+    dedupingInterval: 5000,
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    shouldRetryOnError: true,
+    errorRetryCount: 3,
+    errorRetryInterval: 2000,
     onSuccess: data => {
       if (data?.data) {
         localStorage.setItem('user', JSON.stringify(data.data));
@@ -85,30 +82,35 @@ export function useAuth({
     },
   });
 
-  // 強制的にデータを再取得するメソッド
-  const forceRefresh = async (): Promise<void> => {
+  // データ再取得メソッド
+  const forceRefresh = useCallback(async (): Promise<void> => {
     await mutate();
-  };
+  }, [mutate]);
 
-  // ログイン処理をラップ
-  const login = async ({ email, password }: LoginCredentials) => {
-    setIsLoading(true);
-    try {
-      await performLogin({ email, password }, mutate, router);
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        throw new Error('メールアドレスまたはパスワードが正しくありません。');
+  // ログイン処理 - 動的インポート
+  const login = useCallback(
+    async ({ email, password }: LoginCredentials) => {
+      setIsLoading(true);
+      try {
+        const performLogin = await loadLoginFunction();
+        await performLogin({ email, password }, mutate, router);
+      } catch (error: any) {
+        if (error.response?.status === 422) {
+          throw new Error('メールアドレスまたはパスワードが正しくありません。');
+        }
+        throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
+      } finally {
+        setIsLoading(false);
       }
-      throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [router, mutate],
+  );
 
-  // ログアウト処理をラップ
-  const logout = async () => {
+  // ログアウト処理 - 動的インポート
+  const logout = useCallback(async () => {
     setIsLoading(true);
     try {
+      const performLogout = await loadLogoutFunction();
       await performLogout(clearCache, mutate);
       setIsRouting(true);
     } catch (error) {
@@ -116,47 +118,50 @@ export function useAuth({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clearCache, mutate]);
 
-  // 登録処理をラップ
-  const register = async (credentials: RegisterCredentials) => {
-    await performRegister(credentials, mutate);
-  };
+  // 登録処理 - 動的インポート
+  const register = useCallback(
+    async (credentials: RegisterCredentials) => {
+      const performRegister = await loadRegisterFunction();
+      await performRegister(credentials, mutate);
+    },
+    [mutate],
+  );
 
-  // パスワードリセット処理をラップ
-  const resetPassword = async (credentials: ResetPasswordCredentials) => {
-    await performResetPassword(credentials);
-  };
+  // パスワードリセット処理 - 動的インポート
+  const resetPassword = useCallback(
+    async (credentials: ResetPasswordCredentials) => {
+      const performResetPassword = await loadResetPasswordFunction();
+      await performResetPassword(credentials);
+    },
+    [],
+  );
 
-  // パスワード忘れ処理をラップ
-  const forgotPassword = async (
-    request: ForgotPasswordRequest,
-  ): Promise<void> => {
-    await performForgotPassword(request);
-  };
+  // パスワード忘れ処理 - 動的インポート
+  const forgotPassword = useCallback(
+    async (request: ForgotPasswordRequest): Promise<void> => {
+      const performForgotPassword = await loadForgotPasswordFunction();
+      await performForgotPassword(request);
+    },
+    [],
+  );
 
-  // メール確認再送信処理をラップ
-  const resendEmailVerification = async (
-    request: EmailVerificationRequest,
-  ): Promise<void> => {
-    await performResendEmailVerification(request);
-  };
+  // メール確認再送信処理 - 動的インポート
+  const resendEmailVerification = useCallback(
+    async (request: EmailVerificationRequest): Promise<void> => {
+      const performResendEmailVerification =
+        await loadResendEmailVerificationFunction();
+      await performResendEmailVerification(request);
+    },
+    [],
+  );
 
   // ミドルウェアの効果を処理
   useEffect(() => {
     if (!isValidating) {
-      const authState = {
-        path: window.location.pathname,
-        user: data?.data || localUser,
-        error,
-        middleware,
-        redirectIfAuthenticated,
-        isRouting,
-      };
-
-      // 認証状態が安定するまで待機
       const stabilityTimer = setTimeout(() => {
-        // ホームページのリダイレクト処理（特別なケース）
+        // ホームページのリダイレクト処理
         if (window.location.pathname === '/' && !isRouting) {
           if (data?.data || localUser) {
             setIsRouting(true);
@@ -182,7 +187,7 @@ export function useAuth({
           setIsRouting(true);
           window.location.href = redirectIfAuthenticated;
         }
-      }, 500); // 500ミリ秒の安定化待機時間
+      }, 500);
 
       return () => clearTimeout(stabilityTimer);
     }
@@ -196,7 +201,7 @@ export function useAuth({
     isRouting,
   ]);
 
-  // ルーティング状態をリセットするエフェクト
+  // ルーティング状態をリセット
   useEffect(() => {
     if (isRouting) {
       const timer = setTimeout(() => {
@@ -206,7 +211,7 @@ export function useAuth({
     }
   }, [isRouting]);
 
-  // 実際のユーザーデータ（APIレスポンスまたはローカルストレージから）
+  // 実際のユーザーデータ
   const actualUser = data?.data || localUser;
 
   return {

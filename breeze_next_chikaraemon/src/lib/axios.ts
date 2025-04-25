@@ -5,10 +5,6 @@ import axios, {
   AxiosResponse,
 } from 'axios';
 
-// 環境変数の確認用ログ
-console.log('✅ axios.ts loaded');
-console.log('ENV:', process.env.NEXT_PUBLIC_BACKEND_URL);
-
 // Process環境変数の型定義
 declare global {
   interface ProcessEnv {
@@ -32,10 +28,8 @@ if (isBrowser) {
   if (baseURL === 'http://nginx') {
     baseURL = 'http://localhost:8000';
   }
-  console.log('Browser environment detected, using baseURL:', baseURL);
 } else {
   // サーバー環境ではコンテナ間通信のためのURLを使用
-  console.log('Server environment detected, using baseURL:', baseURL);
 }
 
 // axiosインスタンスの設定
@@ -49,12 +43,11 @@ const cancelTokens: Record<string, AbortController> = {};
 // ナビゲーション検出のためのグローバルイベントリスナー
 if (isBrowser) {
   window.addEventListener('navigationStart', () => {
-    console.log('Navigation detected, canceling all pending requests');
     Object.values(cancelTokens).forEach(controller => {
       try {
         controller.abort();
       } catch (e) {
-        console.log('Error aborting request:', e);
+        // エラー処理を続行
       }
     });
     // キャンセルしたトークンをクリア
@@ -113,22 +106,15 @@ axios.interceptors.request.use(
     (config as any)._requestId = requestId;
     (config as any)._cleanupToken = cleanupToken;
 
-    console.log(
-      `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
-    );
-
     return config;
   },
   error => {
-    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   },
 );
 
 axios.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
-
     // リクエストトークンをクリーンアップ
     const requestId = (response.config as any)._requestId;
     if (requestId && cancelTokens[requestId]) {
@@ -140,13 +126,6 @@ axios.interceptors.response.use(
   (error: unknown) => {
     // エラーがキャンセルによるものかをチェック
     if (axios.isCancel(error)) {
-      console.log(
-        '⚠️ Request canceled:',
-        error instanceof Error
-          ? error.message
-          : 'Navigation or manual cancellation',
-      );
-
       // キャンセルによるエラーは静かに処理
       return Promise.reject({
         name: 'CanceledError',
@@ -165,17 +144,6 @@ axios.interceptors.response.use(
     const config = axiosError.config as any;
     if (config?._requestId && cancelTokens[config._requestId]) {
       delete cancelTokens[config._requestId];
-    }
-
-    if (axiosError.response) {
-      console.error(
-        `❌ API Error: ${axiosError.response.status} ${config?.url}`,
-        axiosError.response.data,
-      );
-    } else if (axiosError.request) {
-      console.error('❌ No response received:', axiosError.request);
-    } else {
-      console.error('❌ Request setup error:', axiosError.message);
     }
 
     return Promise.reject(error);

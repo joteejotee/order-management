@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus';
 import { Eye, EyeOff, Check, UserCircle } from 'lucide-react';
+import { useOptimizedAuth } from '@/hooks';
 
 // バリデーションスキーマ
 const loginSchema = z.object({
@@ -35,7 +36,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { login } = useAuth({
+  const { login } = useOptimizedAuth({
     middleware: 'guest',
     redirectIfAuthenticated: '/dashboard',
   });
@@ -57,13 +58,11 @@ const Login = () => {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
-      console.log('Attempting login with:', values);
       await login({
         email: values.email,
         password: values.password,
       });
     } catch (error) {
-      console.error('Login failed:', error);
       setStatus(
         '認証に失敗しました。メールアドレスとパスワードを確認してください。',
       );
@@ -178,8 +177,8 @@ const Login = () => {
             )}
           />
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full text-lg h-12"
             disabled={isLoading}
           >

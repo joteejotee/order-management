@@ -32,7 +32,7 @@ const EditPen = ({ params }: EditPenProps) => {
         setPrice(pen.price.toString());
         setStock(pen.stock.toString());
       } catch (error) {
-        console.error('Failed to fetch pen:', error);
+        // エラー処理
       } finally {
         setIsFetching(false);
       }
@@ -56,7 +56,6 @@ const EditPen = ({ params }: EditPenProps) => {
       await router.push('/pens');
       router.refresh();
     } catch (error) {
-      console.error('Failed to update pen:', error);
       if (error instanceof Error) {
         setError(error.message);
       } else {

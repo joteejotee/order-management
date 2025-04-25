@@ -96,11 +96,15 @@ const Pens: React.FC = () => {
     onSuccess: data => {
       if (data?.data) {
         setPens(data.data.data);
-        
+
         // 新規登録後の遷移かどうかを確認
         const isFromCreate = searchParams.get('from') === 'create';
 
-        if (isFirstRender.current && isFromCreate && data.data.data.length > 0) {
+        if (
+          isFirstRender.current &&
+          isFromCreate &&
+          data.data.data.length > 0
+        ) {
           const newPen = data.data.data[0];
           setHighlightedId(newPen.id);
           setTimeout(() => {
@@ -127,7 +131,6 @@ const Pens: React.FC = () => {
   useEffect(() => {
     // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
-      console.log('Navigation detected, preparing for new request');
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         // 新しいAbortControllerを作成
@@ -148,8 +151,7 @@ const Pens: React.FC = () => {
   }, [mutate]);
 
   useEffect(() => {
-    console.log('pens の中身:', pens);
-    console.log('pageInfo の中身:', pageInfo);
+    // ペンと画面情報の確認ロジック
   }, [pens, pageInfo]);
 
   const deletePen = async (id: number) => {
@@ -170,7 +172,6 @@ const Pens: React.FC = () => {
         mutate(); // サーバーから最新データを取得
       } catch (error) {
         mutate(swrResponse); // エラー時は元のデータに戻す
-        console.error('Failed to delete pen:', error);
       }
     }
   };

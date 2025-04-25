@@ -70,7 +70,7 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
         setPens(pensData);
         setCustomers(customersData);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        // エラー処理
       } finally {
         setIsFetching(false);
       }
@@ -94,7 +94,6 @@ const EditOrder: React.FC<EditOrderProps> = ({ params }) => {
       await router.push('/orders');
       router.refresh();
     } catch (error) {
-      console.error('Failed to update order:', error);
       if (error instanceof Error) {
         setError(error.message);
       } else {

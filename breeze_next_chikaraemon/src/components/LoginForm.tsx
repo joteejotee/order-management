@@ -11,29 +11,24 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login button clicked', { email, password });
     setError('');
 
     startTransition(async () => {
       try {
         // CSRFトークンを取得
-        console.log('Requesting CSRF token');
         await axios.get('/sanctum/csrf-cookie');
 
         // ログイン処理
-        console.log('Sending login request');
         const loginResponse = await axios.post('/api/login', {
           email,
           password,
           remember: false,
         });
-        console.log('Login Response:', loginResponse);
 
         if (loginResponse.status === 200) {
           window.location.href = '/dashboard';
         }
       } catch (error) {
-        console.error('ログインエラー:', error);
         setError('ログインに失敗しました');
       }
     });

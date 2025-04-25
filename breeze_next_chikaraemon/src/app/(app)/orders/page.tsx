@@ -72,16 +72,9 @@ const Orders: React.FC = () => {
 
     setIsLoading(true);
     try {
-      console.log(
-        'APIリクエスト開始:',
-        `${backendUrl}/api/orders?page=${pageNum}`,
-      );
       const response = await axios.get(`/api/orders?page=${pageNum}`, {
         signal: controller.signal,
       });
-      console.log('API レスポンス 成功:', response.data);
-      console.log('API レスポンス ステータス:', response.status);
-      console.log('API レスポンス データ構造:', Object.keys(response.data));
 
       if (abortControllerRef.current === controller) {
         if (response.data && response.data.data) {
@@ -102,10 +95,6 @@ const Orders: React.FC = () => {
           isFirstRender.current = false;
 
           const metaData = response.data.meta;
-          console.log('ページネーション メタデータ (raw):', metaData);
-          console.log('last_page:', metaData.last_page);
-          console.log('current_page:', metaData.current_page);
-          console.log('next_page_url:', metaData.next_page_url);
 
           setPageInfo({
             current_page: metaData.current_page,
@@ -118,38 +107,15 @@ const Orders: React.FC = () => {
             next_page_url: metaData.next_page_url,
             prev_page_url: metaData.prev_page_url,
           });
-          console.log('ページネーション情報:', {
-            current_page: metaData.current_page,
-            last_page: metaData.last_page,
-            next_page_url: metaData.next_page_url,
-            prev_page_url: metaData.prev_page_url,
-          });
-          console.log('ステート更新完了: setOrders と setPageInfo を実行');
         } else {
-          console.error('API レスポンスの形式が予期しない形式:', response.data);
           setOrders([]);
         }
       }
     } catch (error) {
-      console.error('APIリクエスト失敗 - 詳細:');
-      if (error instanceof Error) {
-        console.error('エラーメッセージ:', error.message);
-        console.error('エラータイプ:', error.name);
-        console.error('スタックトレース:', error.stack);
-      }
-
-      if (axios.isAxiosError(error)) {
-        console.error('Axiosエラー設定:', error.config);
-        console.error('Axiosエラーレスポンス:', error.response);
-        console.error('Axiosエラーリクエスト:', error.request);
-      }
-
-      console.error('エラーの完全な内容:', error);
       setOrders([]);
     } finally {
       if (abortControllerRef.current === controller) {
         setIsLoading(false);
-        console.log('ローディング状態をfalseに設定');
       }
     }
   };
@@ -159,7 +125,6 @@ const Orders: React.FC = () => {
 
     // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
-      console.log('Navigation detected, aborting pending requests');
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -176,8 +141,7 @@ const Orders: React.FC = () => {
   }, [page]);
 
   useEffect(() => {
-    console.log('orders の中身:', orders);
-    console.log('pageInfo の中身:', pageInfo);
+    // orders と pageInfo の変更を監視
   }, [orders, pageInfo]);
 
   const deleteOrder = async (id: number) => {
@@ -186,7 +150,7 @@ const Orders: React.FC = () => {
         await axios.delete(`/api/orders/${id}`);
         getOrders(page);
       } catch (error) {
-        console.error('Failed to delete order:', error);
+        // エラー処理
       }
     }
   };
@@ -207,29 +171,25 @@ const Orders: React.FC = () => {
   const toggleStatus = async (order: Order) => {
     const newStatus = order.status === 'pending' ? 'shipped' : 'pending';
     const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
-    
+
     // 確認ダイアログを表示
     if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
       try {
         // モデル変換してAPIリクエストを実行
         const modelData = convertToOrderModel({ status: newStatus });
         const response = await axios.put(`/api/orders/${order.id}`, modelData);
-        
+
         // レスポンスを確認
         if (response.status === 200) {
           // 成功後にUIを更新
           const updatedOrders = orders.map(o =>
-            o.id === order.id
-              ? { ...o, status: newStatus }
-              : o
+            o.id === order.id ? { ...o, status: newStatus } : o,
           );
           setOrders(updatedOrders);
-          console.log('出荷状態を更新しました:', { orderId: order.id, newStatus });
         } else {
           throw new Error('ステータスの更新に失敗しました');
         }
       } catch (error) {
-        console.error('Failed to update status:', error);
         alert('ステータスの更新に失敗しました。');
       }
     }
