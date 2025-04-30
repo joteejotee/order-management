@@ -1,13 +1,8 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Order, PaginationMeta, convertToOrderModel } from '@/types';
-
-interface OrdersResponse {
-  data: Order[];
-  meta: PaginationMeta;
-}
 
 const TableSkeleton = () => {
   return (
@@ -18,31 +13,31 @@ const TableSkeleton = () => {
           className="animate-pulse bg-white border-b border-gray-200"
         >
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-8"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-8" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-24"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-24" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-32"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-32" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-12"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-12" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-20"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-20" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-36"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-36" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+            <div className="h-6 bg-gray-200 rounded-full w-16" />
           </td>
           <td className="px-3 py-2">
-            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
           </td>
           <td className="px-3 py-2">
-            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
           </td>
         </tr>
       ))}
@@ -60,65 +55,67 @@ const Orders: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isFirstRender = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const getOrders = async (pageNum: number) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+  const getOrders = useCallback(
+    async (pageNum: number) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`/api/orders?page=${pageNum}`, {
-        signal: controller.signal,
-      });
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/api/orders?page=${pageNum}`, {
+          signal: controller.signal,
+        });
 
-      if (abortControllerRef.current === controller) {
-        if (response.data && response.data.data) {
-          setOrders(response.data.data);
+        if (abortControllerRef.current === controller) {
+          if (response.data && response.data.data) {
+            setOrders(response.data.data);
 
-          // 初回レンダリング時かつ新規登録からの遷移時のみハイライトを表示
-          if (
-            isFirstRender.current &&
-            searchParams.get('from') === 'create' &&
-            response.data.data.length > 0
-          ) {
-            const newOrder = response.data.data[0];
-            setHighlightedId(newOrder.id);
-            setTimeout(() => {
-              setHighlightedId(null);
-            }, 100);
+            // 初回レンダリング時かつ新規登録からの遷移時のみハイライトを表示
+            if (
+              isFirstRender.current &&
+              searchParams.get('from') === 'create' &&
+              response.data.data.length > 0
+            ) {
+              const newOrder = response.data.data[0];
+              setHighlightedId(newOrder.id);
+              setTimeout(() => {
+                setHighlightedId(null);
+              }, 100);
+            }
+            isFirstRender.current = false;
+
+            const metaData = response.data.meta;
+
+            setPageInfo({
+              current_page: metaData.current_page,
+              from: metaData.from || 0,
+              last_page: metaData.last_page || 1,
+              path: metaData.path || '',
+              per_page: metaData.per_page,
+              to: metaData.to || 0,
+              total: metaData.total,
+              next_page_url: metaData.next_page_url,
+              prev_page_url: metaData.prev_page_url,
+            });
+          } else {
+            setOrders([]);
           }
-          isFirstRender.current = false;
-
-          const metaData = response.data.meta;
-
-          setPageInfo({
-            current_page: metaData.current_page,
-            from: metaData.from || 0,
-            last_page: metaData.last_page || 1,
-            path: metaData.path || '',
-            per_page: metaData.per_page,
-            to: metaData.to || 0,
-            total: metaData.total,
-            next_page_url: metaData.next_page_url,
-            prev_page_url: metaData.prev_page_url,
-          });
-        } else {
-          setOrders([]);
+        }
+      } catch (error) {
+        setOrders([]);
+      } finally {
+        if (abortControllerRef.current === controller) {
+          setIsLoading(false);
         }
       }
-    } catch (error) {
-      setOrders([]);
-    } finally {
-      if (abortControllerRef.current === controller) {
-        setIsLoading(false);
-      }
-    }
-  };
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     getOrders(page);
@@ -138,7 +135,7 @@ const Orders: React.FC = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [page]);
+  }, [page, getOrders]);
 
   useEffect(() => {
     // orders と pageInfo の変更を監視
@@ -183,7 +180,9 @@ const Orders: React.FC = () => {
         if (response.status === 200) {
           // 成功後にUIを更新
           const updatedOrders = orders.map(o =>
-            o.id === order.id ? { ...o, status: newStatus } : o,
+            o.id === order.id
+              ? { ...o, status: newStatus as 'pending' | 'shipped' }
+              : o,
           );
           setOrders(updatedOrders);
         } else {

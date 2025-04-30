@@ -1,26 +1,20 @@
 import React from 'react';
 
-interface AuthSessionStatusProps {
+interface AuthSessionStatusProps extends React.HTMLAttributes<HTMLDivElement> {
   status: string | null;
-  className?: string;
-  [key: string]: any;
 }
 
-const AuthSessionStatus: React.FC<AuthSessionStatusProps> = ({
+const AuthSessionStatus = ({
   status,
-  className,
+  className = '',
   ...props
-}) => (
-  <>
-    {status && (
-      <div
-        className={`${className} font-medium text-sm text-green-600`}
-        {...props}
-      >
-        {status}
-      </div>
-    )}
-  </>
-);
+}: AuthSessionStatusProps) => {
+  if (!status) return null;
+  return (
+    <div className={className} {...props}>
+      {status}
+    </div>
+  );
+};
 
 export default AuthSessionStatus;

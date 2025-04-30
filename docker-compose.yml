@@ -31,7 +31,6 @@ services:
             dockerfile: docker/frontend/Dockerfile
         volumes:
             - ./breeze_next_chikaraemon:/app:delegated
-            - /app/node_modules
         ports:
             - "3000:3000"
         networks:

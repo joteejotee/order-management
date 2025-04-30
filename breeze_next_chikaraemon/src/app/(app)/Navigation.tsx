@@ -1,17 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/auth';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import ApplicationLogo from '@/components/ApplicationLogo';
 import Dropdown from '@/components/Dropdown';
 import DropdownLink from '@/components/DropdownLink';
-import type { User, UserData } from '@/types';
 
 const Navigation = () => {
   const { user, logout, isValidating, forceRefresh } = useAuth();
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,10 +21,10 @@ const Navigation = () => {
     router.prefetch('/profile');
   }, [router]);
 
-  useEffect(() => {
-    // 初回マウント時にユーザー情報を強制的に更新
-    forceRefresh();
-  }, []);
+  // useEffect(() => {
+  //   // 初回マウント時にユーザー情報を強制的に更新
+  //   forceRefresh();
+  // }, [forceRefresh]);
 
   // ナビゲーション処理を最適化
   const handleNavigation = (

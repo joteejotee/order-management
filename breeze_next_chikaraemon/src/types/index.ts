@@ -3,7 +3,8 @@
  * @module types
  */
 
-export * from './user';
+// 重複定義を避けるため、自前の型定義を削除し、src/types.tsから再エクスポート
+export * from '../types';
 
 /**
  * APIレスポンスの基本型

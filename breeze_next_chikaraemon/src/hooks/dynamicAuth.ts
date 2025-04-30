@@ -1,23 +1,15 @@
-import { lazy } from 'react';
-import type {
-  LoginCredentials,
-  RegisterCredentials,
-  ResetPasswordCredentials,
-  ForgotPasswordRequest,
-  EmailVerificationRequest,
-} from './authTypes';
-
 // 認証関数の動的インポート
 export async function loadAuthFunctions() {
-  const module = await import('./authFunctions');
+  const authFunctions = await import('./authFunctions');
   return {
-    fetchUser: module.fetchUser,
-    performLogin: module.performLogin,
-    performLogout: module.performLogout,
-    performRegister: module.performRegister,
-    performResetPassword: module.performResetPassword,
-    performForgotPassword: module.performForgotPassword,
-    performResendEmailVerification: module.performResendEmailVerification,
+    fetchUser: authFunctions.fetchUser,
+    performLogin: authFunctions.performLogin,
+    performLogout: authFunctions.performLogout,
+    performRegister: authFunctions.performRegister,
+    performResetPassword: authFunctions.performResetPassword,
+    performForgotPassword: authFunctions.performForgotPassword,
+    performResendEmailVerification:
+      authFunctions.performResendEmailVerification,
   };
 }
 

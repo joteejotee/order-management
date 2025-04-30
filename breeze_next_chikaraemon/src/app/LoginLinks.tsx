@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth';
-import { User } from '@/types/user';
+import { User } from '@/types';
 
 const LoginLinks = () => {
   const { user } = useAuth({ middleware: 'guest' }) as { user: User | null };

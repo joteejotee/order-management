@@ -2,10 +2,19 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface User {
+// UserDataの型をuser.tsから統合
+export interface UserData {
   id: number;
   name: string;
   email: string;
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// UserをAPIレスポンスに合わせて修正
+export interface User {
+  data: UserData;
 }
 
 export interface Pen {
@@ -29,8 +38,8 @@ export interface OrderModel {
   id: number;
   pen_id: number;
   customer_id: number;
-  num: number;          // DBのカラム名をそのまま使用
-  shipping: 0 | 1;      // 実際のDBの値
+  num: number; // DBのカラム名をそのまま使用
+  shipping: 0 | 1; // 実際のDBの値
   orderday: string;
   created_at: string;
   updated_at: string;
@@ -43,8 +52,8 @@ export interface Order {
   id: number;
   pen_id: number;
   customer_id: number;
-  quantity: number;     // numの表示用エイリアス
-  status: 'pending' | 'shipped';  // shippingの表示用変換
+  quantity: number; // numの表示用エイリアス
+  status: 'pending' | 'shipped'; // shippingの表示用変換
   orderday: string;
   created_at: string;
   updated_at: string;
@@ -56,23 +65,25 @@ export interface Order {
 export const convertToOrderView = (model: OrderModel): Order => ({
   ...model,
   quantity: model.num,
-  status: model.shipping === 1 ? 'shipped' : 'pending'
+  status: model.shipping === 1 ? 'shipped' : 'pending',
 });
 
 // 逆変換用のユーティリティ関数
-export const convertToOrderModel = (view: Partial<Order>): Partial<OrderModel> => {
+export const convertToOrderModel = (
+  view: Partial<Order>,
+): Partial<OrderModel> => {
   const model: Partial<OrderModel> = { ...view };
-  
+
   if ('quantity' in view) {
     model.num = view.quantity;
-    delete (model as any).quantity;
+    delete (model as unknown as Record<string, unknown>).quantity;
   }
-  
+
   if ('status' in view) {
     model.shipping = view.status === 'shipped' ? 1 : 0;
-    delete (model as any).status;
+    delete (model as unknown as Record<string, unknown>).status;
   }
-  
+
   return model;
 };
 
@@ -94,7 +105,7 @@ export interface PaginationMeta {
 }
 
 export interface RegisterProps {
-  setErrors: (errors: any) => void;
+  setErrors: (errors: Record<string, string[]>) => void;
   setStatus: (status: string | null) => void;
   name?: string;
   email?: string;

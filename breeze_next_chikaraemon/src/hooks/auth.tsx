@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ApiResponse } from '@/types';
-import type { UserData } from '@/types/user';
+import type { UserData } from '@/types';
 import {
   AuthConfig,
   AuthHook,
@@ -13,7 +13,6 @@ import {
   ResetPasswordCredentials,
   ForgotPasswordRequest,
   EmailVerificationRequest,
-  ErrorResponse,
 } from './authTypes';
 import {
   fetchUser,
@@ -24,6 +23,7 @@ import {
   performForgotPassword,
   performResendEmailVerification,
 } from './authFunctions';
+import type { AxiosError } from 'axios';
 
 export function useAuth({
   middleware,
@@ -95,8 +95,13 @@ export function useAuth({
     setIsLoading(true);
     try {
       await performLogin({ email, password }, mutate, router);
-    } catch (error: any) {
-      if (error.response?.status === 422) {
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        (error as AxiosError).response?.status === 422
+      ) {
         throw new Error('メールアドレスまたはパスワードが正しくありません。');
       }
       throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
@@ -145,15 +150,6 @@ export function useAuth({
   // ミドルウェアの効果を処理
   useEffect(() => {
     if (!isValidating) {
-      const authState = {
-        path: window.location.pathname,
-        user: data?.data || localUser,
-        error,
-        middleware,
-        redirectIfAuthenticated,
-        isRouting,
-      };
-
       // 認証状態が安定するまで待機
       const stabilityTimer = setTimeout(() => {
         // ホームページのリダイレクト処理（特別なケース）
@@ -210,7 +206,7 @@ export function useAuth({
   const actualUser = data?.data || localUser;
 
   return {
-    user: actualUser,
+    user: actualUser ?? undefined,
     login,
     logout,
     register,

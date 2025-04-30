@@ -5,6 +5,11 @@ import axios, {
   AxiosResponse,
 } from 'axios';
 
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _requestId?: string;
+  _cleanupToken?: () => void;
+}
+
 // Process環境変数の型定義
 declare global {
   interface ProcessEnv {
@@ -46,8 +51,10 @@ if (isBrowser) {
     Object.values(cancelTokens).forEach(controller => {
       try {
         controller.abort();
-      } catch (e) {
-        // エラー処理を続行
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          // エラー処理を続行
+        }
       }
     });
     // キャンセルしたトークンをクリア
@@ -103,8 +110,8 @@ axios.interceptors.request.use(
     };
 
     // リクエスト完了時に自動的にクリーンアップするためにconfig拡張
-    (config as any)._requestId = requestId;
-    (config as any)._cleanupToken = cleanupToken;
+    (config as ExtendedAxiosRequestConfig)._requestId = requestId;
+    (config as ExtendedAxiosRequestConfig)._cleanupToken = cleanupToken;
 
     return config;
   },
@@ -116,7 +123,8 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response: AxiosResponse) => {
     // リクエストトークンをクリーンアップ
-    const requestId = (response.config as any)._requestId;
+    const requestId = (response.config as ExtendedAxiosRequestConfig)
+      ._requestId;
     if (requestId && cancelTokens[requestId]) {
       delete cancelTokens[requestId];
     }
@@ -141,7 +149,7 @@ axios.interceptors.response.use(
     const axiosError = error as AxiosError;
 
     // リクエストトークンをクリーンアップ
-    const config = axiosError.config as any;
+    const config = axiosError.config as ExtendedAxiosRequestConfig;
     if (config?._requestId && cancelTokens[config._requestId]) {
       delete cancelTokens[config._requestId];
     }

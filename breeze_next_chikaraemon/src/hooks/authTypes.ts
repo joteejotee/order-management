@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/types';
-import type { UserData } from '@/types/user';
+import type { UserData } from '@/types';
 
 // エラーレスポンスの型定義
 export interface ErrorResponse {

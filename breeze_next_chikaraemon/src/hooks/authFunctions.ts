@@ -8,9 +8,13 @@ import {
   EmailVerificationRequest,
   ErrorResponse,
 } from './authTypes';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import type { ApiResponse, UserData } from '@/types';
 
 // ユーザー情報を取得する関数
-export async function fetchUser(url: string): Promise<any> {
+export async function fetchUser(
+  url: string,
+): Promise<AxiosResponse<ApiResponse<UserData>>> {
   try {
     const response = await axios.get(url, {
       withCredentials: true,
@@ -44,8 +48,8 @@ export async function fetchUser(url: string): Promise<any> {
 // ログイン処理
 export async function performLogin(
   { email, password }: LoginCredentials,
-  mutate: any,
-  router: any,
+  mutate: () => Promise<unknown>,
+  router: AppRouterInstance,
 ): Promise<void> {
   // CSRFトークンの取得
   await axios.get('/sanctum/csrf-cookie');
@@ -58,7 +62,7 @@ export async function performLogin(
   });
 
   // SWRキャッシュを更新（バックグラウンドでの再取得なし）
-  await mutate(undefined, { revalidate: false });
+  await mutate();
 
   // ダッシュボードへリダイレクト
   router.push('/dashboard');
@@ -67,12 +71,12 @@ export async function performLogin(
 // ログアウト処理
 export async function performLogout(
   clearCache: () => void,
-  mutate: any,
+  mutate: () => Promise<unknown>,
 ): Promise<void> {
   await axios.post('/api/logout');
   // ローカルストレージからユーザー情報を削除
   clearCache();
-  await mutate(null, { revalidate: false });
+  await mutate();
   window.location.href = '/login'; // フルページリロードを強制
 }
 
@@ -85,7 +89,7 @@ export async function performRegister(
     password_confirmation,
     setErrors,
   }: RegisterCredentials,
-  mutate: any,
+  mutate: () => Promise<unknown>,
 ): Promise<void> {
   setErrors({});
 

@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { ApiResponse } from '@/types';
-import type { UserData } from '@/types/user';
+import type { UserData } from '@/types';
 import {
   AuthConfig,
   AuthHook,
@@ -23,6 +23,7 @@ import {
   loadForgotPasswordFunction,
   loadResendEmailVerificationFunction,
 } from './dynamicAuth';
+import type { AxiosError } from 'axios';
 
 /**
  * 最適化された認証フック
@@ -94,8 +95,13 @@ export function useOptimizedAuth({
       try {
         const performLogin = await loadLoginFunction();
         await performLogin({ email, password }, mutate, router);
-      } catch (error: any) {
-        if (error.response?.status === 422) {
+      } catch (error: unknown) {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'response' in error &&
+          (error as AxiosError).response?.status === 422
+        ) {
           throw new Error('メールアドレスまたはパスワードが正しくありません。');
         }
         throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
@@ -215,7 +221,7 @@ export function useOptimizedAuth({
   const actualUser = data?.data || localUser;
 
   return {
-    user: actualUser,
+    user: actualUser ?? undefined,
     login,
     logout,
     register,

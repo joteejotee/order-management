@@ -35,22 +35,22 @@ const TableSkeleton = () => {
           className="animate-pulse bg-white border-b border-gray-200"
         >
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-8"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-8" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-32"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-32" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-16"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-16" />
           </td>
           <td className="px-6 py-2">
-            <div className="h-4 bg-gray-200 rounded-full w-12"></div>
+            <div className="h-4 bg-gray-200 rounded-full w-12" />
           </td>
           <td className="px-3 py-2">
-            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
           </td>
           <td className="px-3 py-2">
-            <div className="h-8 bg-gray-200 rounded-lg w-16"></div>
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
           </td>
         </tr>
       ))}
@@ -76,9 +76,8 @@ const Pens: React.FC = () => {
     next_page_url: null,
     prev_page_url: null,
   });
-  const [isLoading, setIsLoading] = useState(false);
+
   const abortControllerRef = React.useRef<AbortController | null>(null);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // SWRの設定を最適化
   const {
