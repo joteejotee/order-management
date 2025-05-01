@@ -58,9 +58,18 @@ class PenController extends Controller
   //penを受け取り、削除
   public function delete(Pen $pen)
   {
-    $pen->delete();
-    return response()->json([
-      'message' => '無事に削除しましたた'
-    ], 200);
+    try {
+      $pen->delete();
+      return response()->json([
+        'message' => '無事に削除しましたた'
+      ], 200);
+    } catch (\Illuminate\Database\QueryException $e) {
+      if ($e->getCode() === '23000') {
+        return response()->json([
+          'message' => 'このペンは注文に紐づいているため削除できません',
+        ], 409);
+      }
+      throw $e;
+    }
   }
 }

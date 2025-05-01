@@ -76,7 +76,7 @@ const Pens: React.FC = () => {
     next_page_url: null,
     prev_page_url: null,
   });
-
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // SWRの設定を最適化
@@ -154,6 +154,7 @@ const Pens: React.FC = () => {
   }, [pens, pageInfo]);
 
   const deletePen = async (id: number) => {
+    console.log('deletePen called with id:', id);
     if (!swrResponse?.data) return;
 
     if (confirm('本当に削除しますか？')) {
@@ -166,11 +167,20 @@ const Pens: React.FC = () => {
       };
 
       try {
+        setDeleteError(null);
         mutate(optimisticData, false);
         await axios.delete(`/api/pens/${id}`);
         mutate(); // サーバーから最新データを取得
-      } catch (error) {
+      } catch (error: unknown) {
         mutate(swrResponse); // エラー時は元のデータに戻す
+        if (axios.isAxiosError(error) && error.response?.status === 409) {
+          setDeleteError(
+            error.response.data?.message ||
+              'このペンは注文に紐づいているため削除できません',
+          );
+        } else {
+          setDeleteError('削除に失敗しました。再度お試しください。');
+        }
       }
     }
   };
@@ -190,6 +200,11 @@ const Pens: React.FC = () => {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="relative overflow-x-auto p-4">
+        {deleteError && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            {deleteError}
+          </div>
+        )}
         <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
           <thead>
             <tr className="border-b border-gray-200">
