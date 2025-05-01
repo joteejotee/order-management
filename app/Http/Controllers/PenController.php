@@ -56,11 +56,11 @@ class PenController extends Controller
 
   // 指定のデータを削除
   //penを受け取り、削除
-  public function delete(Pen $pen) //penを受け取る
+  public function delete(Pen $pen)
   {
-    $pen->delete(); //削除
-    return response()->json([ //json形式で返す
-      'message' => '無事に削除しました' //messageに'無事に削除しました'を代入
-    ], 200); //ステータスコード200
+    $pen->delete();
+    return response()->json([
+      'message' => '無事に削除しましたた'
+    ], 200);
   }
 }

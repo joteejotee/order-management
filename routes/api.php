@@ -10,7 +10,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
   Route::post('/pens', 'App\Http\Controllers\PenController@store'); //登録
   Route::get('/pens/{pen:id}', 'App\Http\Controllers\PenController@edit'); //指定のデータのみ取得
   Route::patch('/pens/{pen:id}', 'App\Http\Controllers\PenController@update'); //指定のデータを更新
-  Route::delete('/pens/{pen:id}', 'App\Http\Controllers\PenController@delete'); //指定のデータを削除
+  Route::delete('/pens/{pen}', 'App\Http\Controllers\PenController@delete'); //指定のデータを削除
 
   Route::get('/orders', 'App\Http\Controllers\OrderController@index');
   Route::get('/orders/create', 'App\Http\Controllers\OrderController@create');
