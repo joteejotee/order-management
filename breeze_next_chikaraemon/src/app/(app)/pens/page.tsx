@@ -159,7 +159,6 @@ const Pens: React.FC = () => {
   }, [page]);
 
   const deletePen = async (id: number) => {
-    console.log('deletePen called with id:', id);
     if (!swrResponse?.data) return;
 
     if (confirm('本当に削除しますか？')) {

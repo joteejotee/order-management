@@ -8,7 +8,7 @@ import Dropdown from '@/components/Dropdown';
 import DropdownLink from '@/components/DropdownLink';
 
 const Navigation = () => {
-  const { user, logout, isValidating, forceRefresh } = useAuth();
+  const { user, logout, isValidating } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -20,11 +20,6 @@ const Navigation = () => {
     router.prefetch('/orders');
     router.prefetch('/profile');
   }, [router]);
-
-  // useEffect(() => {
-  //   // 初回マウント時にユーザー情報を強制的に更新
-  //   forceRefresh();
-  // }, [forceRefresh]);
 
   // ナビゲーション処理を最適化
   const handleNavigation = (
