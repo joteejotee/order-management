@@ -153,6 +153,11 @@ const Pens: React.FC = () => {
     // ペンと画面情報の確認ロジック
   }, [pens, pageInfo]);
 
+  // ページネーションでページが切り替わったときにエラーをクリア
+  useEffect(() => {
+    setDeleteError(null);
+  }, [page]);
+
   const deletePen = async (id: number) => {
     console.log('deletePen called with id:', id);
     if (!swrResponse?.data) return;
