@@ -32,8 +32,8 @@ module.exports = {
   rules: {
     'prettier/prettier': 'error', // PrettierのルールをESLintに適用(prettierを優先)
     'import/prefer-default-export': 0,
-    '@typescript-eslint/no-explicit-any': 'off',
-    'no-console': 'off',
+    '@typescript-eslint/no-explicit-any': 'error',
+    'no-console': 'warn',
     'no-nested-ternary': 0,
     'no-underscore-dangle': 0,
     'no-unused-expressions': ['error', { allowTernary: true }],

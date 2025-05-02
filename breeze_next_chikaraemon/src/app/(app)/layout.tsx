@@ -1,26 +1,17 @@
 'use client';
 
-import { useAuth } from '@/hooks/auth';
-import Navigation from '@/app/(app)/Navigation';
-import Loading from './Loading';
-import React from 'react'; // Reactの型定義が必要
-import { User } from '@/types/user';
+import { ReactNode } from 'react';
+import Navigation from './Navigation';
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  // 型を明示的に指定
-  const { user } = useAuth({ middleware: 'auth' }) as { user: User | null };
+interface AppLayoutProps {
+  children: ReactNode;
+}
 
-  if (!user) {
-    return <Loading />;
-  }
-
+export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navigation user={user} />
-
+      <Navigation />
       <main>{children}</main>
     </div>
   );
-};
-
-export default AppLayout;
+}

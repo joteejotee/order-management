@@ -1,54 +1,92 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/auth';
+import { usePathname, useRouter } from 'next/navigation';
 import ApplicationLogo from '@/components/ApplicationLogo';
 import Dropdown from '@/components/Dropdown';
-import Link from 'next/link';
-import NavLink from '@/components/NavLink';
-import ResponsiveNavLink, {
-  ResponsiveNavButton,
-} from '@/components/ResponsiveNavLink';
-import { DropdownButton } from '@/components/DropdownLink';
-import { useAuth } from '@/hooks/auth';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { User } from '@/types/user';
+import DropdownLink from '@/components/DropdownLink';
 
-const Navigation = ({ user }: { user: User }) => {
-  const { logout } = useAuth() as { logout: () => Promise<void> };
-  const [open, setOpen] = useState(false);
+const Navigation = () => {
+  const { user, logout, isValidating, forceRefresh } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // トップレベルで usePathname を呼び出す
-  const pathname = usePathname(); // 修正箇所
+  // 主要なページのプリフェッチを実装
+  useEffect(() => {
+    // よく使用されるページをプリフェッチ
+    router.prefetch('/dashboard');
+    router.prefetch('/pens');
+    router.prefetch('/orders');
+    router.prefetch('/profile');
+  }, [router]);
+
+  // useEffect(() => {
+  //   // 初回マウント時にユーザー情報を強制的に更新
+  //   forceRefresh();
+  // }, [forceRefresh]);
+
+  // ナビゲーション処理を最適化
+  const handleNavigation = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    path: string,
+  ) => {
+    e.preventDefault();
+
+    // 認証状態を確認
+    if (!user || isValidating) {
+      return;
+    }
+
+    // 遷移前にすべてのリクエストをキャンセル
+    window.dispatchEvent(new CustomEvent('navigationStart'));
+
+    // 即時に遷移を開始
+    router.push(path);
+  };
+
+  // ナビゲーションリンクコンポーネント
+  const NavLink = ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+      <a
+        href={href}
+        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
+          pathname === href
+            ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'
+        }`}
+        onClick={e => handleNavigation(e, href)}
+      >
+        {children}
+      </a>
+    </div>
+  );
 
   return (
     <nav className="bg-white border-b border-gray-100">
-      {/* Primary Navigation Menu */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard">
+              <a
+                href="/dashboard"
+                onClick={e => handleNavigation(e, '/dashboard')}
+              >
                 <ApplicationLogo className="block h-10 w-auto fill-current text-gray-600" />
-              </Link>
+              </a>
             </div>
 
             {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <NavLink href="/dashboard" active={pathname === '/dashboard'}>
-                Dashboard
-              </NavLink>
-            </div>
-            {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <NavLink href="/pens" active={pathname === '/pens'}>
-                Pen Master
-              </NavLink>
-            </div>
-            {/* Navigation Links */}
-            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-              <NavLink href="/orders" active={pathname === '/orders'}>
-                Order Master
-              </NavLink>
-            </div>
+            <NavLink href="/dashboard">Dashboard</NavLink>
+            <NavLink href="/pens">Pen Master</NavLink>
+            <NavLink href="/orders">Order Master</NavLink>
           </div>
 
           {/* Settings Dropdown */}
@@ -57,114 +95,39 @@ const Navigation = ({ user }: { user: User }) => {
               align="right"
               width="48"
               trigger={
-                <button className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none transition duration-150 ease-in-out">
-                  <div>{user?.name}</div>
-
-                  <div className="ml-1">
+                <span className="inline-flex rounded-md">
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                  >
+                    {isValidating
+                      ? '読み込み中...'
+                      : user?.data?.name || 'ゲスト'}
                     <svg
-                      className="fill-current h-4 w-4"
+                      className="ml-2 -mr-0.5 h-4 w-4"
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.25 8.27a.75.75 0 01-.02-1.06z"
                         clipRule="evenodd"
                       />
                     </svg>
-                  </div>
-                </button>
+                  </button>
+                </span>
               }
             >
-              {/* Authentication */}
-              <DropdownButton onClick={logout}>Logout</DropdownButton>
+              <DropdownLink href="/profile">プロフィール</DropdownLink>
+              <DropdownLink href="#" onClick={logout}>
+                ログアウト
+              </DropdownLink>
             </Dropdown>
-          </div>
-
-          {/* Hamburger */}
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              onClick={() => setOpen(open => !open)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
-            >
-              <svg
-                className="h-6 w-6"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                {open ? (
-                  <path
-                    className="inline-flex"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    className="inline-flex"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Responsive Navigation Menu */}
-      {open && (
-        <div className="block sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            <ResponsiveNavLink
-              href="/dashboard"
-              active={pathname === '/dashboard'}
-            >
-              Dashboard
-            </ResponsiveNavLink>
-          </div>
-
-          {/* Responsive Settings Options */}
-          <div className="pt-4 pb-1 border-t border-gray-200">
-            <div className="flex items-center px-4">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-10 w-10 fill-current text-gray-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-
-              <div className="ml-3">
-                <div className="font-medium text-base text-gray-800">
-                  {user?.name}
-                </div>
-                <div className="font-medium text-sm text-gray-500">
-                  {user?.email}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 space-y-1">
-              {/* Authentication */}
-              <ResponsiveNavButton onClick={logout}>Logout</ResponsiveNavButton>
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 };

@@ -7,8 +7,10 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Requests\OrderStoreRequest;
+use App\Http\Requests\OrderUpdateRequest;
 use App\Models\Pen;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -17,15 +19,20 @@ class OrderController extends Controller
    */
   public function index()
   {
-    $orders = Order::paginate(4);
-    $ordersQuery = Order::orderBy('id', 'desc');
-    $ordersPaginator = $ordersQuery->paginate(4); // ページネーション
-    $orders = OrderResource::collection($ordersPaginator->items());
+    $ordersQuery = Order::with(['pen', 'customer'])->orderBy('id', 'desc');
+    $ordersPaginator = $ordersQuery->paginate(4);
+
+    $orders = OrderResource::collection($ordersPaginator);
+
     return response()->json([
       'data' => $orders,
       'meta' => [
         'current_page' => $ordersPaginator->currentPage(),
+        'from' => $ordersPaginator->firstItem(),
+        'last_page' => $ordersPaginator->lastPage(),
+        'path' => $ordersPaginator->path(),
         'per_page' => $ordersPaginator->perPage(),
+        'to' => $ordersPaginator->lastItem(),
         'total' => $ordersPaginator->total(),
         'next_page_url' => $ordersPaginator->nextPageUrl(),
         'prev_page_url' => $ordersPaginator->previousPageUrl(),
@@ -76,25 +83,38 @@ class OrderController extends Controller
    */
   public function edit($id)
   {
+    $order = Order::findOrFail($id);
     $pens = Pen::all();
     $customers = Customer::all();
-    $order = Order::find($id);
+
     return response()->json([
       'data' => $order,
       'pens' => $pens,
       'customers' => $customers,
-    ], 200);
+    ]);
   }
 
   /**
    * Update the specified resource in storage.
    */
-  public function update(OrderStoreRequest $request, Order $order)
+  public function update(OrderUpdateRequest $request, Order $order)
   {
-    $order->fill($request->all());
+    Log::info('注文更新リクエスト', [
+      'order_id' => $order->id,
+      'input' => $request->all()
+    ]);
+
+    $order->fill($request->validated());
     $order->save();
+
+    Log::info('注文を更新しました', [
+      'order_id' => $order->id,
+      'updated_data' => $request->validated()
+    ]);
+
     return response()->json([
-      'data' => $order
+      'data' => $order,
+      'message' => '注文を更新しました'
     ], 200);
   }
 

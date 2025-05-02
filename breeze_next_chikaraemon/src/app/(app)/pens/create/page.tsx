@@ -1,79 +1,122 @@
 'use client';
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+interface CreatePenFormData {
+  name: string;
+  price: string;
+  stock: string;
+}
 
-const CreatePage = () => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [nameMessage, setNameMessage] = useState('');
-  const [priceMessage, setPriceMessage] = useState('');
+const CreatePen = () => {
   const router = useRouter();
+  const [formData, setFormData] = useState<CreatePenFormData>({
+    name: '',
+    price: '',
+    stock: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const createPen = async () => {
-    const requestBody = {
-      name: name,
-      price: price,
-    };
-    http
-      .post('/api/pens', requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(() => {
-        router.push('/pens');
-      })
-      .catch(function (error) {
-        console.log(error.response.data.errors.name);
-        console.log(error.response.data.errors.price);
-        setNameMessage(error.response.data.errors.name);
-        setPriceMessage(error.response.data.errors.price);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await axios.post(`${backendUrl}/api/pens`, {
+        name: formData.name,
+        price: parseInt(formData.price),
+        stock: parseInt(formData.stock),
       });
+      router.push('/pens?from=create');
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
-    <div className="relative p-3">
-      <div className="flex flex-col bg-white border shadow-sm rounded-xl p-4 md:p-5 dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
-        <div className="py-2 px-4">
-          <p>ペンの名前と価格を入力して、登録ボタンをクリックしてください</p>
+    <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
+      <p>商品情報を入力して、保存ボタンをクリックしてください</p>
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
         </div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-4 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="名前"
-          onChange={e => {
-            setName(e.target.value);
-          }}
-        />
-        <div className="ml-4 text-red-500">{nameMessage}</div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-4 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="価格"
-          onChange={e => {
-            setPrice(e.target.value);
-          }}
-        />
-        <div className="ml-4 text-red-500">{priceMessage}</div>
-        <div>
+      )}
+      <form onSubmit={handleSubmit} className="mt-4">
+        <div className="mb-4">
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            placeholder="商品名"
+            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+          />
+        </div>
+        <div className="mb-4">
+          <input
+            type="number"
+            id="price"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            required
+            min="0"
+            placeholder="価格"
+            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+          />
+        </div>
+        <div className="mb-4">
+          <input
+            type="number"
+            id="stock"
+            name="stock"
+            value={formData.stock}
+            onChange={handleChange}
+            required
+            min="0"
+            placeholder="在庫数"
+            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+          />
+        </div>
+        <div className="flex justify-end mt-6">
           <button
-            className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-            onClick={() => {
-              createPen();
-            }}
+            type="button"
+            onClick={() => router.push('/pens')}
+            className="px-4 py-2 mr-2 bg-gray-200 text-gray-700 rounded-md"
           >
-            登録
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            {isLoading ? '保存中...' : '保存'}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
-export default CreatePage;
+export default CreatePen;

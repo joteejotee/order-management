@@ -13,7 +13,7 @@ class PenController extends Controller
   public function index()
   {
     // $pens = Pen::all(); //penモデルの全データを取得
-    $pens = Pen::paginate(4); //ページネーション
+    $pens = Pen::orderBy('id', 'desc')->paginate(4); //ページネーション、IDの降順で並び替え
     return response()->json([ //json形式で返す
       'data' => $pens //dataに$pensを代入
     ], 200); //ステータスコード200
@@ -26,6 +26,7 @@ class PenController extends Controller
     $pen = new Pen(); //新しいpenのインスタンスを作成
     $pen->name = $request->name; //リクエストのnameを代入
     $pen->price = $request->price; //リクエストのpriceを代入
+    $pen->stock = $request->stock; //リクエストのstockを代入
     $pen->save(); //保存
     return response()->json([ //json形式で返す
       'data' => $pen //dataに$penを代入
@@ -55,11 +56,20 @@ class PenController extends Controller
 
   // 指定のデータを削除
   //penを受け取り、削除
-  public function delete(Pen $pen) //penを受け取る
+  public function delete(Pen $pen)
   {
-    $pen->delete(); //削除
-    return response()->json([ //json形式で返す
-      'message' => '無事に削除しました' //messageに'無事に削除しました'を代入
-    ], 200); //ステータスコード200
+    try {
+      $pen->delete();
+      return response()->json([
+        'message' => '無事に削除しましたた'
+      ], 200);
+    } catch (\Illuminate\Database\QueryException $e) {
+      if ($e->getCode() === '23000') {
+        return response()->json([
+          'message' => 'このペンは注文に紐づいているため削除できません',
+        ], 409);
+      }
+      throw $e;
+    }
   }
 }

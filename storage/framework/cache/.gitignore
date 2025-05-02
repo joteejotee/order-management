@@ -1,3 +1,4 @@
+# キャッシュファイル（dataディレクトリ以外）
 *
 !data/
 !.gitignore

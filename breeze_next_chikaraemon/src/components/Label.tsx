@@ -1,16 +1,9 @@
-interface LabelProps {
-  className?: string; // 必須ではなくオプションに変更
+interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   children: React.ReactNode;
-  [x: string]: any; // 他のプロパティも許可
 }
 
-const Label = ({ className = '', children, ...props }: LabelProps) => (
-  <label
-    className={`${className} block font-medium text-sm text-gray-700`}
-    {...props}
-  >
-    {children}
-  </label>
+const Label = ({ children, ...props }: LabelProps) => (
+  <label {...props}>{children}</label>
 );
 
-export default Label;
+export { Label };

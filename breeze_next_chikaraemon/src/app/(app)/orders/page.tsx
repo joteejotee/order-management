@@ -1,224 +1,371 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import axios from '@/lib/axios';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Order, PaginationMeta, convertToOrderModel } from '@/types';
 
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+const TableSkeleton = () => {
+  return (
+    <>
+      {[...Array(4)].map((_, index) => (
+        <tr
+          key={index}
+          className="animate-pulse bg-white border-b border-gray-200"
+        >
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-8" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-24" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-32" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-12" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-20" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-4 bg-gray-200 rounded-full w-36" />
+          </td>
+          <td className="px-6 py-2">
+            <div className="h-6 bg-gray-200 rounded-full w-16" />
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-8 bg-gray-200 rounded-lg w-16" />
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+};
 
-const Orders = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+const Orders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
-  const [info, setInfo] = useState<{
-    next_page_url?: string;
-    prev_page_url?: string;
-  }>({});
-  const url = 'http://localhost:8000/api/orders';
+  const searchParams = useSearchParams();
+  const [page, setPage] = useState(1);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [pageInfo, setPageInfo] = useState<PaginationMeta | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const isFirstRender = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const getOrders = async (url: string) => {
-    if (!url) {
-      url = 'http://localhost:8000/api/orders';
-    }
-    const response = await fetch(url);
-    const json = await response.json();
-    setOrders(json.data);
-    console.log(json.data);
-    setInfo(json.meta);
-    console.log(json.meta);
-    //setOrders(json.data.data);
-    //console.log(json.data.data);
-    //setInfo(json.data);
-    //console.log(json.data);
-  };
+  const getOrders = useCallback(
+    async (pageNum: number) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/api/orders?page=${pageNum}`, {
+          signal: controller.signal,
+        });
+
+        if (abortControllerRef.current === controller) {
+          if (response.data && response.data.data) {
+            setOrders(response.data.data);
+
+            // 初回レンダリング時かつ新規登録からの遷移時のみハイライトを表示
+            if (
+              isFirstRender.current &&
+              searchParams.get('from') === 'create' &&
+              response.data.data.length > 0
+            ) {
+              const newOrder = response.data.data[0];
+              setHighlightedId(newOrder.id);
+              setTimeout(() => {
+                setHighlightedId(null);
+              }, 100);
+            }
+            isFirstRender.current = false;
+
+            const metaData = response.data.meta;
+
+            setPageInfo({
+              current_page: metaData.current_page,
+              from: metaData.from || 0,
+              last_page: metaData.last_page || 1,
+              path: metaData.path || '',
+              per_page: metaData.per_page,
+              to: metaData.to || 0,
+              total: metaData.total,
+              next_page_url: metaData.next_page_url,
+              prev_page_url: metaData.prev_page_url,
+            });
+          } else {
+            setOrders([]);
+          }
+        }
+      } catch (error) {
+        setOrders([]);
+      } finally {
+        if (abortControllerRef.current === controller) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
-    getOrders(url);
-  }, []);
+    getOrders(page);
+
+    // グローバルナビゲーションイベントのリスナーを追加
+    const handleNavigation = () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+
+    window.addEventListener('navigationStart', handleNavigation);
+
+    return () => {
+      window.removeEventListener('navigationStart', handleNavigation);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [page, getOrders]);
+
+  useEffect(() => {
+    // orders と pageInfo の変更を監視
+  }, [orders, pageInfo]);
 
   const deleteOrder = async (id: number) => {
-    if (confirm('削除しますか？')) {
-      http.delete(`/api/orders/${id}`).then(() => {
-        getOrders(url);
-      });
+    if (confirm('本当に削除しますか？')) {
+      try {
+        await axios.delete(`/api/orders/${id}`);
+        getOrders(page);
+      } catch (error) {
+        // エラー処理
+      }
     }
   };
+
   const handleNextPage = () => {
-    if (info.next_page_url) {
-      getOrders(info.next_page_url);
+    if (pageInfo?.next_page_url) {
+      setPage(page + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (info.prev_page_url) {
-      getOrders(info.prev_page_url);
+    if (pageInfo?.prev_page_url && page > 1) {
+      setPage(page - 1);
     }
   };
 
-  const shipOrder = async (id: number) => {
-    // 即座にUIを更新
-    const updatedOrders = orders.map(order =>
-      order.id === id ? { ...order, shipping: 1 } : order,
-    );
-    setOrders(updatedOrders);
+  // ステータス更新関数を追加
+  const toggleStatus = async (order: Order) => {
+    const newStatus = order.status === 'pending' ? 'shipped' : 'pending';
+    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
 
-    try {
-      await http.put(`/api/orders/${id}`);
-    } catch (error: any) {
-      // エラー時は元に戻す
-      const originalOrders = orders.map(order =>
-        order.id === id ? { ...order, shipping: 0 } : order,
-      );
-      setOrders(originalOrders);
-      console.error('出荷状態の更新に失敗しました:', error.message);
+    // 確認ダイアログを表示
+    if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
+      try {
+        // モデル変換してAPIリクエストを実行
+        const modelData = convertToOrderModel({ status: newStatus });
+        const response = await axios.put(`/api/orders/${order.id}`, modelData);
+
+        // レスポンスを確認
+        if (response.status === 200) {
+          // 成功後にUIを更新
+          const updatedOrders = orders.map(o =>
+            o.id === order.id
+              ? { ...o, status: newStatus as 'pending' | 'shipped' }
+              : o,
+          );
+          setOrders(updatedOrders);
+        } else {
+          throw new Error('ステータスの更新に失敗しました');
+        }
+      } catch (error) {
+        alert('ステータスの更新に失敗しました。');
+      }
     }
   };
 
   return (
-    <div className="relative overflow-x-auto p-5">
-      <table className="min-w-full divide-y dark:divide-neutral-700">
-        <thead>
-          <tr>
-            <th scope="col" className="px-6 py-4">
-              ID
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              顧客
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              ペン
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              価格
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              注文数
-            </th>
-            <th scope="col" className="px-6 py-4 text-left">
-              注文日
-            </th>
-            <th scope="col" className="px-6 py-4">
-              出荷・未出荷
-            </th>
-            <th scope="col" className="px-3 py-4">
-              <button
-                className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={() => {
-                  router.push('/orders/create');
-                }}
-              >
-                新規登録
-              </button>
-            </th>
-            <th scope="col" className="px-3 py-4" />
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order: any) => {
-            return (
-              <tr key={order.id} className="bg-white border-b">
-                <th scope="row" className="px-6 py-2">
-                  {order.id}
-                </th>
-                <td className="px-6 py-2">{order.customer.name}</td>
-                <td className="px-6 py-2">{order.pen.name}</td>
-                <td className="px-6 py-2">{order.pen.price}</td>
-                <td className="px-6 py-2">{order.num}</td>
-                <td className="px-6 py-2">{order.orderday}</td>
-                <td className="px-6 py-2 text-center">
-                  {order.shipping === 0 ? (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative overflow-x-auto p-4">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th scope="col" className="px-6 py-4">
+                注文ID
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                顧客
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                商品名
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                数量
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                合計金額
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                注文日
+              </th>
+              <th scope="col" className="px-6 py-4 text-left">
+                出荷
+              </th>
+              <th scope="col" className="px-3 py-4" />
+              <th scope="col" className="px-3 py-4">
+                <button
+                  className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+                  onClick={() => router.push('/orders/create')}
+                >
+                  新規登録
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <TableSkeleton />
+            ) : orders && orders.length > 0 ? (
+              orders.map(order => (
+                <tr
+                  key={order.id}
+                  className={`border-b border-gray-200 transition-all duration-700 ease-out ${
+                    highlightedId === order.id
+                      ? 'bg-yellow-200'
+                      : 'bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  <th scope="row" className="px-6 py-2">
+                    {order.id}
+                  </th>
+                  <td className="px-6 py-2">
+                    {order.customer?.name || 'データなし'}
+                  </td>
+                  <td className="px-6 py-2">
+                    {order.pen?.name || 'データなし'}
+                  </td>
+                  <td className="px-6 py-2">{order.quantity}</td>
+                  <td className="px-6 py-2">
+                    {order.pen
+                      ? new Intl.NumberFormat('ja-JP').format(
+                          order.pen.price * order.quantity,
+                        )
+                      : 0}
+                    円
+                  </td>
+                  <td className="px-6 py-2">
+                    {order.orderday
+                      ? new Date(order.orderday).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false,
+                        })
+                      : 'データなし'}
+                  </td>
+                  <td className="px-6 py-2">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        shipOrder(order.id);
-                      }}
+                      onClick={() => toggleStatus(order)}
+                      className={`px-2 py-1 text-xs font-medium rounded-full cursor-pointer ${
+                        order.status === 'pending'
+                          ? 'text-red-800 bg-red-100'
+                          : 'text-blue-800 bg-blue-100'
+                      }`}
                     >
-                      未
+                      {order.status === 'pending' ? '未出荷' : '出荷済'}
                     </button>
-                  ) : order.shipping === 1 ? (
-                    <span>出荷済</span>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2 text-right">
-                  {order.shipping === 0 ? (
+                  </td>
+                  <td className="px-3 py-2 text-right">
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        router.push(`/orders/edit/${order.id}`);
-                      }}
+                      onClick={() => router.push(`/orders/edit/${order.id}`)}
                     >
                       編集
                     </button>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2">
-                  {order.shipping === 0 ? (
+                  </td>
+                  <td className="px-3 py-2">
                     <button
                       className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => {
-                        deleteOrder(order.id);
-                      }}
+                      onClick={() => deleteOrder(order.id)}
                     >
                       削除
                     </button>
-                  ) : null}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="px-6 py-4 text-center">
+                  {isLoading ? '読み込み中...' : 'データがありません'}
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-
-      <div className="w-1/2 items-center px-4 mt-6">
-        <div className="join grid grid-cols-2">
-          {info.prev_page_url ? (
-            <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
-              onClick={handlePreviousPage}
-            >
-              <svg
-                className="flex-shrink-0 size-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            )}
+          </tbody>
+        </table>
+        <div className="w-1/2 items-center px-4 mt-6">
+          <div className="flex gap-x-2">
+            {pageInfo && (page > 1 || pageInfo.prev_page_url) && (
+              <button
+                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                onClick={handlePreviousPage}
               >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-              <span>PreviousPage</span>
-            </button>
-          ) : null}
-          {info.next_page_url ? (
-            <button
-              className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
-              onClick={handleNextPage}
-            >
-              <span>NextPage</span>
-              <svg
-                className="flex-shrink-0 size-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
-          ) : null}
+                <svg
+                  className="flex-shrink-0 size-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span>前へ</span>
+              </button>
+            )}
+            {pageInfo &&
+              (pageInfo.last_page > page || pageInfo.next_page_url) && (
+                <button
+                  className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                  onClick={handleNextPage}
+                >
+                  <span>次へ</span>
+                  <svg
+                    className="flex-shrink-0 size-3.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default Orders;

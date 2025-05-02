@@ -6,8 +6,18 @@ services:
             context: .
             dockerfile: docker/backend/Dockerfile
         volumes:
-            - .:/var/www/html
+            - ./app:/var/www/html/app
+            - ./bootstrap:/var/www/html/bootstrap
+            - ./bootstrap/cache:/var/www/html/bootstrap/cache
+            - ./config:/var/www/html/config
+            - ./database:/var/www/html/database
+            - ./public:/var/www/html/public
+            - ./resources:/var/www/html/resources
+            - ./routes:/var/www/html/routes
+            - ./storage:/var/www/html/storage
+            - ./vendor:/var/www/html/vendor
             - ./docker/php/logs:/var/log
+            - ./.env:/var/www/html/.env
         expose:
             - 9000
         depends_on:
@@ -18,7 +28,7 @@ services:
             resources:
                 limits:
                     memory: 1G
-                    cpus: "1"
+                    cpus: "2"
         environment:
             PHP_OPCACHE_ENABLE: 1
             PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
@@ -37,6 +47,7 @@ services:
         environment:
             - NEXT_TELEMETRY_DISABLED=1
             - NODE_ENV=development
+            - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
         deploy:
             resources:
                 limits:
@@ -50,7 +61,7 @@ services:
             - "8000:80"
         volumes:
             - ./docker/nginx/conf.d:/etc/nginx/conf.d
-            - .:/var/www/html
+            - ./public:/var/www/html/public
             - ./docker/nginx/logs:/var/log/nginx
         depends_on:
             - nextjs-backend-1

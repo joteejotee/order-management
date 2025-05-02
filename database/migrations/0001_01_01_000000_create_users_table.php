@@ -27,14 +27,8 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+        // sessionsテーブルは専用のマイグレーションファイルに移動
+        // 2025_04_21_154633_create_sessions_table.php
     }
 
     /**
@@ -44,6 +38,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
+        // 削除済み: Schema::dropIfExists('sessions');
     }
 };

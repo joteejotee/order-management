@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/auth';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/types/user';
+import { User } from '@/types';
 
 const Home = () => {
   const router = useRouter();

@@ -1,211 +1,221 @@
+'use client';
+
 import useSWR from 'swr';
-import axios from 'axios';
-import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction } from 'react';
-import { User } from '@/types/user';
+import { useState, useEffect } from 'react';
+import { ApiResponse } from '@/types';
+import type { UserData } from '@/types';
+import {
+  AuthConfig,
+  AuthHook,
+  LoginCredentials,
+  RegisterCredentials,
+  ResetPasswordCredentials,
+  ForgotPasswordRequest,
+  EmailVerificationRequest,
+} from './authTypes';
+import {
+  fetchUser,
+  performLogin,
+  performLogout,
+  performRegister,
+  performResetPassword,
+  performForgotPassword,
+  performResendEmailVerification,
+} from './authFunctions';
+import type { AxiosError } from 'axios';
 
-const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-
-// axiosの設定を更新
-axios.defaults.baseURL = apiUrl;
-axios.defaults.withCredentials = true;
-
-// オプションの型定義
-interface UseAuthOptions {
-  middleware?: 'guest' | 'auth';
-  redirectIfAuthenticated?: string;
-}
-
-export const useAuth = ({
+export function useAuth({
   middleware,
   redirectIfAuthenticated,
-}: UseAuthOptions = {}) => {
+}: AuthConfig = {}): AuthHook {
   const router = useRouter();
-
-  const { data: user, error, mutate } = useSWR<User>('/api/user', () =>
-    axios
-      .get('/api/user')
-      .then(res => res.data)
-      .catch(error => {
-        if (error.response?.status === 401) {
-          return null;
-        }
-        throw error;
-      }),
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+  const [localUser, setLocalUser] = useState<ApiResponse<UserData> | null>(
+    null,
   );
 
-  const csrf = () => axios.get('/sanctum/csrf-cookie');
+  // ミドルウェアがguestの場合は自動フェッチを無効化
+  const shouldFetch = middleware !== 'guest';
+  // URLを/api/userに固定
+  const swrKey = shouldFetch ? '/api/user' : null;
 
-  const register = async ({
-    name,
-    email,
-    password,
-    password_confirmation,
-    setErrors,
-  }: {
-    name: string;
-    email: string;
-    password: string;
-    password_confirmation: string;
-    setErrors: Dispatch<
-      SetStateAction<{
-        name?: string[];
-        email?: string[];
-        password?: string[];
-        password_confirmation?: string[];
-      }>
-    >;
-  }) => {
-    await csrf();
-
-    setErrors({});
-
-    axios
-      .post('/register', { name, email, password, password_confirmation })
-      .then(() => mutate())
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const login = async ({
-    email,
-    password,
-    remember,
-    setErrors,
-    setStatus,
-  }: {
-    email: string;
-    password: string;
-    remember: boolean;
-    setErrors: Dispatch<
-      SetStateAction<{ email?: string[]; password?: string[] }>
-    >;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
-    setErrors({});
-    setStatus(null);
-
-    axios
-      .post('/login', { email, password, remember })
-      .then(() => mutate())
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const forgotPassword = async ({
-    email,
-    setErrors,
-    setStatus,
-  }: {
-    email: string;
-    setErrors: Dispatch<SetStateAction<{ email?: string[] }>>;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
-    setErrors({});
-    setStatus(null);
-
-    axios
-      .post('/forgot-password', { email })
-      .then(response => setStatus(response.data.status))
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const resetPassword = async ({
-    email,
-    password,
-    password_confirmation,
-    token,
-    setErrors,
-    setStatus,
-  }: {
-    email: string;
-    password: string;
-    password_confirmation: string;
-    token: string;
-    setErrors: Dispatch<
-      SetStateAction<{
-        email?: string[];
-        password?: string[];
-        password_confirmation?: string[];
-      }>
-    >;
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    await csrf();
-
-    setErrors({});
-    setStatus(null);
-
-    axios
-      .post('/reset-password', {
-        token,
-        email,
-        password,
-        password_confirmation,
-      })
-      .then(response =>
-        router.push('/login?reset=' + btoa(response.data.status)),
-      )
-      .catch(error => {
-        if (error.response.status !== 422) throw error;
-
-        setErrors(error.response.data.errors);
-      });
-  };
-
-  const resendEmailVerification = ({
-    setStatus,
-  }: {
-    setStatus: Dispatch<SetStateAction<string | null>>;
-  }) => {
-    axios
-      .post('/email/verification-notification')
-      .then(response => setStatus(response.data.status));
-  };
-
-  const logout = useCallback(async () => {
-    if (!error) {
-      await axios.post('/logout').then(() => mutate());
-    }
-
-    window.location.pathname = '/login';
-  }, [error, mutate]);
-
+  // ユーザーデータをローカルストレージから取得する試み
   useEffect(() => {
-    if (middleware === 'guest' && redirectIfAuthenticated && user)
-      router.push(redirectIfAuthenticated);
-    if (
-      window.location.pathname === '/verify-email' &&
-      user?.email_verified_at !== undefined &&
-      redirectIfAuthenticated !== undefined
-    ) {
-      router.push(redirectIfAuthenticated);
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setLocalUser(parsedUser);
+      }
+    } catch (error) {
+      // エラー処理
     }
-    if (middleware === 'auth' && error) logout();
-  }, [user, error, middleware, redirectIfAuthenticated, router, logout]);
+  }, []);
+
+  // キャッシュをクリアする関数
+  const clearCache = () => {
+    localStorage.removeItem('user');
+  };
+
+  // SWRの設定を改善
+  const { data, error, mutate, isValidating } = useSWR(swrKey, fetchUser, {
+    dedupingInterval: 5000, // 5秒間は重複リクエストを防止
+    revalidateIfStale: false, // 古いデータの自動再検証を無効化
+    revalidateOnFocus: false, // フォーカス時の再検証を無効化
+    revalidateOnReconnect: true, // 再接続時の再検証を有効化
+    shouldRetryOnError: true, // エラー時の自動再試行を有効化
+    errorRetryCount: 3, // エラー時の再試行回数を3回に設定
+    errorRetryInterval: 2000, // エラー時の再試行間隔を2秒に設定
+    loadingTimeout: 5000, // ローディングタイムアウトを5秒に設定
+    focusThrottleInterval: 5000, // フォーカス時の再検証を5秒間隔に制限
+    onLoadingSlow: () => {
+      // ローディングが遅い場合の処理
+    },
+    onSuccess: data => {
+      if (data?.data) {
+        localStorage.setItem('user', JSON.stringify(data.data));
+      }
+    },
+    onError: (err: Error) => {
+      if (err.message.includes('401')) {
+        localStorage.removeItem('user');
+      }
+    },
+  });
+
+  // 強制的にデータを再取得するメソッド
+  const forceRefresh = async (): Promise<void> => {
+    await mutate();
+  };
+
+  // ログイン処理をラップ
+  const login = async ({ email, password }: LoginCredentials) => {
+    setIsLoading(true);
+    try {
+      await performLogin({ email, password }, mutate, router);
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        (error as AxiosError).response?.status === 422
+      ) {
+        throw new Error('メールアドレスまたはパスワードが正しくありません。');
+      }
+      throw new Error('ログイン処理に失敗しました。もう一度お試しください。');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ログアウト処理をラップ
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await performLogout(clearCache, mutate);
+      setIsRouting(true);
+    } catch (error) {
+      // エラー処理
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 登録処理をラップ
+  const register = async (credentials: RegisterCredentials) => {
+    await performRegister(credentials, mutate);
+  };
+
+  // パスワードリセット処理をラップ
+  const resetPassword = async (credentials: ResetPasswordCredentials) => {
+    await performResetPassword(credentials);
+  };
+
+  // パスワード忘れ処理をラップ
+  const forgotPassword = async (
+    request: ForgotPasswordRequest,
+  ): Promise<void> => {
+    await performForgotPassword(request);
+  };
+
+  // メール確認再送信処理をラップ
+  const resendEmailVerification = async (
+    request: EmailVerificationRequest,
+  ): Promise<void> => {
+    await performResendEmailVerification(request);
+  };
+
+  // ミドルウェアの効果を処理
+  useEffect(() => {
+    if (!isValidating) {
+      // 認証状態が安定するまで待機
+      const stabilityTimer = setTimeout(() => {
+        // ホームページのリダイレクト処理（特別なケース）
+        if (window.location.pathname === '/' && !isRouting) {
+          if (data?.data || localUser) {
+            setIsRouting(true);
+            window.location.href = '/dashboard';
+          } else if (error || (!data && !localUser && !isValidating)) {
+            setIsRouting(true);
+            window.location.href = '/login';
+          }
+        }
+
+        // 未認証ユーザーのリダイレクト
+        if (middleware === 'auth' && error && !localUser && !isRouting) {
+          setIsRouting(true);
+          window.location.href = '/login';
+        }
+
+        // 認証済みユーザーのリダイレクト
+        if (
+          redirectIfAuthenticated &&
+          (data?.data || localUser) &&
+          !isRouting
+        ) {
+          setIsRouting(true);
+          window.location.href = redirectIfAuthenticated;
+        }
+      }, 500); // 500ミリ秒の安定化待機時間
+
+      return () => clearTimeout(stabilityTimer);
+    }
+  }, [
+    data,
+    localUser,
+    error,
+    middleware,
+    redirectIfAuthenticated,
+    isValidating,
+    isRouting,
+  ]);
+
+  // ルーティング状態をリセットするエフェクト
+  useEffect(() => {
+    if (isRouting) {
+      const timer = setTimeout(() => {
+        setIsRouting(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRouting]);
+
+  // 実際のユーザーデータ（APIレスポンスまたはローカルストレージから）
+  const actualUser = data?.data || localUser;
 
   return {
-    user,
-    register,
+    user: actualUser ?? undefined,
     login,
-    forgotPassword,
-    resetPassword,
-    resendEmailVerification,
     logout,
+    register,
+    resetPassword,
+    isLoading,
+    isValidating,
+    forceRefresh,
+    clearCache,
+    forgotPassword,
+    resendEmailVerification,
   };
-};
+}

@@ -2,7 +2,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   eslint: {
     // eslintのlint checkをbuild時にoff
     ignoreDuringBuilds: true,

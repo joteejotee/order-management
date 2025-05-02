@@ -1,16 +1,16 @@
-import './globals.css';
+'use client';
 
-export const metadata = {
-  title: 'Laravel',
-};
+import './globals.css';
 import { ReactNode } from 'react';
 
-const RootLayout = ({ children }: { children: ReactNode }) => {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body className="antialiased">{children}</body>
     </html>
   );
-};
-
-export default RootLayout;
+}

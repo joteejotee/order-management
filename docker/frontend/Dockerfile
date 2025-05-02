@@ -1,5 +1,5 @@
 # フロントエンドのDockerfile
-FROM node:20-alpine
+FROM node:20-bullseye
 
 WORKDIR /app
 
@@ -11,9 +11,9 @@ ENV NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-# ユーザーを作成
-RUN addgroup -g 2000 appgroup && \
-    adduser -u 2000 -G appgroup -s /bin/sh -D appuser
+# ユーザーとグループの作成（Debian方式）
+RUN groupadd -g 2000 appgroup && \
+    useradd -u 2000 -g appgroup -s /bin/sh -m appuser
 
 # package.jsonをコピー
 COPY --chown=appuser:appgroup ./breeze_next_chikaraemon/package*.json ./

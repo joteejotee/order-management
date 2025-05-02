@@ -24,6 +24,7 @@ class PenStoreRequest extends FormRequest
         return [
             'name' => 'required|string|max:12|min:3',
             'price' => 'required|integer|max:10000|min:100',
+            'stock' => 'required|integer|min:0',
         ];
     }
     public function attributes()
@@ -31,6 +32,7 @@ class PenStoreRequest extends FormRequest
         return [
             'name' => '名前',
             'price' => '価格',
+            'stock' => '在庫数',
         ];
     }
     public function messages()
@@ -43,6 +45,9 @@ class PenStoreRequest extends FormRequest
             'price.min' => ':attributeは:min円以上で入力してください。',
             'price.max' => ':attributeは:max円以下で入力してください。',
             'price.integer' => ':attributeは:数値で入力してください。',
+            'stock.required' => ':attributeを入力してください。',
+            'stock.integer' => ':attributeは:数値で入力してください。',
+            'stock.min' => ':attributeは:min個以上で入力してください。',
         ];
     }
 }

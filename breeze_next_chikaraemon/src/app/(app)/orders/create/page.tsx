@@ -1,125 +1,168 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { Pen, Customer, OrderCreateResponse } from '@/types/index';
 
-const http = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true,
-});
+interface CreateOrderProps {}
 
-const CreatePage = () => {
-  const [customer_id, setCustomer_id] = useState('');
-  const [customer_idMessage, setCustomer_idMessage] = useState('');
-
-  const [pen_id, setPen_id] = useState('');
-  const [pen_idMessage, setPen_idMessage] = useState('');
-
-  const [num, setNum] = useState('');
-  const [numMessage, setNumMessage] = useState('');
-
+const CreateOrder: React.FC<CreateOrderProps> = () => {
   const router = useRouter();
+  const [pens, setPens] = useState<Pen[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedPen, setSelectedPen] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
+  const [quantity, setQuantity] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  //以下 pens customers 取得のための処理
-  const [pens, setPens] = useState({});
-  const [customers, setCustomers] = useState({});
-  const url = 'http://localhost:8000/api/orders/create';
-  const getJsons = async (url: string) => {
-    const response = await fetch(url);
-    const json = await response.json();
-    console.log(json.pens);
-    console.log(json.customers);
-    setPens(json.pens);
-    setCustomers(json.customers);
-  };
   useEffect(() => {
-    getJsons(url);
-  }, []);
-  //以上 pens customers 取得のための処理
-
-  const createOrder = async () => {
-    const requestBody = {
-      customer_id: customer_id,
-      pen_id: pen_id,
-      num: num,
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<OrderCreateResponse>(
+          `${backendUrl}/api/orders/create`,
+        );
+        setPens(response.data.pens);
+        setCustomers(response.data.customers);
+      } catch (error) {
+        // エラー処理
+      } finally {
+        setIsFetching(false);
+      }
     };
-    http
-      .post('/api/orders', requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(() => {
-        router.push('/orders');
-      })
-      .catch(function (error) {
-        console.log(error.response.data.errors.customer_id);
-        console.log(error.response.data.errors.pen_id);
-        console.log(error.response.data.errors.num);
-        setCustomer_idMessage(error.response.data.errors.customer_id);
-        setPen_idMessage(error.response.data.errors.pen_id);
-        setNumMessage(error.response.data.errors.num);
+
+    fetchData();
+  }, [backendUrl]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await axios.post(`${backendUrl}/api/orders`, {
+        pen_id: parseInt(selectedPen),
+        customer_id: parseInt(selectedCustomer),
+        num: parseInt(quantity),
       });
+      router.push('/orders?from=create');
+    } catch (error) {
+      // エラー処理
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handlePenChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPen(e.target.value);
+  };
+
+  const handleCustomerChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCustomer(e.target.value);
+  };
+
+  const handleQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setQuantity(e.target.value);
+  };
+
+  const FormSkeleton = () => {
+    return (
+      <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-6" />
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-200 rounded w-full" />
+            <div className="h-10 bg-gray-200 rounded w-full" />
+            <div className="h-10 bg-gray-200 rounded w-full" />
+            <div className="flex justify-end mt-6 space-x-4">
+              <div className="h-10 bg-gray-200 rounded w-24" />
+              <div className="h-10 bg-gray-200 rounded w-24" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (isFetching) {
+    return <FormSkeleton />;
+  }
 
   return (
-    <div className="relative p-3">
-      <div className="flex flex-col bg-white border shadow-sm rounded-xl p-4 md:p-5 dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
-        <div className="py-2 px-4">
-          <p>
-            顧客IDとペンID、注文数を入力して、登録ボタンをクリックしてください
-          </p>
-        </div>
-        <select
-          id="customerSelect"
-          onChange={e => setCustomer_id(e.target.value)}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
-        >
-          <option value="">顧客を選択してください</option>
-          {Array.isArray(customers) &&
-            customers.map(customer => (
+    <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
+      <p>顧客と商品、数量を入力して、登録ボタンをクリックしてください</p>
+      <form onSubmit={handleSubmit} className="mt-4">
+        <div className="mb-4">
+          <select
+            id="customer_id"
+            value={selectedCustomer}
+            onChange={handleCustomerChange}
+            className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${
+              selectedCustomer === '' ? 'text-gray-400' : 'text-gray-900'
+            }`}
+            required
+          >
+            <option value="" disabled hidden>
+              顧客
+            </option>
+            {customers.map(customer => (
               <option key={customer.id} value={customer.id}>
                 {customer.name}
               </option>
             ))}
-        </select>
-        <div className="ml-4 text-red-500">{customer_idMessage}</div>
-        <select
-          id="penSelect"
-          onChange={e => setPen_id(e.target.value)}
-          className="my-3 py-3 px-4 pe-9 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:focus:ring-neutral-600"
-        >
-          <option value="">ペンを選択してください</option>
-          {Array.isArray(pens) &&
-            pens.map(pen => (
+          </select>
+        </div>
+        <div className="mb-4">
+          <select
+            id="pen_id"
+            value={selectedPen}
+            onChange={handlePenChange}
+            className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${
+              selectedPen === '' ? 'text-gray-400' : 'text-gray-900'
+            }`}
+            required
+          >
+            <option value="" disabled hidden>
+              商品
+            </option>
+            {pens.map(pen => (
               <option key={pen.id} value={pen.id}>
-                {pen.name}
+                {pen.name} - {pen.price}円
               </option>
             ))}
-        </select>
-        <div className="ml-4 text-red-500">{pen_idMessage}</div>
-        <input
-          type="text"
-          className="my-3 peer py-3 px-2 ps-11 block w-full bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:border-transparent dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-          placeholder="数量"
-          onChange={e => {
-            setNum(e.target.value);
-          }}
-        />
-        <div className="ml-4 text-red-500">{numMessage}</div>
-        <div>
+          </select>
+        </div>
+        <div className="mb-4">
+          <input
+            type="number"
+            id="quantity"
+            value={quantity}
+            onChange={handleQuantityChange}
+            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+            required
+            min="1"
+            placeholder="数量"
+          />
+        </div>
+        <div className="flex justify-end mt-6">
           <button
-            className="my-3 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-            onClick={() => {
-              createOrder();
-            }}
+            type="button"
+            onClick={() => router.push('/orders')}
+            className="px-4 py-2 mr-2 bg-gray-200 text-gray-700 rounded-md"
           >
-            登録
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            {isLoading ? '保存中...' : '保存'}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
-export default CreatePage;
+export default CreateOrder;
