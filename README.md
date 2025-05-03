@@ -1,4 +1,4 @@
-# order-management 　アプリケーション
+# order-management アプリケーション
 
 ## 概要
 
@@ -14,7 +14,6 @@
 -   **注文管理**（登録・編集・削除）
 -   **出荷管理**（注文の出荷ステータス管理）
 -   **ページネーション**（顧客・ペン・注文一覧）
--   **レスポンシブデザイン**
 -   **API 連携**（Laravel バックエンドと Next.js フロントエンド）
 -   **環境変数による設定管理**
 -   **Vercel デプロイ対応**
@@ -23,7 +22,7 @@
 
 ## 動作確認方法
 
-### 本番環境（Vercel + EC2）
+## 本番環境（Vercel + EC2）
 
 -   下記 URL にアクセスしてください（例）  
     `https://your-vercel-or-ec2-domain/`
@@ -34,11 +33,9 @@
 -   メールアドレス: `test@example.com`
 -   パスワード: `Test1234`
 
-### ローカル（Docker）
+## ローカル環境（Docker）
 
 -   この README の手順に従い、Docker でご自身の PC 上で起動・動作確認できます。
-
----
 
 ## 1. 前提条件
 
@@ -93,12 +90,12 @@ docker-compose up --build
 ## 5. トラブルシュート
 
 -   **ポート競合エラー**
-    　 → 3000 番/8000 番ポートを使用中のアプリがないかご確認ください。
+    -   3000 番/8000 番ポートを使用中のアプリがないかご確認ください。
 -   **Docker Desktop 未起動**
-    　 → Docker Desktop を起動してから再度お試しください。
+    -   Docker Desktop を起動してから再度お試しください。
 -   **DB 初期化に失敗した場合**
-    　 → 下記コマンドで手動実行できます:
-    　　`docker-compose exec backend php artisan migrate --seed`
+    -   下記コマンドで手動実行できます:
+        `docker-compose exec backend php artisan migrate --seed`
 
 ---
 
