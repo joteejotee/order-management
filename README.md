@@ -1,117 +1,105 @@
-# order-management 　アプリケーション
+# order-management アプリケーション
 
 ## 概要
 
-このアプリケーションは、ペンの専門店向けの商品管理と受注管理を目的としています。バックエンドには Laravel 11.30.0、フロントエンドには Next.js 15.3.1 を使用し、Laravel Breeze による認証機能を実装。ユーザーは顧客、ペン、注文情報の登録・編集・削除が可能で、出荷ステータスを管理します。また、効率的なデータ管理のため、顧客やペン、注文の一覧表示にはページネーション機能を搭載しています。
+このアプリケーションは、ペンの専門店向けの商品管理と受注管理を目的としています。バックエンドには Laravel 11.30.0、フロントエンドには Next.js 15.3.1 を使用し、Laravel Breeze による認証機能を実装。ユーザーは顧客、ペン、注文情報の登録・編集・削除、出荷ステータスの管理が可能です。また、可読性の向上のため、顧客やペン、注文の一覧表示にはページネーション機能を搭載しています。
 
-#### 機能と実装
+**Docker のみ**で、面倒なセットアップ不要・数分で動作確認できます。
 
--   **ユーザー認証**: ユーザー登録、ログイン、ログアウト機能を実装。
--   **顧客管理**: 顧客情報の登録、編集、削除が可能。
--   **ペン管理**: ペンの情報を登録、編集、削除が可能。
--   **注文管理**: 注文の登録、編集、削除が可能。
--   **出荷管理**: 注文の出荷ステータスを管理。
--   **ページネーション**: 顧客、ペン、注文の一覧表示にページネーションを実装。
--   **レスポンシブデザイン**: モバイルデバイスでも利用可能。
--   **API 連携**: Laravel バックエンドと Next.js フロントエンドの API 連携。
--   **環境設定**: 環境変数を使用してアプリケーションの設定を管理。
--   **デプロイ**: Vercel を使用。
+## 主な機能
 
-## ローカルでの動かし方
+-   **ユーザー認証**（登録・ログイン・ログアウト）
+-   **顧客管理**（登録・編集・削除）
+-   **ペン管理**（登録・編集・削除）
+-   **注文管理**（登録・編集・削除）
+-   **出荷管理**（注文の出荷ステータス管理）
+-   **ページネーション**（顧客・ペン・注文一覧）
+-   **API 連携**（Laravel バックエンドと Next.js フロントエンド）
+-   **環境変数による設定管理**
+-   **Vercel デプロイ対応**
 
-### 前提条件
+---
 
--   Node.js がインストールされていること
--   Composer がインストールされていること
--   PHP がインストールされていること
--   MySQL などのデータベースがインストールされていること
+## 動作確認方法
 
-## インストール手順
+## 本番環境（Vercel + EC2）
 
-### 1. リポジトリをクローンします。
+-   下記 URL にアクセスしてください（例）  
+    `https://your-vercel-or-ec2-domain/`
+-   ※ 本番環境の URL は運用状況により異なります。面接時などは事前にご案内します。
 
-`git clone https://github.com/joteejotee/order-management.git`
+**ログイン情報（初期ユーザー）**
 
-### 2. Laravel バックエンドをセットアップします。
+-   メールアドレス: `test@example.com`
+-   パスワード: `Test1234`
 
-#### ルートディレクトリで Composer の依存関係をインストール
+## ローカル環境（Docker）
 
-composer install
+-   この README の手順に従い、Docker でご自身の PC 上で起動・動作確認できます。
 
-#### 環境ファイルをコピー
+## 1. 前提条件
 
-`cp .env.example .env`
+-   Docker Desktop（または Docker Engine）がインストール済みであること
+-   docker-compose が利用可能であること
 
-#### .env ファイルに以下を貼り付けて、データベース接続情報を設定
+---
 
-```
-APP_NAME=Laravel
-APP_ENV=local
-APP_KEY=base64:TzzCxoQodblEZL7syitIA3ZwceWCyM5Axrc2q9UThnA=
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-FRONTEND_URL=http://localhost:3000
+## 2. セットアップ手順
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=nextjs
-DB_USERNAME=root
-DB_PASSWORD=
+### ① リポジトリをクローン
+
+```sh
+git clone https://github.com/joteejotee/order-management.git
+cd order-management
 ```
 
-#### MySQL を起動し、データベースマイグレーションとシードを実行
+### ② 環境変数ファイルをコピー
 
-`php artisan migrate --seed`
+```sh
+cp .env.example .env
+cd breeze_next_chikaraemon
+cp .env.example .env.local
+cd ..
+```
 
-#### サーバーを起動
+### ③ Docker コンテナを起動
 
-`php artisan serve`
+```sh
+docker-compose up --build
+```
 
-#### サーバーの起動を確認
+-   初回起動時は依存パッケージのインストール・DB 初期化（マイグレーション＆シード）が自動で行われます。
+-   起動完了まで数分かかる場合があります。
 
-ブラウザで、`http://localhost:8000`　にアクセスして laravel のバージョン表示がされていれば起動済み
+---
 
-### 3. Next.js フロントエンドをセットアップします。
+## 3. アクセス方法
 
-#### Next.js のディレクトリに移動
+-   フロントエンド: [http://localhost:3000](http://localhost:3000)
+-   バックエンド API: [http://localhost:8000](http://localhost:8000)
 
-`cd breeze_next_chikaraemon`
+---
 
-#### 依存関係をインストール
+## 4. ログイン情報（初期ユーザー）
 
-`npm install`
+-   メールアドレス: `test@example.com`
+-   パスワード: `Test1234`
 
-#### 環境ファイルをコピー
+---
 
-`cp .env.example .env.local`
+## 5. トラブルシュート
 
-#### .env.local ファイルを編集してバックエンド URL を設定
+-   **ポート競合エラー**
+    -   3000 番/8000 番ポートを使用中のアプリがないかご確認ください。
+-   **Docker Desktop 未起動**
+    -   Docker Desktop を起動してから再度お試しください。
+-   **DB 初期化に失敗した場合**
+    -   下記コマンドで手動実行できます:
+        `docker-compose exec backend php artisan migrate --seed`
 
-.env.local ファイルに以下を貼り付ける
-`NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
+---
 
-#### 開発サーバーを起動
-
-`npm run dev`
-
-### 4. ブラウザでアプリケーションにアクセスします。
-
-`http://localhost:3000`
-
-### 5. アプリケーションにログインします。
-
-右上の login をクリックする
-
-以下を入力して LOGIN ボタンをクリックする
-
-e-mail
-`test@example.com`
-
-パスワード
-`Test1234`
-
-## 技術スタック
+## 6. 技術スタック
 
 -   Laravel 11.30.0
 -   Next.js 15.3.1 (App Router)
