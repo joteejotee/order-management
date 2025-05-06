@@ -1,0 +1,16 @@
+#=== 共通除外 ===
+node_modules
+vendor
+.git
+.vscode
+.idea
+.DS_Store
+*.log
+.env*
+!.env.example
+
+#=== ローカル用除外解除 ===
+!.env            # ローカル用 .env
+
+#=== フロントもビルドするため除外しない ===
+!breeze_next_chikaraemon 

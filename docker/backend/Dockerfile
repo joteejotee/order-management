@@ -19,11 +19,14 @@ RUN apt-get update && apt-get install -y \
 # Composerをインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# PHP-FPMの設定ファイルをコピー
-# COPY docker/backend/php-fpm.conf /usr/local/etc/php-fpm.d/zz-log.conf
-
-# アプリケーションコードをコピー
+# 作業ディレクトリ作成
 WORKDIR /var/www/html
+
+# 依存ファイルのみ先にコピーしてcomposer installのキャッシュを活用
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader
+
+# アプリケーションコードを最後にコピー
 COPY . .
 
 # 必要なディレクトリを作成
@@ -31,9 +34,6 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     && mkdir -p /var/log \
     && touch /var/log/php-fpm.log /var/log/php-fpm.access.log \
     && chown -R www-data:www-data /var/log
-
-# 依存関係をインストール
-RUN composer install
 
 # パーミッションの設定
 RUN chown -R www-data:www-data /var/www/html \

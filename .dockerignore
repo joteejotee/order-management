@@ -1,3 +1,4 @@
+#=== 共通除外 ===
 node_modules
 vendor
 .git
@@ -9,4 +10,19 @@ vendor
 !.env.example
 storage/logs/*
 .vercel
-.cursor 
+.cursor
+.DS_Store
+*.md
+
+docker-compose.yml
+docker-compose.prod.yml
+.env
+.env.example
+.env.local
+
+#=== 本番イメージに含めるファイルは除外解除 ===
+!.env.production
+!docker/backend
+
+#=== フロントは本番でビルドしないため丸ごと除外 ===
+breeze_next_chikaraemon 

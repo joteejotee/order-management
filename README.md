@@ -62,13 +62,13 @@ cp .env.example .env.local
 cd ..
 ```
 
-### ③ Docker コンテナを起動
+### ③ Docker コンテナを起動・マイグレーション・シード
 
 ```sh
 docker-compose up --build
+docker compose exec nextjs-backend-1 php artisan migrate --seed
 ```
 
--   初回起動時は依存パッケージのインストール・DB 初期化（マイグレーション＆シード）が自動で行われます。
 -   起動完了まで数分かかる場合があります。
 
 ---
@@ -94,8 +94,8 @@ docker-compose up --build
 -   **Docker Desktop 未起動**
     -   Docker Desktop を起動してから再度お試しください。
 -   **DB 初期化に失敗した場合**
-    -   下記コマンドで手動実行できます:
-        `docker-compose exec backend php artisan migrate --seed`
+    -   もう一度下記コマンドの実行をお試しください:
+        `docker compose exec nextjs-backend-1 php artisan migrate --seed`
 
 ---
 
