@@ -1,0 +1,10 @@
+# 開発用ビルドでの不要物
+.env*
+!.env.example
+/node_modules
+/vendor
+.git
+.vscode
+.idea
+.DS_Store
+*.log 

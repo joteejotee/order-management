@@ -9,4 +9,13 @@ vendor
 !.env.example
 storage/logs/*
 .vercel
-.cursor 
+.cursor
+docker
+docker-compose.yml
+docker-compose.prod.yml
+.env
+.env.example
+.env.local
+.DS_Store
+*.md
+!.env.production 

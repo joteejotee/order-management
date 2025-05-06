@@ -33,6 +33,34 @@
 -   メールアドレス: `test@example.com`
 -   パスワード: `Test1234`
 
+### デプロイ更新手順
+
+```sh
+# ローカルで
+
+docker compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml push   # CI/CD なら自動
+
+# EC2 で
+
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+### デプロイ後の確認コマンド
+
+```sh
+docker compose -f docker-compose.prod.yml exec nextjs-backend-1 php -r "echo env('APP_ENV');"
+docker compose -f docker-compose.prod.yml exec nextjs-backend-1 php artisan migrate --force
+docker compose -f docker-compose.prod.yml exec nextjs-backend-1 php artisan storage:link
+curl -I https://www.order-management1.com/api/health   # 200 OK を確認
+```
+
+### Secrets 管理について
+
+-   `.env.production` は **Git から外しています**（`git rm --cached .env.production` 済み）
+-   Secrets 管理は今後 GitHub Actions のリポジトリシークレット or AWS SSM へ移行予定です
+
 ## ローカル環境（Docker）
 
 -   この README の手順に従い、Docker でご自身の PC 上で起動・動作確認できます。

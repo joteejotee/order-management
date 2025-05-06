@@ -5,42 +5,29 @@ services:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
-    volumes:
-      - .:/var/www/html
-    expose:
-      - 9000
     depends_on:
       - nextjs-db-1
     networks:
       - app-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1"
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      PHP_OPCACHE_ENABLE: 1
-      PHP_OPCACHE_VALIDATE_TIMESTAMPS: 0
+    restart: always
+    volumes:
+      - app-public:/var/www/html/public
 
   nextjs-nginx-1:
     container_name: nextjs-nginx-1
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
-      - .:/var/www/html
+      - app-public:/var/www/html/public:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - nextjs-backend-1
     networks:
       - app-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
+    restart: always
 
   nextjs-db-1:
     container_name: nextjs-db-1
@@ -55,16 +42,12 @@ services:
       - dbdata:/var/lib/mysql
     networks:
       - app-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1"
+    restart: always
 
 volumes:
   dbdata:
+  app-public:
 
 networks:
   app-network:
     driver: bridge
-    name: nextjs
