@@ -26,10 +26,6 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
 
-# 本番用: .env.productionを.envとしてコピー
-COPY .env.production .env
-RUN test -s .env || (echo ".env.production がビルドコンテキストに見つかりません"; exit 1)
-
 # アプリケーションコードを最後にコピー
 COPY . .
 

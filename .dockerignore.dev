@@ -1,6 +1,4 @@
-# 開発用ビルドでの不要物
-.env*
-!.env.example
+#=== 共通除外 ===
 node_modules
 vendor
 .git
@@ -8,5 +6,11 @@ vendor
 .idea
 .DS_Store
 *.log
+.env*
+!.env.example
+
+#=== ローカル用除外解除 ===
 !.env            # ローカル用 .env
+
+#=== フロントもビルドするため除外しない ===
 !breeze_next_chikaraemon 
