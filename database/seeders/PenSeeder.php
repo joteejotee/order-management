@@ -13,8 +13,10 @@ class PenSeeder extends Seeder
    */
   public function run(): void //Seederを実行するためのメソッド
   {
-    // 文字コードを明示的に設定
-    DB::statement('SET NAMES utf8mb4');
+    // 文字コードを明示的に設定（MySQL接続時のみ）
+    if (DB::getDriverName() === 'mysql') {
+      DB::statement('SET NAMES utf8mb4');
+    }
 
     $pens = [ //挿入するデータ
       ['name' => '黒ボールペン', 'price' => 201, 'stock' => 0],

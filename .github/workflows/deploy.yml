@@ -1,45 +1,35 @@
-name: Deploy to EC2
+name: Deploy to EC2 (Docker Compose)
 
 on:
   push:
-    branches: [develop, main]
+    branches: [main] # 必要に応じてブランチ名を変更
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Add EC2 to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || echo "ssh-keyscan failed but continuing"
-          # EC2のホスト情報を直接追加（代替手段）
-          echo "${{ secrets.EC2_HOST_KEY }}" >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to EC2
+      - name: Deploy via SSH
         run: |
-          rsync -avz --exclude '.git' --exclude '.github' \
-            --exclude 'breeze_next_chikaraemon' \
-            --exclude '.vscode' --exclude '.DS_Store' \
-            --exclude '.next' --exclude 'node_modules' \
-            --exclude 'docker' --exclude 'docker-compose.yml' \
-            --exclude '.vercel' --exclude 'vercel.json' \
-            --exclude 'deploy-aws.sh' --exclude '.env.local' \
-            --exclude '.cursorrules' --exclude 'api-test.http' \
-            --exclude 'README_LOCAL.md' \
-            ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/order-management/ || exit 1
-
-      - name: Restart services & run migrations
-        run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/order-management && 
-            php artisan migrate --force && 
-            php artisan cache:clear && 
-            php artisan route:clear && 
-            php artisan optimize &&
-            sudo systemctl restart nginx' || exit 1
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /var/www/order-management
+            git pull origin main
+            docker-compose -f docker-compose.prod.yml up -d --build
+            docker-compose exec app php artisan migrate --force
+            docker-compose exec app php artisan cache:clear
+            docker-compose exec app php artisan config:clear
+            docker-compose exec app php artisan route:clear
+            docker-compose exec app php artisan optimize
+          EOF

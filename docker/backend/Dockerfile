@@ -24,13 +24,14 @@ WORKDIR /var/www/html
 
 # 依存ファイルのみ先にコピーしてcomposer installのキャッシュを活用
 COPY composer.json composer.lock ./
-# アプリケーションコードをコピー（不要ファイルは.dockerignoreで除外）
-COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # 本番用: .env.productionを.envとしてコピー
 COPY .env.production .env
 RUN test -s .env || (echo ".env.production がビルドコンテキストに見つかりません"; exit 1)
+
+# アプリケーションコードを最後にコピー
+COPY . .
 
 # 必要なディレクトリを作成
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
