@@ -12,6 +12,7 @@ services:
     restart: always
     volumes:
       - app-public:/var/www/html/public
+      - .env.production:/var/www/html/.env
 
   nextjs-nginx-1:
     container_name: nextjs-nginx-1
