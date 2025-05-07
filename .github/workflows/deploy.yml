@@ -23,7 +23,7 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             cd /var/www/order-management
             git pull origin main
             echo "$ENV_PRODUCTION" > .env.production
