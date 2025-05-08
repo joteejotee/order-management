@@ -25,6 +25,7 @@ WORKDIR /var/www/html
 # 依存ファイルのみ先にコピーしてcomposer installのキャッシュを活用
 COPY composer.json composer.lock ./
 COPY . .
+RUN ls -l /var/www/html
 RUN composer install --no-dev --optimize-autoloader
 
 # 必要なディレクトリを作成
