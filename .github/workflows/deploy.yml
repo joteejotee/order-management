@@ -26,13 +26,25 @@ jobs:
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             cd /var/www/order-management
             git pull origin main
+            
+            # 環境変数設定
             echo "$ENV_PRODUCTION" > .env.production
-            docker-compose -f docker-compose.prod.yml up -d --build
-            docker-compose exec nextjs-backend-1 php artisan migrate --seed --force
-            docker-compose exec nextjs-backend-1 php artisan cache:clear
-            docker-compose exec nextjs-backend-1 php artisan config:clear
-            docker-compose exec nextjs-backend-1 php artisan route:clear
-            docker-compose exec nextjs-backend-1 php artisan optimize
+            
+            # docker-composeからバージョン属性を削除
+            sed -i '/version:/d' docker-compose.prod.yml
+            
+            # ビルドと起動（キャッシュなしでクリーンビルド）
+            docker-compose -f docker-compose.prod.yml build --no-cache
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Laravelコマンド実行（非対話モードで）
+            docker-compose exec -T nextjs-backend-1 composer install --no-dev --optimize-autoloader
+            docker-compose exec -T nextjs-backend-1 php artisan migrate --force
+            docker-compose exec -T nextjs-backend-1 php artisan db:seed --force
+            docker-compose exec -T nextjs-backend-1 php artisan cache:clear
+            docker-compose exec -T nextjs-backend-1 php artisan config:clear
+            docker-compose exec -T nextjs-backend-1 php artisan route:clear
+            docker-compose exec -T nextjs-backend-1 php artisan optimize
           EOF
         env:
           ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
