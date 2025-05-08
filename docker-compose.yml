@@ -1,4 +1,3 @@
-version: "3.8"
 services:
     nextjs-backend-1:
         container_name: nextjs-backend-1
