@@ -24,10 +24,8 @@ WORKDIR /var/www/html
 
 # 依存ファイルのみ先にコピーしてcomposer installのキャッシュを活用
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
-
-# アプリケーションコードを最後にコピー
 COPY . .
+RUN composer install --no-dev --optimize-autoloader
 
 # 必要なディレクトリを作成
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
