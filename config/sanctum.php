@@ -22,6 +22,8 @@ return [
         '127.0.0.1:8000',
         '::1',
         'www.order-management1.com',
+        'order-management1.com',
+        '.order-management1.com',
         'api.order-management1.com',
         parse_url(env('FRONTEND_URL', 'https://www.order-management1.com'), PHP_URL_HOST),
     ],
