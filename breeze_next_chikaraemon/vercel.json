@@ -5,8 +5,8 @@
   "framework": "nextjs",
   "rewrites": [
     {
-      "source": "/:path*",
-      "destination": "http://18.181.207.55/:path*"
+      "source": "/api/:path*",
+      "destination": "http://18.181.207.55/api/:path*"
     }
   ],
   "headers": [

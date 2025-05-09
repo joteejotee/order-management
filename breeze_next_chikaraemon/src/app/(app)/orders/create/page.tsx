@@ -15,14 +15,12 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFetching, setIsFetching] = useState<boolean>(true);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<OrderCreateResponse>(
-          `${backendUrl}/api/orders/create`,
-        );
+        const response =
+          await axios.get<OrderCreateResponse>(`/api/orders/create`);
         setPens(response.data.pens);
         setCustomers(response.data.customers);
       } catch (error) {
@@ -33,14 +31,14 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
     };
 
     fetchData();
-  }, [backendUrl]);
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await axios.post(`${backendUrl}/api/orders`, {
+      await axios.post(`/api/orders`, {
         pen_id: parseInt(selectedPen),
         customer_id: parseInt(selectedCustomer),
         num: parseInt(quantity),

@@ -46,13 +46,12 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get<EditOrderResponse>(
-          `${backendUrl}/api/orders/${orderId}/edit`,
+          `/api/orders/${orderId}/edit`,
         );
         const {
           data: order,
@@ -71,14 +70,14 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
       }
     };
     fetchData();
-  }, [orderId, backendUrl]);
+  }, [orderId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await axios.patch(`${backendUrl}/api/orders/${orderId}`, {
+      await axios.patch(`/api/orders/${orderId}`, {
         pen_id: parseInt(selectedPen),
         customer_id: parseInt(selectedCustomer),
         num: parseInt(quantity),
@@ -114,10 +113,10 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
             id="customer_id"
             value={selectedCustomer}
             onChange={e => setSelectedCustomer(e.target.value)}
-            className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${selectedCustomer === '' ? 'text-gray-400' : 'text-gray-900'}`}
+            className="w-full px-3 py-2 bg-gray-100 rounded-md border-none"
             required
           >
-            <option value="" disabled hidden>
+            <option value="" disabled>
               顧客
             </option>
             {customers.map(customer => (
@@ -132,10 +131,10 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
             id="pen_id"
             value={selectedPen}
             onChange={e => setSelectedPen(e.target.value)}
-            className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${selectedPen === '' ? 'text-gray-400' : 'text-gray-900'}`}
+            className="w-full px-3 py-2 bg-gray-100 rounded-md border-none"
             required
           >
-            <option value="" disabled hidden>
+            <option value="" disabled>
               商品
             </option>
             {pens.map(pen => (
