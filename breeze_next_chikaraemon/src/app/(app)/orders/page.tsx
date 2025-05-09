@@ -51,7 +51,7 @@ const TableSkeleton = () => {
   );
 };
 
-const _Orders: React.FC = () => {
+const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -377,7 +377,7 @@ const _Orders: React.FC = () => {
 export default function OrdersPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <_Orders />
+      <Orders />
     </Suspense>
   );
 }

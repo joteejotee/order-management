@@ -3,6 +3,29 @@ import React, { useEffect, useState } from 'react';
 import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { Pen, Customer, Order } from '@/types';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// バリデーションスキーマ
+const orderSchema = z.object({
+  customer_id: z.string().min(1, '顧客を選択してください'),
+  pen_id: z.string().min(1, '商品を選択してください'),
+  num: z
+    .string()
+    .min(1, '数量を入力してください')
+    .refine(val => !isNaN(Number(val)), {
+      message: '数量は数値で入力してください',
+    })
+    .refine(val => Number(val) >= 1, {
+      message: '数量は1以上である必要があります',
+    })
+    .refine(val => Number(val) <= 20, {
+      message: '数量は20以下である必要があります',
+    }),
+});
+
+type OrderFormData = z.infer<typeof orderSchema>;
 
 interface EditOrderData extends Order {
   customer_id: number;
@@ -40,12 +63,19 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
   const router = useRouter();
   const [pens, setPens] = useState<Pen[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedPen, setSelectedPen] = useState<string>('');
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<OrderFormData>({
+    resolver: zodResolver(orderSchema),
+    mode: 'onSubmit',
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,29 +88,32 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
           pens: pensData,
           customers: customersData,
         } = response.data;
-        setSelectedPen(order.pen_id.toString());
-        setSelectedCustomer(order.customer_id.toString());
-        setQuantity(order.num.toString());
+
+        reset({
+          pen_id: order.pen_id.toString(),
+          customer_id: order.customer_id.toString(),
+          num: order.num.toString(),
+        });
+
         setPens(pensData);
         setCustomers(customersData);
       } catch (error) {
-        // エラー処理
+        setError('データの取得に失敗しました');
       } finally {
         setIsFetching(false);
       }
     };
     fetchData();
-  }, [orderId]);
+  }, [orderId, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: OrderFormData) => {
     setIsLoading(true);
     setError(null);
     try {
       await axios.patch(`/api/orders/${orderId}`, {
-        pen_id: parseInt(selectedPen),
-        customer_id: parseInt(selectedCustomer),
-        num: parseInt(quantity),
+        pen_id: parseInt(data.pen_id),
+        customer_id: parseInt(data.customer_id),
+        num: parseInt(data.num),
       });
       await router.push('/orders');
       router.refresh();
@@ -107,14 +140,12 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
           {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="mt-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
         <div className="mb-4">
           <select
             id="customer_id"
-            value={selectedCustomer}
-            onChange={e => setSelectedCustomer(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded-md border-none"
-            required
+            {...register('customer_id')}
           >
             <option value="" disabled>
               顧客
@@ -125,14 +156,17 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
               </option>
             ))}
           </select>
+          {errors.customer_id && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.customer_id.message}
+            </p>
+          )}
         </div>
         <div className="mb-4">
           <select
             id="pen_id"
-            value={selectedPen}
-            onChange={e => setSelectedPen(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded-md border-none"
-            required
+            {...register('pen_id')}
           >
             <option value="" disabled>
               商品
@@ -143,18 +177,21 @@ const EditOrderForm: React.FC<EditOrderFormProps> = ({ orderId }) => {
               </option>
             ))}
           </select>
+          {errors.pen_id && (
+            <p className="mt-1 text-sm text-red-600">{errors.pen_id.message}</p>
+          )}
         </div>
         <div className="mb-4">
           <input
             type="number"
-            id="quantity"
-            value={quantity}
-            onChange={e => setQuantity(e.target.value)}
+            id="num"
             className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            required
-            min="1"
             placeholder="数量"
+            {...register('num')}
           />
+          {errors.num && (
+            <p className="mt-1 text-sm text-red-600">{errors.num.message}</p>
+          )}
         </div>
         <div className="flex justify-end space-x-4">
           <button
