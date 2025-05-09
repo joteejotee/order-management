@@ -37,10 +37,29 @@ jobs:
             # ビルドと起動（--force-recreateでコンテナ再作成を強制）
             docker-compose -f docker-compose.prod.yml up -d --build --force-recreate
             
+            # データベース準備待機
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 bash -c "
+            echo 'Waiting for database connection...'
+            for i in {1..30}; do
+              php -r \"try { new PDO('mysql:host=nextjs-db-1;dbname=nextjs', 'root', 'root'); echo 'Database connected!'; exit(0); } catch(Exception \$e) { echo '.'; sleep(2); }\"
+              if [ \$? -eq 0 ]; then
+                break
+              fi
+            done
+            "
+            
+            # キャッシュをクリア
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan route:clear
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan config:clear
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan optimize:clear
+            
+            # マイグレーションとシーディングを実行
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan migrate --force
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan db:seed --force
+            
             # 残りのアプリケーションセットアップ
-            docker-compose exec -T nextjs-backend-1 php artisan migrate --force
-            docker-compose exec -T nextjs-backend-1 php artisan optimize
-            docker-compose exec -T nextjs-backend-1 php artisan cache:clear
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan optimize
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan cache:clear
           EOF
         env:
           ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
