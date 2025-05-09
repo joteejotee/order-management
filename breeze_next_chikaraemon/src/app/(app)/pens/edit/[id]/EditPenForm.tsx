@@ -12,7 +12,7 @@ const penSchema = z.object({
   name: z
     .string()
     .min(1, '商品名を入力してください')
-    .min(2, '商品名は2文字以上である必要があります')
+    .min(3, '商品名は3文字以上である必要があります')
     .max(12, '商品名は12文字以内である必要があります'),
   price: z
     .string()
@@ -20,8 +20,8 @@ const penSchema = z.object({
     .refine(val => !isNaN(Number(val)), {
       message: '価格は数値で入力してください',
     })
-    .refine(val => Number(val) >= 1, {
-      message: '価格は1円以上である必要があります',
+    .refine(val => Number(val) >= 100, {
+      message: '価格は100円以上である必要があります',
     })
     .refine(val => Number(val) <= 10000, {
       message: '価格は10000円以下である必要があります',
