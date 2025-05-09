@@ -2,18 +2,17 @@
 
 ## 概要
 
-このアプリケーションは、ペンの専門店向けの商品管理と受注管理を目的としています。バックエンドには Laravel 11.30.0、フロントエンドには Next.js 15.3.1 を使用し、Laravel Breeze による認証機能を実装。ユーザーは顧客、ペン、注文情報の登録・編集・削除、出荷ステータスの管理が可能です。また、可読性の向上のため、顧客やペン、注文の一覧表示にはページネーション機能を搭載しています。
+このアプリケーションは、ボールペンなどの筆記用具店向けの商品管理と受注管理を目的としています。バックエンドには Laravel 11.30.0、フロントエンドには Next.js 15.3.1 を使用し、Laravel Breeze による認証機能を実装。ユーザーは商品や注文情報の登録・編集・削除、出荷ステータスの管理が可能です。また、可読性の向上のため、商品、注文の一覧表示にはページネーション機能を搭載しています。
 
-**Docker のみ**で、面倒なセットアップ不要・数分で動作確認できます。
+Docker のみで、面倒なセットアップ不要・数分で動作確認できます。
 
 ## 主な機能
 
--   **ユーザー認証**（登録・ログイン・ログアウト）
--   **顧客管理**（登録・編集・削除）
+-   **ユーザー認証**（ログイン・ログアウト）
 -   **ペン管理**（登録・編集・削除）
 -   **注文管理**（登録・編集・削除）
--   **出荷管理**（注文の出荷ステータス管理）
--   **ページネーション**（顧客・ペン・注文一覧）
+-   **出荷管理**（出荷・未出荷で出荷ステータス管理）
+-   **ページネーション**（商品一覧・注文一覧）
 -   **API 連携**（Laravel バックエンドと Next.js フロントエンド）
 -   **環境変数による設定管理**
 -   **Vercel デプロイ対応**
@@ -24,9 +23,8 @@
 
 ## 本番環境（Vercel + EC2）
 
--   下記 URL にアクセスしてください（例）  
-    `https://your-vercel-or-ec2-domain/`
--   ※ 本番環境の URL は運用状況により異なります。面接時などは事前にご案内します。
+-   下記 URL にアクセスしてください
+    [https://www.order-management1.com](https://www.order-management1.com)
 
 **ログイン情報（初期ユーザー）**
 
@@ -75,8 +73,8 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 
 ## 3. アクセス方法
 
--   フロントエンド: [http://localhost:3000](http://localhost:3000)
--   バックエンド API: [http://localhost:8000](http://localhost:8000)
+-   下記 URL にアクセスしてください
+    [http://localhost:3000](http://localhost:3000)
 
 ---
 
@@ -109,4 +107,7 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   ESLint 8.57.1
 -   Prettier 3.5.3
 -   MySQL 8.0
--   ほか: zod, React Hook Form, shadcn/ui, Lucide, Postman, Git, GitHub
+-   Git/GitHub
+-   GitHub Actions（CI/CD 自動化）
+-   GitHub Actions Secrets（機密情報管理）
+-   他: zod, React Hook Form, shadcn/ui, Lucide, Postman

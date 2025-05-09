@@ -34,14 +34,11 @@ const EditPenForm: React.FC<EditPenFormProps> = ({ penId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const fetchPen = async () => {
       try {
-        const response = await axios.get<{ data: Pen }>(
-          `${backendUrl}/api/pens/${penId}`,
-        );
+        const response = await axios.get<{ data: Pen }>(`/api/pens/${penId}`);
         const pen = response.data.data;
         setName(pen.name);
         setPrice(pen.price.toString());
@@ -53,14 +50,14 @@ const EditPenForm: React.FC<EditPenFormProps> = ({ penId }) => {
       }
     };
     fetchPen();
-  }, [penId, backendUrl]);
+  }, [penId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await axios.patch(`${backendUrl}/api/pens/${penId}`, {
+      await axios.patch(`/api/pens/${penId}`, {
         name,
         price: parseInt(price),
         stock: parseInt(stock),
