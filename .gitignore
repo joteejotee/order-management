@@ -12,6 +12,10 @@ auth.json
 npm-debug.log
 yarn-error.log
 
+# TypeScript関連
+*.tsbuildinfo
+breeze_next_chikaraemon/tsconfig.tsbuildinfo
+
 # ビルド/公開ディレクトリ
 /public/build
 /public/hot
