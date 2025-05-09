@@ -3,6 +3,41 @@ import React, { useEffect, useState } from 'react';
 import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { Pen } from '@/types';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// バリデーションスキーマ
+const penSchema = z.object({
+  name: z
+    .string()
+    .min(1, '商品名を入力してください')
+    .min(2, '商品名は2文字以上である必要があります')
+    .max(12, '商品名は12文字以内である必要があります'),
+  price: z
+    .string()
+    .min(1, '価格を入力してください')
+    .refine(val => !isNaN(Number(val)), {
+      message: '価格は数値で入力してください',
+    })
+    .refine(val => Number(val) >= 1, {
+      message: '価格は1円以上である必要があります',
+    })
+    .refine(val => Number(val) <= 10000, {
+      message: '価格は10000円以下である必要があります',
+    }),
+  stock: z
+    .string()
+    .min(1, '在庫数を入力してください')
+    .refine(val => !isNaN(Number(val)), {
+      message: '在庫数は数値で入力してください',
+    })
+    .refine(val => Number(val) >= 0, {
+      message: '在庫数は0以上である必要があります',
+    }),
+});
+
+type PenFormData = z.infer<typeof penSchema>;
 
 interface EditPenFormProps {
   penId: string;
@@ -28,39 +63,47 @@ const FormSkeleton = () => (
 
 const EditPenForm: React.FC<EditPenFormProps> = ({ penId }) => {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PenFormData>({
+    resolver: zodResolver(penSchema),
+    mode: 'onSubmit',
+  });
 
   useEffect(() => {
     const fetchPen = async () => {
       try {
         const response = await axios.get<{ data: Pen }>(`/api/pens/${penId}`);
         const pen = response.data.data;
-        setName(pen.name);
-        setPrice(pen.price.toString());
-        setStock(pen.stock.toString());
+        reset({
+          name: pen.name,
+          price: pen.price.toString(),
+          stock: pen.stock.toString(),
+        });
       } catch (error) {
-        // エラー処理
+        setError('データの取得に失敗しました');
       } finally {
         setIsFetching(false);
       }
     };
     fetchPen();
-  }, [penId]);
+  }, [penId, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: PenFormData) => {
     setIsLoading(true);
     setError(null);
     try {
       await axios.patch(`/api/pens/${penId}`, {
-        name,
-        price: parseInt(price),
-        stock: parseInt(stock),
+        name: data.name,
+        price: parseInt(data.price),
+        stock: parseInt(data.stock),
       });
       await router.push('/pens');
       router.refresh();
@@ -87,40 +130,42 @@ const EditPenForm: React.FC<EditPenFormProps> = ({ penId }) => {
           {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="mt-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
         <div className="mb-4">
           <input
             type="text"
             id="name"
-            value={name}
-            onChange={e => setName(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            required
             placeholder="商品名"
+            {...register('name')}
           />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          )}
         </div>
         <div className="mb-4">
           <input
             type="number"
             id="price"
-            value={price}
-            onChange={e => setPrice(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            required
             placeholder="価格"
+            {...register('price')}
           />
+          {errors.price && (
+            <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+          )}
         </div>
         <div className="mb-4">
           <input
             type="number"
             id="stock"
-            value={stock}
-            onChange={e => setStock(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            required
-            min="0"
             placeholder="在庫数"
+            {...register('stock')}
           />
+          {errors.stock && (
+            <p className="mt-1 text-sm text-red-600">{errors.stock.message}</p>
+          )}
         </div>
         <div className="flex justify-end mt-6">
           <button

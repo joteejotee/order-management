@@ -1,20 +1,53 @@
 'use client';
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { Pen, Customer, OrderCreateResponse } from '@/types/index';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-interface CreateOrderProps {}
+// バリデーションスキーマ
+const orderSchema = z.object({
+  customer_id: z.string().min(1, '顧客を選択してください'),
+  pen_id: z.string().min(1, '商品を選択してください'),
+  num: z
+    .string()
+    .min(1, '数量を入力してください')
+    .refine(val => !isNaN(Number(val)), {
+      message: '数量は数値で入力してください',
+    })
+    .refine(val => Number(val) >= 1, {
+      message: '数量は1以上である必要があります',
+    })
+    .refine(val => Number(val) <= 20, {
+      message: '数量は20以下である必要があります',
+    }),
+});
 
-const CreateOrder: React.FC<CreateOrderProps> = () => {
+type OrderFormData = z.infer<typeof orderSchema>;
+
+const CreateOrder: React.FC = () => {
   const router = useRouter();
   const [pens, setPens] = useState<Pen[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedPen, setSelectedPen] = useState<string>('');
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<OrderFormData>({
+    resolver: zodResolver(orderSchema),
+    mode: 'onSubmit',
+    defaultValues: {
+      customer_id: '',
+      pen_id: '',
+      num: '',
+    },
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,7 +57,7 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
         setPens(response.data.pens);
         setCustomers(response.data.customers);
       } catch (error) {
-        // エラー処理
+        setError('データの取得に失敗しました');
       } finally {
         setIsFetching(false);
       }
@@ -33,34 +66,26 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
     fetchData();
   }, []);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: OrderFormData) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       await axios.post(`/api/orders`, {
-        pen_id: parseInt(selectedPen),
-        customer_id: parseInt(selectedCustomer),
-        num: parseInt(quantity),
+        pen_id: parseInt(data.pen_id),
+        customer_id: parseInt(data.customer_id),
+        num: parseInt(data.num),
       });
       router.push('/orders?from=create');
     } catch (error) {
-      // エラー処理
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePenChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPen(e.target.value);
-  };
-
-  const handleCustomerChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCustomer(e.target.value);
-  };
-
-  const handleQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setQuantity(e.target.value);
   };
 
   const FormSkeleton = () => {
@@ -89,18 +114,21 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
   return (
     <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
       <p>顧客と商品、数量を入力して、登録ボタンをクリックしてください</p>
-      <form onSubmit={handleSubmit} className="mt-4">
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
         <div className="mb-4">
           <select
             id="customer_id"
-            value={selectedCustomer}
-            onChange={handleCustomerChange}
             className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${
-              selectedCustomer === '' ? 'text-gray-400' : 'text-gray-900'
+              !errors.customer_id ? '' : 'border-red-500'
             }`}
-            required
+            {...register('customer_id')}
           >
-            <option value="" disabled hidden>
+            <option value="" disabled>
               顧客
             </option>
             {customers.map(customer => (
@@ -109,18 +137,21 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
               </option>
             ))}
           </select>
+          {errors.customer_id && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.customer_id.message}
+            </p>
+          )}
         </div>
         <div className="mb-4">
           <select
             id="pen_id"
-            value={selectedPen}
-            onChange={handlePenChange}
             className={`w-full px-3 py-2 bg-gray-100 rounded-md border-none ${
-              selectedPen === '' ? 'text-gray-400' : 'text-gray-900'
+              !errors.pen_id ? '' : 'border-red-500'
             }`}
-            required
+            {...register('pen_id')}
           >
-            <option value="" disabled hidden>
+            <option value="" disabled>
               商品
             </option>
             {pens.map(pen => (
@@ -129,18 +160,21 @@ const CreateOrder: React.FC<CreateOrderProps> = () => {
               </option>
             ))}
           </select>
+          {errors.pen_id && (
+            <p className="mt-1 text-sm text-red-600">{errors.pen_id.message}</p>
+          )}
         </div>
         <div className="mb-4">
           <input
             type="number"
-            id="quantity"
-            value={quantity}
-            onChange={handleQuantityChange}
+            id="num"
             className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            required
-            min="1"
             placeholder="数量"
+            {...register('num')}
           />
+          {errors.num && (
+            <p className="mt-1 text-sm text-red-600">{errors.num.message}</p>
+          )}
         </div>
         <div className="flex justify-end mt-6">
           <button
