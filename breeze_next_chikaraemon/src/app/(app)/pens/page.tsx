@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
@@ -58,7 +58,8 @@ const TableSkeleton = () => {
   );
 };
 
-const Pens: React.FC = () => {
+// 検索パラメータを使用するコンポーネントを分離
+function PensWithSearchParams() {
   const [pens, setPens] = useState<Pen[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -331,6 +332,15 @@ const Pens: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+}
+
+// メインコンポーネント
+const Pens: React.FC = () => {
+  return (
+    <Suspense fallback={<div className="p-8">ローディング中...</div>}>
+      <PensWithSearchParams />
+    </Suspense>
   );
 };
 
