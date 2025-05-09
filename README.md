@@ -55,6 +55,7 @@ cd order-management
 
 ```sh
 cp .env.example .env
+cp .dockerignore.dev .dockerignore
 cd breeze_next_chikaraemon
 cp .env.example .env.local
 cd ..
