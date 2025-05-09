@@ -55,7 +55,7 @@ export async function performLogin(
   await axios.get('/sanctum/csrf-cookie');
 
   // ログイン処理
-  await axios.post('/login', {
+  await axios.post('/api/login', {
     email,
     password,
     remember: false,
