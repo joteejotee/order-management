@@ -107,6 +107,15 @@ title: "プロジェクト共通ルール"
 
 - `docker-compose.prod.yml`:本番環境用のDocker定義ファイル。主にEC2へのデプロイ時に使用され、開発用ボリュームやホストポートの露出を減らし、本番向けにリソース制限やパフォーマンス最適化が施されている。
 
+- `.dockerignore`:本番環境用の除外設定。フロントエンドのbreeze_next_chikaraemonディレクトリを除外してVercelデプロイ時に使用。
+
+- `.dockerignore.dev`:開発環境用の除外設定。フロントエンドのbreeze_next_chikaraemonディレクトリを含めてローカル開発時に使用。
+
+# Nginx設定ファイル
+
+- `default.conf`:開発環境用の設定ファイル。HTTPのみの基本的なサーバー設定。
+- `prod.conf`:本番環境用の設定ファイル。HTTPS/SSL証明書設定を含む。
+
 # Docker環境でのURL設定の注意点
 
 - コンテナ間通信（サーバーサイド）では`http://nginx`を使用
