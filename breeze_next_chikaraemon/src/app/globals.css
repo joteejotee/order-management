@@ -69,10 +69,39 @@
 }
 
 @layer base {
+  html {
+    @apply text-[16px];
+  }
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* テーブル内の文字サイズを大きくする */
+  table {
+    @apply text-base;
+  }
+
+  table th,
+  table td {
+    @apply text-base;
+  }
+
+  /* メニュー項目のフォントサイズを大きくする */
+  nav a,
+  nav button {
+    @apply text-base;
+  }
+
+  /* フォーム要素のフォントサイズを大きくする */
+  input,
+  select,
+  textarea,
+  .text-sm {
+    @apply text-base;
   }
 }
