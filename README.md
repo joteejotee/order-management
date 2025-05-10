@@ -75,8 +75,9 @@ cd ..
 ### ③ Docker コンテナを起動・マイグレーション・シード
 
 ```sh
-docker-compose up --build
+docker-compose up --build -d
 docker compose exec nextjs-backend-1 composer install
+docker compose exec nextjs-backend-1 php artisan key:generate
 docker compose exec nextjs-backend-1 php artisan migrate --seed
 ```
 

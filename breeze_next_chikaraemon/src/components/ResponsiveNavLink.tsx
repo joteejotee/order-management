@@ -32,7 +32,7 @@ const ResponsiveNavLink = ({
 );
 
 export const ResponsiveNavButton = (props: ResponsiveNavButtonProps) => (
-  <button className="w-full flex items-center px-4 py-2 text-sm" {...props}>
+  <button className="w-full flex items-center px-4 py-2 text-base" {...props}>
     {props.children}
   </button>
 );
