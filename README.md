@@ -1,5 +1,16 @@
 # order-management アプリケーション
 
+[![Laravel](https://img.shields.io/badge/Laravel-v11.30.0-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![Next.js](https://img.shields.io/badge/Next.js-v15.3.1-000000?logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-v18.3.1-61DAFB?logo=react&logoColor=white)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-v5.5.4-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3.4.1-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![MySQL](https://img.shields.io/badge/MySQL-v8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
+[![ESLint](https://img.shields.io/badge/ESLint-v8.57.1-4B32C3?logo=eslint&logoColor=white)](https://eslint.org)
+[![Prettier](https://img.shields.io/badge/Prettier-v3.5.3-F7B93E?logo=prettier&logoColor=white)](https://prettier.io)
+
 ## 概要
 
 このアプリケーションは、ボールペンなどの筆記用具店向けの商品管理と受注管理を目的としています。バックエンドには Laravel 11.30.0、フロントエンドには Next.js 15.3.1 を使用し、Laravel Breeze による認証機能を実装。ユーザーは商品や注文情報の登録・編集・削除、出荷ステータスの管理が可能です。また、可読性の向上のため、商品、注文の一覧表示にはページネーション機能を搭載しています。
