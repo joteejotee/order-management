@@ -10,6 +10,8 @@ import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Order, PaginationMeta, convertToOrderModel } from '@/types';
 import { Pagination } from '@/components/Pagination';
+import { createIcons, icons } from 'lucide';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const TableSkeleton = () => {
   return (
@@ -296,18 +298,18 @@ const Orders: React.FC = () => {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => router.push(`/orders/edit/${order.id}`)}
                     >
-                      編集
+                      <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => deleteOrder(order.id)}
                     >
-                      削除
+                      <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                 </tr>

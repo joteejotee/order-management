@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
 import useSWR from 'swr';
 import { Pagination } from '@/components/Pagination';
+import { createIcons, icons } from 'lucide';
+import { Pencil, Trash2 } from 'lucide-react';
 
 // fetcherの定義を追加
 const fetcher = async (url: string) => {
@@ -258,18 +260,18 @@ function PensWithSearchParams() {
                   <td className="px-6 py-2">{pen.stock}</td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => router.push(`/pens/edit/${pen.id}`)}
                     >
-                      編集
+                      <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => deletePen(pen.id)}
                     >
-                      削除
+                      <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                 </tr>
