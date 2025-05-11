@@ -9,6 +9,17 @@ import React, {
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Order, PaginationMeta, convertToOrderModel } from '@/types';
+import { Pagination } from '@/components/Pagination';
+import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 const TableSkeleton = () => {
   return (
@@ -61,6 +72,12 @@ const Orders: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isFirstRender = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [orderToUpdateStatus, setOrderToUpdateStatus] = useState<Order | null>(
+    null,
+  );
 
   const getOrders = useCallback(
     async (pageNum: number) => {
@@ -147,56 +164,56 @@ const Orders: React.FC = () => {
     // orders と pageInfo の変更を監視
   }, [orders, pageInfo]);
 
-  const deleteOrder = async (id: number) => {
-    if (confirm('本当に削除しますか？')) {
-      try {
-        await axios.delete(`/api/orders/${id}`);
-        getOrders(page);
-      } catch (error) {
-        // エラー処理
+  const handleDeleteClick = (id: number) => {
+    setOrderToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!orderToDelete) return;
+    try {
+      await axios.delete(`/api/orders/${orderToDelete}`);
+      getOrders(page);
+    } catch (error) {
+      // エラー処理
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete(null);
+    }
+  };
+
+  const handleStatusClick = (order: Order) => {
+    setOrderToUpdateStatus(order);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!orderToUpdateStatus) return;
+    const newStatus =
+      orderToUpdateStatus.status === 'pending' ? 'shipped' : 'pending';
+
+    try {
+      const modelData = convertToOrderModel({ status: newStatus });
+      const response = await axios.put(
+        `/api/orders/${orderToUpdateStatus.id}`,
+        modelData,
+      );
+
+      if (response.status === 200) {
+        const updatedOrders = orders.map(o =>
+          o.id === orderToUpdateStatus.id
+            ? { ...o, status: newStatus as 'pending' | 'shipped' }
+            : o,
+        );
+        setOrders(updatedOrders);
+      } else {
+        throw new Error('ステータスの更新に失敗しました');
       }
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pageInfo?.next_page_url) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (pageInfo?.prev_page_url && page > 1) {
-      setPage(page - 1);
-    }
-  };
-
-  // ステータス更新関数を追加
-  const toggleStatus = async (order: Order) => {
-    const newStatus = order.status === 'pending' ? 'shipped' : 'pending';
-    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
-
-    // 確認ダイアログを表示
-    if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
-      try {
-        // モデル変換してAPIリクエストを実行
-        const modelData = convertToOrderModel({ status: newStatus });
-        const response = await axios.put(`/api/orders/${order.id}`, modelData);
-
-        // レスポンスを確認
-        if (response.status === 200) {
-          // 成功後にUIを更新
-          const updatedOrders = orders.map(o =>
-            o.id === order.id
-              ? { ...o, status: newStatus as 'pending' | 'shipped' }
-              : o,
-          );
-          setOrders(updatedOrders);
-        } else {
-          throw new Error('ステータスの更新に失敗しました');
-        }
-      } catch (error) {
-        alert('ステータスの更新に失敗しました。');
-      }
+    } catch (error) {
+      alert('ステータスの更新に失敗しました。');
+    } finally {
+      setIsStatusDialogOpen(false);
+      setOrderToUpdateStatus(null);
     }
   };
 
@@ -283,7 +300,7 @@ const Orders: React.FC = () => {
                   </td>
                   <td className="px-6 py-2">
                     <button
-                      onClick={() => toggleStatus(order)}
+                      onClick={() => handleStatusClick(order)}
                       className={`px-2 py-1 text-xs font-medium rounded-full cursor-pointer ${
                         order.status === 'pending'
                           ? 'text-red-800 bg-red-100'
@@ -295,18 +312,18 @@ const Orders: React.FC = () => {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => router.push(`/orders/edit/${order.id}`)}
                     >
-                      編集
+                      <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => deleteOrder(order.id)}
+                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => handleDeleteClick(order.id)}
                     >
-                      削除
+                      <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                 </tr>
@@ -320,56 +337,61 @@ const Orders: React.FC = () => {
             )}
           </tbody>
         </table>
-        <div className="w-1/2 items-center px-4 mt-6">
-          <div className="flex gap-x-2">
-            {pageInfo && (page > 1 || pageInfo.prev_page_url) && (
-              <button
-                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={handlePreviousPage}
-              >
-                <svg
-                  className="flex-shrink-0 size-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-                <span>前へ</span>
-              </button>
-            )}
-            {pageInfo &&
-              (pageInfo.last_page > page || pageInfo.next_page_url) && (
-                <button
-                  className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                  onClick={handleNextPage}
-                >
-                  <span>次へ</span>
-                  <svg
-                    className="flex-shrink-0 size-3.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </button>
-              )}
-          </div>
+        <div className="flex justify-center items-center px-4 mt-6">
+          {pageInfo && (
+            <Pagination
+              currentPage={pageInfo.current_page}
+              lastPage={pageInfo.last_page}
+              onPageChange={page => setPage(page)}
+            />
+          )}
         </div>
       </div>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>注文の削除</DialogTitle>
+            <DialogDescription>
+              本当にこの注文を削除しますか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>出荷状態の変更</DialogTitle>
+            <DialogDescription>
+              注文を
+              {orderToUpdateStatus?.status === 'pending' ? '出荷済' : '未出荷'}
+              に変更してよろしいですか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="default" onClick={handleStatusConfirm}>
+              変更
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
