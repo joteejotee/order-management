@@ -9,6 +9,7 @@ import React, {
 import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Order, PaginationMeta, convertToOrderModel } from '@/types';
+import { Pagination } from '@/components/Pagination';
 
 const TableSkeleton = () => {
   return (
@@ -320,54 +321,14 @@ const Orders: React.FC = () => {
             )}
           </tbody>
         </table>
-        <div className="w-1/2 items-center px-4 mt-6">
-          <div className="flex gap-x-2">
-            {pageInfo && (page > 1 || pageInfo.prev_page_url) && (
-              <button
-                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={handlePreviousPage}
-              >
-                <svg
-                  className="flex-shrink-0 size-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-                <span>前へ</span>
-              </button>
-            )}
-            {pageInfo &&
-              (pageInfo.last_page > page || pageInfo.next_page_url) && (
-                <button
-                  className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                  onClick={handleNextPage}
-                >
-                  <span>次へ</span>
-                  <svg
-                    className="flex-shrink-0 size-3.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </button>
-              )}
-          </div>
+        <div className="flex justify-center items-center px-4 mt-6">
+          {pageInfo && (
+            <Pagination
+              currentPage={pageInfo.current_page}
+              lastPage={pageInfo.last_page}
+              onPageChange={page => setPage(page)}
+            />
+          )}
         </div>
       </div>
     </div>

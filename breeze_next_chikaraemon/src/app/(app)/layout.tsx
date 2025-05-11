@@ -9,7 +9,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <Navigation />
       <main>{children}</main>
     </div>
