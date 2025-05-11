@@ -10,7 +10,6 @@ import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Order, PaginationMeta, convertToOrderModel } from '@/types';
 import { Pagination } from '@/components/Pagination';
-import { createIcons, icons } from 'lucide';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
   Dialog,
@@ -192,7 +191,6 @@ const Orders: React.FC = () => {
     if (!orderToUpdateStatus) return;
     const newStatus =
       orderToUpdateStatus.status === 'pending' ? 'shipped' : 'pending';
-    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
 
     try {
       const modelData = convertToOrderModel({ status: newStatus });
@@ -216,18 +214,6 @@ const Orders: React.FC = () => {
     } finally {
       setIsStatusDialogOpen(false);
       setOrderToUpdateStatus(null);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pageInfo?.next_page_url) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (pageInfo?.prev_page_url && page > 1) {
-      setPage(page - 1);
     }
   };
 

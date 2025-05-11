@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
 import useSWR from 'swr';
 import { Pagination } from '@/components/Pagination';
-import { createIcons, icons } from 'lucide';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
   Dialog,
@@ -209,18 +208,6 @@ function PensWithSearchParams() {
     }
   };
 
-  const handleNextPage = () => {
-    if (swrResponse?.data?.next_page_url) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (swrResponse?.data?.prev_page_url && page > 1) {
-      setPage(page - 1);
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="relative overflow-x-auto p-4">
@@ -316,7 +303,7 @@ function PensWithSearchParams() {
           <DialogHeader>
             <DialogTitle>商品の削除</DialogTitle>
             <DialogDescription>
-              本当にこの商品を削除しますか？この操作は取り消せません。
+              本当にこの商品を削除しますか？
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
