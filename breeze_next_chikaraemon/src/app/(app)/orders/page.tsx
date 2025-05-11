@@ -12,6 +12,15 @@ import { Order, PaginationMeta, convertToOrderModel } from '@/types';
 import { Pagination } from '@/components/Pagination';
 import { createIcons, icons } from 'lucide';
 import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 const TableSkeleton = () => {
   return (
@@ -64,6 +73,12 @@ const Orders: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isFirstRender = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [orderToUpdateStatus, setOrderToUpdateStatus] = useState<Order | null>(
+    null,
+  );
 
   const getOrders = useCallback(
     async (pageNum: number) => {
@@ -150,14 +165,57 @@ const Orders: React.FC = () => {
     // orders と pageInfo の変更を監視
   }, [orders, pageInfo]);
 
-  const deleteOrder = async (id: number) => {
-    if (confirm('本当に削除しますか？')) {
-      try {
-        await axios.delete(`/api/orders/${id}`);
-        getOrders(page);
-      } catch (error) {
-        // エラー処理
+  const handleDeleteClick = (id: number) => {
+    setOrderToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!orderToDelete) return;
+    try {
+      await axios.delete(`/api/orders/${orderToDelete}`);
+      getOrders(page);
+    } catch (error) {
+      // エラー処理
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete(null);
+    }
+  };
+
+  const handleStatusClick = (order: Order) => {
+    setOrderToUpdateStatus(order);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!orderToUpdateStatus) return;
+    const newStatus =
+      orderToUpdateStatus.status === 'pending' ? 'shipped' : 'pending';
+    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
+
+    try {
+      const modelData = convertToOrderModel({ status: newStatus });
+      const response = await axios.put(
+        `/api/orders/${orderToUpdateStatus.id}`,
+        modelData,
+      );
+
+      if (response.status === 200) {
+        const updatedOrders = orders.map(o =>
+          o.id === orderToUpdateStatus.id
+            ? { ...o, status: newStatus as 'pending' | 'shipped' }
+            : o,
+        );
+        setOrders(updatedOrders);
+      } else {
+        throw new Error('ステータスの更新に失敗しました');
       }
+    } catch (error) {
+      alert('ステータスの更新に失敗しました。');
+    } finally {
+      setIsStatusDialogOpen(false);
+      setOrderToUpdateStatus(null);
     }
   };
 
@@ -170,36 +228,6 @@ const Orders: React.FC = () => {
   const handlePreviousPage = () => {
     if (pageInfo?.prev_page_url && page > 1) {
       setPage(page - 1);
-    }
-  };
-
-  // ステータス更新関数を追加
-  const toggleStatus = async (order: Order) => {
-    const newStatus = order.status === 'pending' ? 'shipped' : 'pending';
-    const actionText = newStatus === 'shipped' ? '出荷済' : '未出荷';
-
-    // 確認ダイアログを表示
-    if (confirm(`注文を${actionText}に変更してよろしいですか？`)) {
-      try {
-        // モデル変換してAPIリクエストを実行
-        const modelData = convertToOrderModel({ status: newStatus });
-        const response = await axios.put(`/api/orders/${order.id}`, modelData);
-
-        // レスポンスを確認
-        if (response.status === 200) {
-          // 成功後にUIを更新
-          const updatedOrders = orders.map(o =>
-            o.id === order.id
-              ? { ...o, status: newStatus as 'pending' | 'shipped' }
-              : o,
-          );
-          setOrders(updatedOrders);
-        } else {
-          throw new Error('ステータスの更新に失敗しました');
-        }
-      } catch (error) {
-        alert('ステータスの更新に失敗しました。');
-      }
     }
   };
 
@@ -286,7 +314,7 @@ const Orders: React.FC = () => {
                   </td>
                   <td className="px-6 py-2">
                     <button
-                      onClick={() => toggleStatus(order)}
+                      onClick={() => handleStatusClick(order)}
                       className={`px-2 py-1 text-xs font-medium rounded-full cursor-pointer ${
                         order.status === 'pending'
                           ? 'text-red-800 bg-red-100'
@@ -307,7 +335,7 @@ const Orders: React.FC = () => {
                   <td className="px-3 py-2">
                     <button
                       className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => deleteOrder(order.id)}
+                      onClick={() => handleDeleteClick(order.id)}
                     >
                       <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
@@ -333,6 +361,51 @@ const Orders: React.FC = () => {
           )}
         </div>
       </div>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>注文の削除</DialogTitle>
+            <DialogDescription>
+              本当にこの注文を削除しますか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>出荷状態の変更</DialogTitle>
+            <DialogDescription>
+              注文を
+              {orderToUpdateStatus?.status === 'pending' ? '出荷済' : '未出荷'}
+              に変更してよろしいですか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="default" onClick={handleStatusConfirm}>
+              変更
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

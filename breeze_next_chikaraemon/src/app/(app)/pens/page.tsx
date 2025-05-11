@@ -7,6 +7,15 @@ import useSWR from 'swr';
 import { Pagination } from '@/components/Pagination';
 import { createIcons, icons } from 'lucide';
 import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 // fetcherの定義を追加
 const fetcher = async (url: string) => {
@@ -82,6 +91,8 @@ function PensWithSearchParams() {
   });
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [penToDelete, setPenToDelete] = useState<number | null>(null);
 
   // SWRの設定を最適化
   const {
@@ -162,34 +173,39 @@ function PensWithSearchParams() {
     setDeleteError(null);
   }, [page]);
 
-  const deletePen = async (id: number) => {
-    if (!swrResponse?.data) return;
+  const handleDeleteClick = (id: number) => {
+    setPenToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
 
-    if (confirm('本当に削除しますか？')) {
-      // 即時にUIを更新（オプティミスティックUI）
-      const optimisticData = {
-        data: {
-          ...swrResponse.data,
-          data: swrResponse.data.data.filter(pen => pen.id !== id),
-        },
-      };
+  const handleDeleteConfirm = async () => {
+    if (!penToDelete || !swrResponse?.data) return;
 
-      try {
-        setDeleteError(null);
-        mutate(optimisticData, false);
-        await axios.delete(`/api/pens/${id}`);
-        mutate(); // サーバーから最新データを取得
-      } catch (error: unknown) {
-        mutate(swrResponse); // エラー時は元のデータに戻す
-        if (axios.isAxiosError(error) && error.response?.status === 409) {
-          setDeleteError(
-            error.response.data?.message ||
-              'このペンは注文に紐づいているため削除できません',
-          );
-        } else {
-          setDeleteError('削除に失敗しました。再度お試しください。');
-        }
+    const optimisticData = {
+      data: {
+        ...swrResponse.data,
+        data: swrResponse.data.data.filter(pen => pen.id !== penToDelete),
+      },
+    };
+
+    try {
+      setDeleteError(null);
+      mutate(optimisticData, false);
+      await axios.delete(`/api/pens/${penToDelete}`);
+      mutate();
+    } catch (error: unknown) {
+      mutate(swrResponse);
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        setDeleteError(
+          error.response.data?.message ||
+            'このペンは注文に紐づいているため削除できません',
+        );
+      } else {
+        setDeleteError('削除に失敗しました。再度お試しください。');
       }
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setPenToDelete(null);
     }
   };
 
@@ -269,7 +285,7 @@ function PensWithSearchParams() {
                   <td className="px-3 py-2">
                     <button
                       className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => deletePen(pen.id)}
+                      onClick={() => handleDeleteClick(pen.id)}
                     >
                       <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
@@ -295,6 +311,27 @@ function PensWithSearchParams() {
           )}
         </div>
       </div>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>商品の削除</DialogTitle>
+            <DialogDescription>
+              本当にこの商品を削除しますか？この操作は取り消せません。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
