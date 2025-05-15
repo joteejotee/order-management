@@ -142,15 +142,11 @@ function PensWithSearchParams() {
   });
 
   useEffect(() => {
-    // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
-        // 新しいAbortControllerを作成
         abortControllerRef.current = new AbortController();
       }
-      // 直ちに再フェッチ
-      mutate();
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -161,7 +157,7 @@ function PensWithSearchParams() {
         abortControllerRef.current.abort();
       }
     };
-  }, [mutate]);
+  }, []);
 
   useEffect(() => {
     // ペンと画面情報の確認ロジック

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useAuth } from '@/hooks/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import ApplicationLogo from '@/components/ApplicationLogo';
@@ -12,15 +11,6 @@ const Navigation = () => {
   const { user, logout, isValidating } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-
-  // 主要なページのプリフェッチを実装
-  useEffect(() => {
-    // よく使用されるページをプリフェッチ
-    router.prefetch('/dashboard');
-    router.prefetch('/pens');
-    router.prefetch('/orders');
-    router.prefetch('/profile');
-  }, [router]);
 
   // ナビゲーション処理を最適化
   const handleNavigation = (

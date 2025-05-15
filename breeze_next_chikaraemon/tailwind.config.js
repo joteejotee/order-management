@@ -14,7 +14,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Nunito', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-inter)', 'var(--font-noto-sans-jp)', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

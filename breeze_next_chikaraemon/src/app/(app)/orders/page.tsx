@@ -128,7 +128,6 @@ const Orders: React.FC = () => {
         abortControllerRef.current.abort();
         abortControllerRef.current = new AbortController();
       }
-      setTimeout(() => mutate(), 0);
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -139,7 +138,7 @@ const Orders: React.FC = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [mutate]);
+  }, []);
 
   const navigateWithEvent = useCallback(
     (path: string) => {
