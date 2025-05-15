@@ -29,37 +29,41 @@ export function Pagination({
     : Array.from({ length: lastPage }, (_, i) => i + 1);
 
   return (
-    <ShadcnPagination>
-      <PaginationContent>
-        {currentPage > 1 && (
-          <PaginationItem>
-            <PaginationPrevious onClick={() => onPageChange(currentPage - 1)} />
-          </PaginationItem>
-        )}
+    <nav>
+      <ShadcnPagination>
+        <PaginationContent>
+          {currentPage > 1 && (
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => onPageChange(currentPage - 1)}
+              />
+            </PaginationItem>
+          )}
 
-        {pages.map(page => (
-          <PaginationItem key={page}>
-            <PaginationLink
-              onClick={() => onPageChange(page)}
-              isActive={page === currentPage}
-            >
-              {page}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
+          {pages.map(page => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => onPageChange(page)}
+                isActive={page === currentPage}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
 
-        {showEllipsis && currentPage < lastPage - 2 && (
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-        )}
+          {showEllipsis && currentPage < lastPage - 2 && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
 
-        {currentPage < lastPage && (
-          <PaginationItem>
-            <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
-          </PaginationItem>
-        )}
-      </PaginationContent>
-    </ShadcnPagination>
+          {currentPage < lastPage && (
+            <PaginationItem>
+              <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
+            </PaginationItem>
+          )}
+        </PaginationContent>
+      </ShadcnPagination>
+    </nav>
   );
 }

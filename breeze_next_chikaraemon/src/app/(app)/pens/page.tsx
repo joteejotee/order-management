@@ -142,15 +142,11 @@ function PensWithSearchParams() {
   });
 
   useEffect(() => {
-    // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
-        // 新しいAbortControllerを作成
         abortControllerRef.current = new AbortController();
       }
-      // 直ちに再フェッチ
-      mutate();
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -161,7 +157,7 @@ function PensWithSearchParams() {
         abortControllerRef.current.abort();
       }
     };
-  }, [mutate]);
+  }, []);
 
   useEffect(() => {
     // ペンと画面情報の確認ロジック
@@ -263,7 +259,7 @@ function PensWithSearchParams() {
                   <td className="px-6 py-2">{pen.stock}</td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => router.push(`/pens/edit/${pen.id}`)}
                     >
                       <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
@@ -271,7 +267,7 @@ function PensWithSearchParams() {
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => handleDeleteClick(pen.id)}
                     >
                       <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
