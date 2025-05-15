@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import useSWR from 'swr';
 
 const TableSkeleton = () => {
   return (
@@ -62,6 +63,17 @@ const TableSkeleton = () => {
   );
 };
 
+// fetcherの定義を追加
+const fetcher = async (url: string) => {
+  const response = await axios.get(url);
+  return response.data;
+};
+
+interface OrdersResponse {
+  data: Order[];
+  meta: PaginationMeta;
+}
+
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
@@ -69,85 +81,54 @@ const Orders: React.FC = () => {
   const [page, setPage] = useState(1);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [pageInfo, setPageInfo] = useState<PaginationMeta | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const isFirstRender = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [orderToUpdateStatus, setOrderToUpdateStatus] = useState<Order | null>(
     null,
   );
 
-  const getOrders = useCallback(
-    async (pageNum: number) => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-
-      setIsLoading(true);
-      try {
-        const response = await axios.get(`/api/orders?page=${pageNum}`, {
-          signal: controller.signal,
-        });
-
-        if (abortControllerRef.current === controller) {
-          if (response.data && response.data.data) {
-            setOrders(response.data.data);
-
-            // 初回レンダリング時かつ新規登録からの遷移時のみハイライトを表示
-            if (
-              isFirstRender.current &&
-              searchParams.get('from') === 'create' &&
-              response.data.data.length > 0
-            ) {
-              const newOrder = response.data.data[0];
-              setHighlightedId(newOrder.id);
-              setTimeout(() => {
-                setHighlightedId(null);
-              }, 100);
-            }
-            isFirstRender.current = false;
-
-            const metaData = response.data.meta;
-
-            setPageInfo({
-              current_page: metaData.current_page,
-              from: metaData.from || 0,
-              last_page: metaData.last_page || 1,
-              path: metaData.path || '',
-              per_page: metaData.per_page,
-              to: metaData.to || 0,
-              total: metaData.total,
-              next_page_url: metaData.next_page_url,
-              prev_page_url: metaData.prev_page_url,
-            });
-          } else {
-            setOrders([]);
-          }
+  const {
+    data: swrResponse,
+    mutate,
+    isValidating,
+  } = useSWR<OrdersResponse>(`/api/orders?page=${page}`, fetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: true,
+    dedupingInterval: 2000,
+    keepPreviousData: true,
+    suspense: false,
+    refreshInterval: 0,
+    errorRetryCount: 3,
+    onSuccess: response => {
+      if (response) {
+        setOrders(response.data);
+        if (
+          isFirstRender.current &&
+          searchParams.get('from') === 'create' &&
+          response.data.length > 0
+        ) {
+          const newOrder = response.data[0];
+          setHighlightedId(newOrder.id);
+          setTimeout(() => {
+            setHighlightedId(null);
+          }, 100);
         }
-      } catch (error) {
-        setOrders([]);
-      } finally {
-        if (abortControllerRef.current === controller) {
-          setIsLoading(false);
-        }
+        isFirstRender.current = false;
+        setPageInfo(response.meta);
       }
     },
-    [searchParams],
-  );
+  });
 
   useEffect(() => {
-    getOrders(page);
-
-    // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+        abortControllerRef.current = new AbortController();
       }
+      setTimeout(() => mutate(), 0);
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -158,11 +139,15 @@ const Orders: React.FC = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [page, getOrders]);
+  }, [mutate]);
 
-  useEffect(() => {
-    // orders と pageInfo の変更を監視
-  }, [orders, pageInfo]);
+  const navigateWithEvent = useCallback(
+    (path: string) => {
+      window.dispatchEvent(new CustomEvent('navigationStart'));
+      router.push(path);
+    },
+    [router],
+  );
 
   const handleDeleteClick = (id: number) => {
     setOrderToDelete(id);
@@ -170,12 +155,19 @@ const Orders: React.FC = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!orderToDelete) return;
+    if (!orderToDelete || !swrResponse?.data) return;
+    const optimisticData: OrdersResponse = {
+      ...swrResponse,
+      data: swrResponse.data.filter(
+        (order: Order) => order.id !== orderToDelete,
+      ),
+    };
     try {
+      mutate(optimisticData, false);
       await axios.delete(`/api/orders/${orderToDelete}`);
-      getOrders(page);
+      mutate();
     } catch (error) {
-      // エラー処理
+      mutate(swrResponse);
     } finally {
       setIsDeleteDialogOpen(false);
       setOrderToDelete(null);
@@ -188,29 +180,24 @@ const Orders: React.FC = () => {
   };
 
   const handleStatusConfirm = async () => {
-    if (!orderToUpdateStatus) return;
+    if (!orderToUpdateStatus || !swrResponse?.data) return;
     const newStatus =
       orderToUpdateStatus.status === 'pending' ? 'shipped' : 'pending';
-
+    const optimisticData: OrdersResponse = {
+      ...swrResponse,
+      data: swrResponse.data.map((o: Order) =>
+        o.id === orderToUpdateStatus.id
+          ? { ...o, status: newStatus as 'pending' | 'shipped' }
+          : o,
+      ),
+    };
     try {
+      mutate(optimisticData, false);
       const modelData = convertToOrderModel({ status: newStatus });
-      const response = await axios.put(
-        `/api/orders/${orderToUpdateStatus.id}`,
-        modelData,
-      );
-
-      if (response.status === 200) {
-        const updatedOrders = orders.map(o =>
-          o.id === orderToUpdateStatus.id
-            ? { ...o, status: newStatus as 'pending' | 'shipped' }
-            : o,
-        );
-        setOrders(updatedOrders);
-      } else {
-        throw new Error('ステータスの更新に失敗しました');
-      }
+      await axios.put(`/api/orders/${orderToUpdateStatus.id}`, modelData);
+      mutate();
     } catch (error) {
-      alert('ステータスの更新に失敗しました。');
+      mutate(swrResponse);
     } finally {
       setIsStatusDialogOpen(false);
       setOrderToUpdateStatus(null);
@@ -248,7 +235,7 @@ const Orders: React.FC = () => {
               <th scope="col" className="px-3 py-4">
                 <button
                   className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                  onClick={() => router.push('/orders/create')}
+                  onClick={() => navigateWithEvent('/orders/create')}
                 >
                   新規登録
                 </button>
@@ -256,7 +243,7 @@ const Orders: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
+            {isValidating ? (
               <TableSkeleton />
             ) : orders && orders.length > 0 ? (
               orders.map(order => (
@@ -312,15 +299,17 @@ const Orders: React.FC = () => {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => router.push(`/orders/edit/${order.id}`)}
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() =>
+                        navigateWithEvent(`/orders/edit/${order.id}`)
+                      }
                     >
                       <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="p-2 text-black hover:text-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => handleDeleteClick(order.id)}
                     >
                       <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
@@ -331,7 +320,7 @@ const Orders: React.FC = () => {
             ) : (
               <tr>
                 <td colSpan={7} className="px-6 py-4 text-center">
-                  {isLoading ? '読み込み中...' : 'データがありません'}
+                  {isValidating ? '読み込み中...' : 'データがありません'}
                 </td>
               </tr>
             )}
@@ -342,7 +331,7 @@ const Orders: React.FC = () => {
             <Pagination
               currentPage={pageInfo.current_page}
               lastPage={pageInfo.last_page}
-              onPageChange={page => setPage(page)}
+              onPageChange={(newPage: number) => setPage(newPage)}
             />
           )}
         </div>
