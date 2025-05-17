@@ -147,4 +147,12 @@ class OrderController extends Controller
       'message' => '出荷済にしました'
     ], 200);
   }
+
+  public function statusSummary()
+  {
+    return response()->json([
+      'unshipped' => \App\Models\Order::where('shipping', 0)->count(),
+      'shipped' => \App\Models\Order::where('shipping', 1)->count(),
+    ]);
+  }
 }
