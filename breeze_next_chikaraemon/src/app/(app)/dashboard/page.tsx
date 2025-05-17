@@ -95,62 +95,67 @@ const DashboardPage = () => {
         ようこそ {user.data.name} さん！
       </h2>
 
-      {/* 上部セクション - 商品総数、注文ステータス */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* 商品総数 */}
-        <div className="col-span-1">
-          <StatsCard title="商品総数" value={productTotal} />
+      <div className="grid grid-cols-12 gap-4">
+        {/* 左側セクション - 9列幅 */}
+        <div className="col-span-12 lg:col-span-9 grid gap-4">
+          {/* 上部セクション - 商品総数、注文ステータス */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* 商品総数 */}
+            <div className="col-span-1">
+              <StatsCard title="商品総数" value={productTotal} />
+            </div>
+
+            {/* 注文ステータス */}
+            <div className="col-span-1">
+              <StatsCard title="未出荷" value={orderSummary.unshipped} />
+            </div>
+            <div className="col-span-1">
+              <StatsCard title="出荷済" value={orderSummary.shipped} />
+            </div>
+          </div>
+
+          {/* 中段セクション - 売れ筋商品と週別売上 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 週別売上グラフ */}
+            <div className="col-span-1">
+              {weeklySales && (
+                <SalesBarChart
+                  labels={weeklySales.labels}
+                  data={weeklySales.values}
+                  title="週別売上"
+                />
+              )}
+            </div>
+
+            {/* 売れ筋商品ランキング */}
+            <div className="col-span-1">
+              <WeeklyTopProductsList products={topProducts} />
+            </div>
+          </div>
+
+          {/* 下段セクション - 月別売上グラフ */}
+          <div>
+            {monthlySales && (
+              <SalesBarChart
+                labels={monthlySales.labels}
+                data={monthlySales.values}
+                title="月別売上"
+              />
+            )}
+          </div>
         </div>
 
-        {/* 注文ステータス */}
-        <div className="col-span-1">
-          <StatsCard title="未出荷" value={orderSummary.unshipped} />
-        </div>
-        <div className="col-span-1">
-          <StatsCard title="出荷済" value={orderSummary.shipped} />
-        </div>
-      </div>
+        {/* 右側セクション - 3列幅 */}
+        <div className="col-span-12 lg:col-span-3 grid grid-rows-2 gap-4 h-full">
+          {/* 在庫切れ商品 */}
+          <div className="row-span-1 h-full">
+            <InventoryList title="在庫切れ商品" products={outOfStock} />
+          </div>
 
-      {/* 中段セクション - 在庫系と売れ筋商品 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 在庫切れ商品 */}
-        <div className="col-span-1">
-          <InventoryList title="在庫切れ商品" products={outOfStock} />
-        </div>
-
-        {/* 在庫5個以下 */}
-        <div className="col-span-1">
-          <InventoryList title="在庫5個以下" products={lowStock} />
-        </div>
-
-        {/* 売れ筋商品ランキング */}
-        <div className="col-span-1 sm:col-span-2">
-          <WeeklyTopProductsList products={topProducts} />
-        </div>
-      </div>
-
-      {/* 下段セクション - 売上グラフ */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* 週別売上グラフ */}
-        <div className="col-span-1">
-          {weeklySales && (
-            <SalesBarChart
-              labels={weeklySales.labels}
-              data={weeklySales.values}
-              title="週別売上"
-            />
-          )}
-        </div>
-
-        {/* 月別売上グラフ */}
-        <div className="col-span-1 sm:col-span-2">
-          {monthlySales && (
-            <SalesBarChart
-              labels={monthlySales.labels}
-              data={monthlySales.values}
-              title="月別売上"
-            />
-          )}
+          {/* 在庫5個以下 */}
+          <div className="row-span-1 h-full">
+            <InventoryList title="在庫5個以下" products={lowStock} />
+          </div>
         </div>
       </div>
     </div>
