@@ -15,7 +15,6 @@ import {
 import { InventoryList } from '@/components/dashboard/InventoryList';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { WeeklyTopProductsList } from '@/components/dashboard/WeeklyTopProductsList';
-import { OrderStatusCards } from '@/components/dashboard/OrderStatusCards';
 import dynamic from 'next/dynamic';
 
 const SalesBarChart = dynamic(
@@ -91,40 +90,68 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container mx-auto p-4 space-y-4">
       <h2 className="text-2xl font-semibold">
         ようこそ {user.data.name} さん！
       </h2>
 
-      {/* 上部サマリ */}
-      <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-        <StatsCard title="商品総数" value={productTotal} />
-        <OrderStatusCards summary={orderSummary} />
+      {/* 上部セクション - 商品総数、注文ステータス */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 商品総数 */}
+        <div className="col-span-1">
+          <StatsCard title="商品総数" value={productTotal} />
+        </div>
+
+        {/* 注文ステータス */}
+        <div className="col-span-1">
+          <StatsCard title="未出荷" value={orderSummary.unshipped} />
+        </div>
+        <div className="col-span-1">
+          <StatsCard title="出荷済" value={orderSummary.shipped} />
+        </div>
       </div>
 
-      {/* 在庫系 + トップ商品 */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <InventoryList title="在庫切れ商品" products={outOfStock} />
-        <InventoryList title="在庫5個以下" products={lowStock} />
-        <WeeklyTopProductsList products={topProducts} />
+      {/* 中段セクション - 在庫系と売れ筋商品 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 在庫切れ商品 */}
+        <div className="col-span-1">
+          <InventoryList title="在庫切れ商品" products={outOfStock} />
+        </div>
+
+        {/* 在庫5個以下 */}
+        <div className="col-span-1">
+          <InventoryList title="在庫5個以下" products={lowStock} />
+        </div>
+
+        {/* 売れ筋商品ランキング */}
+        <div className="col-span-1 sm:col-span-2">
+          <WeeklyTopProductsList products={topProducts} />
+        </div>
       </div>
 
-      {/* 売上グラフ */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {weeklySales && (
-          <SalesBarChart
-            labels={weeklySales.labels}
-            data={weeklySales.values}
-            title="週別売上"
-          />
-        )}
-        {monthlySales && (
-          <SalesBarChart
-            labels={monthlySales.labels}
-            data={monthlySales.values}
-            title="月別売上"
-          />
-        )}
+      {/* 下段セクション - 売上グラフ */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 週別売上グラフ */}
+        <div className="col-span-1">
+          {weeklySales && (
+            <SalesBarChart
+              labels={weeklySales.labels}
+              data={weeklySales.values}
+              title="週別売上"
+            />
+          )}
+        </div>
+
+        {/* 月別売上グラフ */}
+        <div className="col-span-1 sm:col-span-2">
+          {monthlySales && (
+            <SalesBarChart
+              labels={monthlySales.labels}
+              data={monthlySales.values}
+              title="月別売上"
+            />
+          )}
+        </div>
       </div>
     </div>
   );

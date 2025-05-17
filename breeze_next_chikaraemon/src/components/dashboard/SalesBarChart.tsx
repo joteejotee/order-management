@@ -48,7 +48,7 @@ export const SalesBarChart: FC<SalesBarChartProps> = ({
   } as const;
 
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border bg-white p-6 shadow-sm h-full">
       {title && (
         <h3 className="text-base font-semibold mb-4 text-gray-800">{title}</h3>
       )}
