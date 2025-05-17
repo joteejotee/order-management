@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --background: 36 33% 97%;
+    --background: 0 0% 96%; /* 薄いグレー */
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* 白 */
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
@@ -84,7 +84,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   /* テーブル内の文字サイズを大きくする */
