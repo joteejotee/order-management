@@ -4,6 +4,17 @@ import axios from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Pen, PaginationMeta } from '@/types';
 import useSWR from 'swr';
+import { Pagination } from '@/components/Pagination';
+import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 // fetcherの定義を追加
 const fetcher = async (url: string) => {
@@ -79,6 +90,8 @@ function PensWithSearchParams() {
   });
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [penToDelete, setPenToDelete] = useState<number | null>(null);
 
   // SWRの設定を最適化
   const {
@@ -129,15 +142,11 @@ function PensWithSearchParams() {
   });
 
   useEffect(() => {
-    // グローバルナビゲーションイベントのリスナーを追加
     const handleNavigation = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
-        // 新しいAbortControllerを作成
         abortControllerRef.current = new AbortController();
       }
-      // 直ちに再フェッチ
-      mutate();
     };
 
     window.addEventListener('navigationStart', handleNavigation);
@@ -148,7 +157,7 @@ function PensWithSearchParams() {
         abortControllerRef.current.abort();
       }
     };
-  }, [mutate]);
+  }, []);
 
   useEffect(() => {
     // ペンと画面情報の確認ロジック
@@ -159,46 +168,39 @@ function PensWithSearchParams() {
     setDeleteError(null);
   }, [page]);
 
-  const deletePen = async (id: number) => {
-    if (!swrResponse?.data) return;
+  const handleDeleteClick = (id: number) => {
+    setPenToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
 
-    if (confirm('本当に削除しますか？')) {
-      // 即時にUIを更新（オプティミスティックUI）
-      const optimisticData = {
-        data: {
-          ...swrResponse.data,
-          data: swrResponse.data.data.filter(pen => pen.id !== id),
-        },
-      };
+  const handleDeleteConfirm = async () => {
+    if (!penToDelete || !swrResponse?.data) return;
 
-      try {
-        setDeleteError(null);
-        mutate(optimisticData, false);
-        await axios.delete(`/api/pens/${id}`);
-        mutate(); // サーバーから最新データを取得
-      } catch (error: unknown) {
-        mutate(swrResponse); // エラー時は元のデータに戻す
-        if (axios.isAxiosError(error) && error.response?.status === 409) {
-          setDeleteError(
-            error.response.data?.message ||
-              'このペンは注文に紐づいているため削除できません',
-          );
-        } else {
-          setDeleteError('削除に失敗しました。再度お試しください。');
-        }
+    const optimisticData = {
+      data: {
+        ...swrResponse.data,
+        data: swrResponse.data.data.filter(pen => pen.id !== penToDelete),
+      },
+    };
+
+    try {
+      setDeleteError(null);
+      mutate(optimisticData, false);
+      await axios.delete(`/api/pens/${penToDelete}`);
+      mutate();
+    } catch (error: unknown) {
+      mutate(swrResponse);
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        setDeleteError(
+          error.response.data?.message ||
+            'このペンは注文に紐づいているため削除できません',
+        );
+      } else {
+        setDeleteError('削除に失敗しました。再度お試しください。');
       }
-    }
-  };
-
-  const handleNextPage = () => {
-    if (swrResponse?.data?.next_page_url) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (swrResponse?.data?.prev_page_url && page > 1) {
-      setPage(page - 1);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setPenToDelete(null);
     }
   };
 
@@ -257,18 +259,18 @@ function PensWithSearchParams() {
                   <td className="px-6 py-2">{pen.stock}</td>
                   <td className="px-3 py-2 text-right">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:pointer-events-none"
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
                       onClick={() => router.push(`/pens/edit/${pen.id}`)}
                     >
-                      編集
+                      <Pencil className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
                     <button
-                      className="py-1 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:pointer-events-none"
-                      onClick={() => deletePen(pen.id)}
+                      className="p-2 text-black hover:text-gray-400 disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => handleDeleteClick(pen.id)}
                     >
-                      削除
+                      <Trash2 className="h-5 w-5 font-bold" strokeWidth={2.5} />
                     </button>
                   </td>
                 </tr>
@@ -282,55 +284,37 @@ function PensWithSearchParams() {
             )}
           </tbody>
         </table>
-        <div className="w-1/2 items-center px-4 mt-6">
-          <div className="flex gap-x-2">
-            {page > 1 && (
-              <button
-                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={handlePreviousPage}
-              >
-                <svg
-                  className="flex-shrink-0 size-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-                <span>前へ</span>
-              </button>
-            )}
-            {pageInfo.last_page > page && (
-              <button
-                className="min-h-[38px] min-w-[38px] py-2 px-2.5 inline-flex justify-center items-center gap-x-1.5 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                onClick={handleNextPage}
-              >
-                <span>次へ</span>
-                <svg
-                  className="flex-shrink-0 size-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            )}
-          </div>
+        <div className="flex justify-center items-center px-4 mt-6">
+          {pageInfo && (
+            <Pagination
+              currentPage={pageInfo.current_page}
+              lastPage={pageInfo.last_page}
+              onPageChange={page => setPage(page)}
+            />
+          )}
         </div>
       </div>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>商品の削除</DialogTitle>
+            <DialogDescription>
+              本当にこの商品を削除しますか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,15 +1,13 @@
-@import url('https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 96%; /* 薄いグレー */
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* 白 */
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
@@ -66,6 +64,14 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+
+  html {
+    /* ここに他のスタイルがあれば残す */
+  }
+
+  :lang(ja) {
+    /* ここに他のスタイルがあれば残す */
+  }
 }
 
 @layer base {
@@ -78,7 +84,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   /* テーブル内の文字サイズを大きくする */

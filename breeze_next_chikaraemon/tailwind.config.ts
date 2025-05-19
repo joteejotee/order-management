@@ -1,12 +1,17 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const defaultTheme = require('tailwindcss/defaultTheme');
+import type { Config } from 'tailwindcss';
+import { fontFamily } from 'tailwindcss/defaultTheme';
 
-module.exports = {
-  content: ['./src/**/*.tsx'],
-  darkMode: ['media', 'class'],
+const config: Config = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.tsx',
+  ],
+  darkMode: 'class',
   theme: {
     container: {
-      center: 'true',
+      center: true,
       padding: '2rem',
       screens: {
         '2xl': '1400px',
@@ -14,7 +19,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Nunito', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-inter)', 'var(--font-noto-sans-jp)', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -25,6 +30,7 @@ module.exports = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          primary: '#ff0000',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -89,3 +95,5 @@ module.exports = {
   },
   plugins: [require('@tailwindcss/forms'), require('tailwindcss-animate')],
 };
+
+export default config;
