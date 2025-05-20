@@ -51,14 +51,28 @@ export async function fetchOrderStatusSummary(): Promise<OrderStatusSummary> {
  * 月別売上推移
  */
 export async function fetchMonthlySales(): Promise<SalesByPeriod> {
-  const { data } = await axios.get<SalesByPeriod>('/api/sales/monthly');
-  return data;
+  const { data } = await axios.get('/api/sales/monthly');
+  // APIレスポンスを変換: [{ month: "...", total: ... }] → { labels: [...], values: [...] }
+  const labels = data.map(
+    (item: { month: string; total: string }) => item.month,
+  );
+  const values = data.map((item: { month: string; total: string }) =>
+    parseInt(item.total, 10),
+  );
+
+  return { labels, values };
 }
 
 /*
  * 週別売上推移
  */
 export async function fetchWeeklySales(): Promise<SalesByPeriod> {
-  const { data } = await axios.get<SalesByPeriod>('/api/sales/weekly');
-  return data;
+  const { data } = await axios.get('/api/sales/weekly');
+  // APIレスポンスを変換: [{ week: "...", total: ... }] → { labels: [...], values: [...] }
+  const labels = data.map((item: { week: string; total: string }) => item.week);
+  const values = data.map((item: { week: string; total: string }) =>
+    parseInt(item.total, 10),
+  );
+
+  return { labels, values };
 }

@@ -1,40 +1,20 @@
 'use client';
 
 import { useAuth } from '@/hooks/auth';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import ApplicationLogo from '@/components/ApplicationLogo';
 import Dropdown from '@/components/Dropdown';
 import DropdownLink from '@/components/DropdownLink';
 import Link from 'next/link';
-
+import { useCallback } from 'react';
 const Navigation = () => {
   const { user, logout, isValidating } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
-
-  // ナビゲーション処理を最適化
-  const handleNavigation = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    path: string,
-  ) => {
-    e.preventDefault();
-
-    // 認証状態を確認
-    if (!user || isValidating) {
-      return;
-    }
-
-    // 遷移前にすべてのリクエストをキャンセル
-    window.dispatchEvent(new CustomEvent('navigationStart'));
-
-    // 即時に遷移を開始
-    router.push(path);
-  };
 
   // リンククリック時のイベントをグローバルに通知するための共通関数
-  const triggerNavigationEvent = () => {
+  const triggerNavigationEvent = useCallback(() => {
     window.dispatchEvent(new CustomEvent('navigationStart'));
-  };
+  }, []);
 
   interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
     active?: boolean;
@@ -64,18 +44,15 @@ const Navigation = () => {
   );
 
   return (
-    <nav className="border-b border-gray-100">
+    <nav className="border-b border-gray-100 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <a
-                href="/dashboard"
-                onClick={e => handleNavigation(e, '/dashboard')}
-              >
+              <Link href="/dashboard" onClick={triggerNavigationEvent}>
                 <ApplicationLogo className="block h-10 w-auto fill-current text-gray-600" />
-              </a>
+              </Link>
             </div>
 
             {/* Navigation Links */}
@@ -83,7 +60,7 @@ const Navigation = () => {
               <NavLink href="/dashboard" active={pathname === '/dashboard'}>
                 TOP
               </NavLink>
-              <NavLink href="/pens" active={pathname === '/pens'}>
+              <NavLink href="/pens" active={pathname?.startsWith('/pens')}>
                 PEN
               </NavLink>
               <NavLink href="/orders" active={pathname === '/orders'}>

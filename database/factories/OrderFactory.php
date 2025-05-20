@@ -23,4 +23,11 @@ class OrderFactory extends Factory
       'orderday' => date('Y-m-d H:i:s'),
     ];
   }
+
+  public function withOrderday(string $orderday): static
+  {
+    return $this->state(fn(array $attributes) => [
+      'orderday' => $orderday,
+    ]);
+  }
 }
