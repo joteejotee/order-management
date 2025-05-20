@@ -15,9 +15,9 @@ class OrderSeeder extends Seeder
     $now = Carbon::now();
 
     // ───────────────────────────
-    // ① 今週の売れ筋TOP5（今週の各日に5件）
+    // ① 今週の売れ筋TOP5（今週の各日に最大5件）
     // ───────────────────────────
-    for ($i = 0; $i < 5; $i++) {
+    for ($i = 0; $i < min(5, $now->day); $i++) {
       $orderday = $now->copy()
         ->startOfWeek()
         ->addDays($i)
@@ -28,15 +28,13 @@ class OrderSeeder extends Seeder
         ->withOrderday($orderday)
         ->state([
           'shipping' => 1,
-          // Option A: actually multiply by 10
-          'num'      => $this->getBalancedQuantity(2, 4) * 10, // ← 数量を10倍
-
-          // Option B: keep *2 but fix the comment
-          // 'num'   => $this->getBalancedQuantity(2, 4) * 2, // 数量を2倍
+          'num'      => $this->getBalancedQuantity(2, 4) * 5,
+          # 'num'      => $this->getBalancedQuantity(1, 3) * 2,
           'pen_id'   => ($i % 10) + 1,
         ])
         ->create();
     }
+
 
     // ───────────────────────────
     // ② 週別売上（過去8週分、ただし今月内の週のみ）
@@ -61,7 +59,7 @@ class OrderSeeder extends Seeder
           ->withOrderday($orderday)
           ->state([
             'shipping' => 1,
-            'num'      => $this->getBalancedQuantity(2, 4) * 10,
+            'num'      => $this->getBalancedQuantity(2, 3) * 5,
             'pen_id'   => (($weekOffset + $j) % 10) + 1,
           ])
           ->create();
@@ -75,8 +73,8 @@ class OrderSeeder extends Seeder
     $standard = 3; // 各月の標準件数
 
     for ($monthOffset = 0; $monthOffset < 12; $monthOffset++) {
-      if ($monthOffset === 0 || $monthOffset === 1) {
-        continue; // 当月と前月はスキップ
+      if ($monthOffset === 0) {
+        continue;
       }
 
       $monthDate = $now->copy()->startOfMonth()->subMonths($monthOffset);
