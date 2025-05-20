@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import type { Product } from '@/types/dashboard';
-import { Crown, Medal } from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 interface WeeklyTopProductsListProps {
   products: Product[];
@@ -29,7 +29,7 @@ export const WeeklyTopProductsList: FC<WeeklyTopProductsListProps> = ({
                   </div>
                 ) : idx === 1 ? (
                   <div className="flex items-center justify-center w-6 h-6 mr-3">
-                    <Medal size={18} className="text-gray-400" />
+                    <Crown size={18} className="text-gray-400" />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-6 h-6 rounded-full mr-3 font-bold text-xs bg-gray-200 text-gray-700">
