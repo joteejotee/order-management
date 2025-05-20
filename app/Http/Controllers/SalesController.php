@@ -27,7 +27,6 @@ class SalesController extends Controller
                     'pen_id' => $order->pen_id,
                     'id' => $order->pen_id,
                     'name' => $order->pen->name ?? '',
-                    'total_sold' => $order->total_quantity,
                     'salesAmount' => $salesAmount,
                     'salesCount' => $order->total_quantity,
                 ];
@@ -39,7 +38,6 @@ class SalesController extends Controller
     public function monthly()
     {
         $months = collect();
-        $currentYear = now()->year;
 
         // 1月から12月まで全ての月を表示
         for ($i = 1; $i <= 12; $i++) {
@@ -62,7 +60,9 @@ class SalesController extends Controller
                 ->get();
 
             $total = $orders->sum(function ($order) {
-                return $order->num * $order->pen->price;
+                return $order->pen
+                    ? $order->num * $order->pen->price
+                    : 0;
             });
 
             $months->push([
@@ -87,7 +87,10 @@ class SalesController extends Controller
         // 月内の週を計算
         while ($currentWeekStart->lte($endOfMonth)) {
             // 週の終了は7日後か月末のどちらか早い方
-            $weekEnd = min($currentWeekStart->copy()->addDays(6), $endOfMonth);
+            $weekEnd = $currentWeekStart->copy()->addDays(6);
+            if ($weekEnd->gt($endOfMonth)) {
+                $weekEnd = $endOfMonth->copy();
+            }
 
             // 「注文数×単価」で売上金額を計算
             $orders = \App\Models\Order::where('shipping', 1)
@@ -96,7 +99,9 @@ class SalesController extends Controller
                 ->get();
 
             $total = $orders->sum(function ($order) {
-                return $order->num * $order->pen->price;
+                return $order->pen
+                    ? $order->num * $order->pen->price
+                    : 0;
             });
 
             $weeks->push([

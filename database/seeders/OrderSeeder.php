@@ -28,14 +28,18 @@ class OrderSeeder extends Seeder
         ->withOrderday($orderday)
         ->state([
           'shipping' => 1,
-          'num'      => $this->getBalancedQuantity(2, 4) * 2, // ← 数量を10倍
+          // Option A: actually multiply by 10
+          'num'      => $this->getBalancedQuantity(2, 4) * 10, // ← 数量を10倍
+
+          // Option B: keep *2 but fix the comment
+          // 'num'   => $this->getBalancedQuantity(2, 4) * 2, // 数量を2倍
           'pen_id'   => ($i % 10) + 1,
         ])
         ->create();
     }
 
     // ───────────────────────────
-    // ② 週別売上（過去4週分のみ）
+    // ② 週別売上（過去8週分、ただし今月内の週のみ）
     // ───────────────────────────
     for ($weekOffset = 1; $weekOffset <= 8; $weekOffset++) {
       $weekStart = $now->copy()->startOfWeek()->subWeeks($weekOffset);
@@ -71,7 +75,7 @@ class OrderSeeder extends Seeder
     $standard = 3; // 各月の標準件数
 
     for ($monthOffset = 0; $monthOffset < 12; $monthOffset++) {
-      if ($monthOffset === 0) {
+      if ($monthOffset === 0 || $monthOffset === 1) {
         continue; // 当月と前月はスキップ
       }
 

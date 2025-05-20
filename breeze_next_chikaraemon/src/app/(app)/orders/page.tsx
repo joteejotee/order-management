@@ -64,8 +64,11 @@ const TableSkeleton = () => {
 };
 
 // fetcherの定義を追加
-const fetcher = async (url: string) => {
-  const response = await axios.get(url);
+const fetcher = async (
+  url: string,
+  signal?: AbortSignal, // allow SWR to pass a signal in the future
+) => {
+  const response = await axios.get(url, { signal });
   return response.data;
 };
 
