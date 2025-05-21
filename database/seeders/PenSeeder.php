@@ -18,6 +18,8 @@ class PenSeeder extends Seeder
       DB::statement('SET NAMES utf8mb4');
     }
 
+    DB::table('pens')->truncate();
+
     $pens = [ //挿入するデータ
       ['name' => '黒ボールペン', 'price' => 201, 'stock' => 0],
       ['name' => '赤ボールペン', 'price' => 202, 'stock' => 0],
