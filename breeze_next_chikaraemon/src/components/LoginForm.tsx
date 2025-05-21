@@ -2,6 +2,7 @@
 import * as React from 'react';
 import axios from '@/lib/axios'; // 共通のaxiosインスタンスを使用
 import { useTransition } from 'react';
+import { Spinner } from './ui/spinner';
 
 const LoginForm = () => {
   const [email, setEmail] = React.useState('');
@@ -75,10 +76,11 @@ const LoginForm = () => {
         type="submit"
         disabled={isTransitioning}
         className={`${
-          isTransitioning ? 'opacity-50' : ''
-        } w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+          isTransitioning ? 'opacity-95' : ''
+        } w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
       >
-        {isTransitioning ? '処理中...' : 'ログイン'}
+        {isTransitioning && <Spinner size="sm" className="text-white" />}
+        {isTransitioning ? 'ログイン中...' : 'ログイン'}
       </button>
     </form>
   );
