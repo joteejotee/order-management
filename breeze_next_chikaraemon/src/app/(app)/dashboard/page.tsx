@@ -16,6 +16,7 @@ import { InventoryList } from '@/components/dashboard/InventoryList';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { WeeklyTopProductsList } from '@/components/dashboard/WeeklyTopProductsList';
 import dynamic from 'next/dynamic';
+import { LoadingOverlay } from '@/components/ui/loading-overlay';
 
 // アイコンのインポート
 import { Box, AlertTriangle, CheckCircle } from 'lucide-react';
@@ -66,12 +67,7 @@ const DashboardPage = () => {
   const { data: weeklySales } = useSWR('/api/sales/weekly', fetchWeeklySales);
 
   if (!mounted || authValidating) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4" />
-        <div className="text-gray-600">ロード中...</div>
-      </div>
-    );
+    return <LoadingOverlay message="ダッシュボードを読み込み中..." />;
   }
 
   if (!user) {
