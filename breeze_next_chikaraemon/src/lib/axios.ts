@@ -19,7 +19,7 @@ declare global {
 }
 
 // サンクタムのCookie設定
-axios.defaults.withCredentials = process.env.NODE_ENV === 'production';
+axios.defaults.withCredentials = true;
 
 // フロントエンドがブラウザで実行されているか、サーバーで実行されているかを判定
 const isBrowser = typeof window !== 'undefined';
