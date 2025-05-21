@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder; //Seederを使うためのもの
 use Illuminate\Support\Facades\DB; //DBを扱うためのもの
 use Carbon\Carbon; //日付を扱うためのもの
+use Illuminate\Support\Facades\Log;
 
 class PenSeeder extends Seeder
 {
@@ -13,6 +14,8 @@ class PenSeeder extends Seeder
    */
   public function run(): void //Seederを実行するためのメソッド
   {
+    Log::info('PenSeeder実行: ' . now());
+
     // 文字コードを明示的に設定（MySQL接続時のみ）
     if (DB::getDriverName() === 'mysql') {
       DB::statement('SET FOREIGN_KEY_CHECKS=0'); // FK無効化
