@@ -1,8 +1,7 @@
 # バックエンドのDockerfile
-# ベースイメージ
 FROM php:8.2-fpm
 
-# 必要な拡張機能をインストール
+# 必要な拡張機能と tzdata をインストール
 RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
@@ -12,9 +11,12 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    tzdata \
     && docker-php-ext-install pdo_mysql mbstring zip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd
+    && docker-php-ext-install gd \
+    && cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+    && echo "Asia/Tokyo" > /etc/timezone
 
 # Composerをインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
