@@ -15,10 +15,10 @@ class PenSeeder extends Seeder
   {
     // 文字コードを明示的に設定（MySQL接続時のみ）
     if (DB::getDriverName() === 'mysql') {
-      DB::statement('SET NAMES utf8mb4');
+      DB::statement('SET FOREIGN_KEY_CHECKS=0'); // FK無効化
+      DB::table('pens')->truncate();
+      DB::statement('SET FOREIGN_KEY_CHECKS=1'); // FK再有効化
     }
-
-    DB::table('pens')->truncate();
 
     $pens = [ //挿入するデータ
       ['name' => '黒ボールペン', 'price' => 201, 'stock' => 0],
