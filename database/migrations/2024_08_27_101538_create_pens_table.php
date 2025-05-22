@@ -13,10 +13,14 @@ return new class extends Migration
   {
     Schema::create('pens', function (Blueprint $table) {
       $table->id();
-      $table->string('name');
+      $table->string('name')->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
       $table->bigInteger('price');
       $table->integer('stock')->default(0);
       $table->timestamps();
+    });
+    Schema::table('pens', function (Blueprint $table) {
+      $table->charset = 'utf8mb4';
+      $table->collation = 'utf8mb4_unicode_ci';
     });
   }
 
