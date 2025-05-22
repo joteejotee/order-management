@@ -40,6 +40,10 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# storageとbootstrap/cacheディレクトリの権限をwww-dataに変更し、書き込み可能にする
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+ && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 # ENTRYPOINTとCMDの設定
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["php-fpm"]
