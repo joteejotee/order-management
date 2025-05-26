@@ -125,3 +125,10 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   GitHub Actions（CI/CD 自動化）
 -   GitHub Actions Secrets（機密情報管理）
 -   他: zod, React Hook Form, shadcn/ui, Lucide, Postman
+
+## 7. システム構成図（Infrastructure Architecture）
+
+以下は、本アプリケーションの全体的なシステム構成を示した図です。  
+Vercel でホストされたフロントエンド（Next.js）と、AWS EC2 上の Docker コンテナ群（Laravel + MySQL + Nginx）で構成されています。
+
+![architecture](./docs/order-management-architecture.drawio.png)
