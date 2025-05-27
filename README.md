@@ -111,7 +111,63 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 
 ---
 
-## 6. 技術スタック
+## 6. 機能一覧
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+
+### ログイン画面
+
+<img src="./docs/screenshots/login.png" alt="ログイン画面" width="400">
+
+ログイン ID とパスワードでの認証機能を実装しました。
+
+### ダッシュボード画面
+
+<img src="./docs/screenshots/dashboard.png" alt="ダッシュボード画面" width="400">
+
+商品数、未出荷・出荷済み注文数の統計表示、週別・月別売上グラフ、売れ筋商品 TOP5、在庫切れ商品・在庫 5 個以下の商品一覧を表示します。
+
+### 商品一覧画面
+
+<img src="./docs/screenshots/pen-list.png" alt="商品一覧画面" width="400">
+
+登録済みの商品の一覧表示機能を実装しました。
+
+### 注文一覧画面
+
+<img src="./docs/screenshots/order-list.png" alt="注文一覧画面" width="400">
+
+登録済みの注文の一覧表示機能を実装しました。
+
+### 商品編集画面
+
+<img src="./docs/screenshots/pen-edit.png" alt="商品編集画面" width="400">
+
+商品情報を入力して、保存ボタンをクリックしてください。
+
+### 注文編集画面
+
+<img src="./docs/screenshots/order-edit.png" alt="注文編集画面" width="400">
+
+顧客と商品、数量を入力して、登録ボタンをクリックしてください。
+
+### 商品新規登録画面
+
+<img src="./docs/screenshots/pen-create.png" alt="商品新規登録画面" width="400">
+
+商品情報を入力して、保存ボタンをクリックしてください。
+
+### 注文新規登録画面
+
+<img src="./docs/screenshots/order-create.png" alt="注文新規登録画面" width="400">
+
+顧客と商品、数量を入力して、登録ボタンをクリックしてください。
+
+</div>
+
+---
+
+## 7. 技術スタック
 
 -   Laravel 11.30.0
 -   Next.js 15.3.1 (App Router)
@@ -128,20 +184,20 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 
 ---
 
-## 7. システム構成図
+## 8. システム構成図
 
--   以下は、本アプリケーションの全体的なシステム構成を示した図です。  
+-   以下は、本アプリケーションの全体的なシステム構成を示した図です。
 -   Vercel でホストされたフロントエンド（Next.js）と、AWS EC2 上の Docker コンテナ群（Laravel + MySQL + Nginx）で構成されています。
 
 ![architecture](./docs/order-management-architecture.drawio.png)
 
 ---
 
-## 8. ER図
+## 9. ER 図
 
 -   このアプリケーションでは、以下のようなエンティティ関係図に基づいてデータベースを設計しています。
-    -   customers・orders・pens は、注文フローの中核を担う3テーブルで構成
-    -   users テーブルはログイン認証用で、現在は初期ユーザー1名のみ作成
+    -   customers・orders・pens は、注文フローの中核を担う 3 テーブルで構成
+    -   users テーブルはログイン認証用で、現在は初期ユーザー 1 名のみ作成
     -   外部キー制約により、データ整合性を保っています
 
 ![architecture](./docs/order-management-schema.png)
