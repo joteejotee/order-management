@@ -126,9 +126,22 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   GitHub Actions Secrets（機密情報管理）
 -   他: zod, React Hook Form, shadcn/ui, Lucide, Postman
 
-## 7. システム構成図（Infrastructure Architecture）
+---
 
-以下は、本アプリケーションの全体的なシステム構成を示した図です。  
-Vercel でホストされたフロントエンド（Next.js）と、AWS EC2 上の Docker コンテナ群（Laravel + MySQL + Nginx）で構成されています。
+## 7. システム構成図
+
+-   以下は、本アプリケーションの全体的なシステム構成を示した図です。  
+-   Vercel でホストされたフロントエンド（Next.js）と、AWS EC2 上の Docker コンテナ群（Laravel + MySQL + Nginx）で構成されています。
 
 ![architecture](./docs/order-management-architecture.drawio.png)
+
+---
+
+## 8. ER図
+
+-   このアプリケーションでは、以下のようなエンティティ関係図（ER図）に基づいてデータベースを設計しています。
+    -   customers・orders・pens は、注文フローの中核を担う3テーブルで構成
+    -   users テーブルはログイン認証用で、現在は初期ユーザー1名のみ作成
+    -   外部キー制約により、データ整合性を保っています
+
+![architecture](./docs/order-management-schema.png)
