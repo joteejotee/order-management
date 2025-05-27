@@ -25,15 +25,15 @@ class PenSeeder extends Seeder
 
     $pens = [ //挿入するデータ
       ['name' => '黒ボールペン', 'price' => 201, 'stock' => 0],
-      ['name' => '赤ボールペン', 'price' => 202, 'stock' => 0],
+      ['name' => '赤マーカー', 'price' => 202, 'stock' => 0],
       ['name' => '青ボールペン', 'price' => 203, 'stock' => 5],
-      ['name' => '緑ボールペン', 'price' => 204, 'stock' => 8],
+      ['name' => '緑マーカー', 'price' => 204, 'stock' => 8],
       ['name' => '紫ボールペン', 'price' => 205, 'stock' => 12],
-      ['name' => '黒シャープペン', 'price' => 206, 'stock' => 3],
-      ['name' => '赤シャープペン', 'price' => 207, 'stock' => 7],
-      ['name' => '青シャープペン', 'price' => 208, 'stock' => 2],
-      ['name' => '緑シャープペン', 'price' => 209, 'stock' => 10],
-      ['name' => '紫シャープペン', 'price' => 210, 'stock' => 15],
+      ['name' => '黒マーカー', 'price' => 206, 'stock' => 3],
+      ['name' => '赤ボールペン', 'price' => 207, 'stock' => 7],
+      ['name' => '青マーカー', 'price' => 208, 'stock' => 2],
+      ['name' => '緑ボールペン', 'price' => 209, 'stock' => 10],
+      ['name' => '紫マーカー', 'price' => 210, 'stock' => 15],
     ];
     foreach ($pens as $pen) { //データを1つずつ取り出して繰り返す
       DB::table('pens')->insert([ //pensテーブルにデータを挿入
