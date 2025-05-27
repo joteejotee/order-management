@@ -80,67 +80,74 @@ const CreatePen = () => {
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-md mx-4 my-6">
-      <p>商品情報を入力して、保存ボタンをクリックしてください</p>
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
-        <div className="mb-4">
-          <input
-            type="text"
-            id="name"
-            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            placeholder="商品名"
-            {...register('name')}
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-          )}
-        </div>
-        <div className="mb-4">
-          <input
-            type="number"
-            id="price"
-            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            placeholder="価格"
-            {...register('price')}
-          />
-          {errors.price && (
-            <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
-          )}
-        </div>
-        <div className="mb-4">
-          <input
-            type="number"
-            id="stock"
-            className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
-            placeholder="在庫数"
-            {...register('stock')}
-          />
-          {errors.stock && (
-            <p className="mt-1 text-sm text-red-600">{errors.stock.message}</p>
-          )}
-        </div>
-        <div className="flex justify-end mt-6">
-          <button
-            type="button"
-            onClick={() => router.push('/pens')}
-            className="px-4 py-2 mr-2 bg-gray-200 text-gray-700 rounded-md"
-          >
-            キャンセル
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
-          >
-            {isLoading ? '保存中...' : '保存'}
-          </button>
-        </div>
-      </form>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="p-4 bg-white shadow-md rounded-md">
+        <p>商品情報を入力して、保存ボタンをクリックしてください</p>
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+          <div className="mb-4">
+            <input
+              type="text"
+              id="name"
+              className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+              placeholder="商品名"
+              {...register('name')}
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+          <div className="mb-4">
+            <input
+              type="number"
+              id="price"
+              className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+              placeholder="価格"
+              {...register('price')}
+            />
+            {errors.price && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.price.message}
+              </p>
+            )}
+          </div>
+          <div className="mb-4">
+            <input
+              type="number"
+              id="stock"
+              className="w-full px-3 py-2 bg-gray-100 rounded-md placeholder-gray-400 border-none"
+              placeholder="在庫数"
+              {...register('stock')}
+            />
+            {errors.stock && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.stock.message}
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button
+              type="button"
+              onClick={() => router.push('/pens')}
+              className="mr-2 py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+              disabled={isLoading}
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+              disabled={isLoading}
+            >
+              {isLoading ? '保存中...' : '保存'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
