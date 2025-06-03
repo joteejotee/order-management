@@ -145,6 +145,7 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   ESLint 8.57.1
 -   Prettier 3.5.3
 -   MySQL 8.0
+-   Docker
 -   Git/GitHub
 -   GitHub Actions（CI/CD 自動化）
 -   GitHub Actions Secrets（機密情報管理）
@@ -169,3 +170,9 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
     -   外部キー制約により、データ整合性を保っています
 
 ![architecture](./docs/order-management-schema.png)
+
+---
+
+## . License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
