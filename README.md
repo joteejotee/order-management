@@ -143,14 +143,17 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   React 18.3.1
 -   TypeScript 5.5.4
 -   TailwindCSS 3.4.1
+-   zod 3.22.4
+-   React Hook Form 7.53.2
+-   shadcn/ui 0.0.4
 -   ESLint 8.57.1
 -   Prettier 3.5.3
 -   MySQL 8.0
--   Docker
+-   Docker/Docker Compose
 -   Git/GitHub
--   GitHub Actions（CI/CD 自動化）
--   GitHub Actions Secrets（機密情報管理）
--   他: zod, React Hook Form, shadcn/ui, Lucide, Postman
+-   GitHub Actions
+-   GitHub Actions Secrets
+-   他: Lucide, Postman
 
 ### テスト環境
 
