@@ -17,20 +17,49 @@ const LoginForm = () => {
     startTransition(async () => {
       try {
         // CSRFトークンを取得
-        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRFトークンを取得中...');
+        await axios.get('/sanctum/csrf-cookie', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        });
+        console.log('CSRFトークンの取得成功');
 
         // ログイン処理
-        const loginResponse = await axios.post('/api/login', {
-          email,
-          password,
-          remember: false,
-        });
+        console.log('ログイン処理を開始...');
+        const loginResponse = await axios.post(
+          '/api/login',
+          {
+            email,
+            password,
+            remember: false,
+          },
+          {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+          },
+        );
 
         if (loginResponse.status === 200) {
+          console.log('ログイン成功');
           window.location.href = '/dashboard';
         }
       } catch (error) {
-        setError('ログインに失敗しました');
+        console.error('ログインエラー:', error);
+        if (axios.isAxiosError(error)) {
+          const errorMessage =
+            error.response?.data?.message ||
+            error.response?.statusText ||
+            `HTTPエラー: ${error.response?.status}`;
+          setError(`ログインに失敗しました: ${errorMessage}`);
+        } else {
+          setError('ログインに失敗しました: 不明なエラー');
+        }
       }
     });
   };

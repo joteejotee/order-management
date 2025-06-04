@@ -12,7 +12,17 @@ module.exports = {
     es6: true,
     commonjs: true,
   },
-  ignorePatterns: ['.eslintrc.js', 'next.config.js', 'tailwind.config.js'],
+  ignorePatterns: [
+    '.eslintrc.js',
+    'next.config.js',
+    'tailwind.config.js',
+    'jest.config.js',
+    'jest.setup.js',
+    'postcss.config.js',
+    'coverage/**/*',
+    'test-results/**/*',
+    'playwright-report/**/*',
+  ],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',

@@ -17,7 +17,7 @@ class OrderUpdateRequest extends FormRequest
         return [
             'status' => ['sometimes', 'required', 'string', Rule::in(['pending', 'shipped'])],
             'shipping' => ['sometimes', 'required', 'boolean'],
-            'num' => ['sometimes', 'required', 'integer', 'min:1', 'max:20'],
+            'num' => ['sometimes', 'required', 'integer', 'min:1', 'max:150'],
             'pen_id' => ['sometimes', 'required', 'integer', 'exists:pens,id'],
             'customer_id' => ['sometimes', 'required', 'integer', 'exists:customers,id'],
         ];
@@ -44,7 +44,7 @@ class OrderUpdateRequest extends FormRequest
             'num.required' => ':attributeを入力してください。',
             'num.integer' => ':attributeは整数で入力してください。',
             'num.min' => ':attributeは1以上で入力してください。',
-            'num.max' => ':attributeは20以下で入力してください。',
+            'num.max' => ':attributeは150以下で入力してください。',
             'pen_id.required' => ':attributeを選択してください。',
             'pen_id.integer' => ':attributeは整数で入力してください。',
             'pen_id.exists' => '選択された:attributeは存在しません。',
@@ -54,4 +54,3 @@ class OrderUpdateRequest extends FormRequest
         ];
     }
 }
-
