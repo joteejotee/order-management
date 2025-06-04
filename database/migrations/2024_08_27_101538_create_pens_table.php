@@ -11,17 +11,13 @@ return new class extends Migration
    */
   public function up(): void
   {
-    Schema::create(
-      'pens',
-      function (Blueprint $table) {
-        $table->id();
-        $table->string('name')->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
-        $table->bigInteger('price');
-        $table->integer('stock')->default(0);
-        $table->timestamps();
-      },
-      ['charset' => 'utf8mb4', 'collation' => 'utf8mb4_unicode_ci']
-    );
+    Schema::create('pens', function (Blueprint $table) {
+      $table->id();
+      $table->string('name');
+      $table->bigInteger('price');
+      $table->integer('stock')->default(0);
+      $table->timestamps();
+    });
   }
 
   /**

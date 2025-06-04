@@ -20,8 +20,8 @@ const orderSchema = z.object({
     .refine(val => Number(val) >= 1, {
       message: '数量は1以上である必要があります',
     })
-    .refine(val => Number(val) <= 20, {
-      message: '数量は20以下である必要があります',
+    .refine(val => Number(val) <= 150, {
+      message: '数量は150以下である必要があります',
     }),
 });
 

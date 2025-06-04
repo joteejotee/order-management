@@ -27,6 +27,7 @@ Docker のみで、面倒なセットアップ不要・数分で動作確認で�
 -   **API 連携**（Laravel バックエンドと Next.js フロントエンド）
 -   **環境変数による設定管理**
 -   **Vercel デプロイ対応**
+-   **包括的テスト環境**（PestPHP・Laravel Dusk・Jest・React Testing Library・Playwright）
 
 ---
 
@@ -111,31 +112,31 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 
 ---
 
-## 6. 画面一覧
+## 7. 画面一覧
 
-| ログイン画面 | ダッシュボード画面 |
-| ---- | ---- |
-| ![ログイン画面](./docs/screenshots/login.png) | ![ダッシュボード画面](./docs/screenshots/dashboard.png) |
+| ログイン画面                                         | ダッシュボード画面                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ![ログイン画面](./docs/screenshots/login.png)        | ![ダッシュボード画面](./docs/screenshots/dashboard.png)                                                                              |
 | ログイン ID とパスワードでの認証機能を実装しました。 | 商品数、未出荷・出荷済み注文数の統計表示、週別・月別売上グラフ、売れ筋商品 TOP5、在庫切れ商品・在庫 5 個以下の商品一覧を表示します。 |
 
-| 商品一覧画面 | 注文一覧画面 |
-| ---- | ---- |
+| 商品一覧画面                                     | 注文一覧画面                                       |
+| ------------------------------------------------ | -------------------------------------------------- |
 | ![商品一覧画面](./docs/screenshots/pen-list.png) | ![注文一覧画面](./docs/screenshots/order-list.png) |
-| 登録済みの商品の一覧表示機能を実装しました。 | 登録済みの注文の一覧表示機能を実装しました。 |
+| 登録済みの商品の一覧表示機能を実装しました。     | 登録済みの注文の一覧表示機能を実装しました。       |
 
-| 商品編集画面 | 注文編集画面 |
-| ---- | ---- |
-| ![商品編集画面](./docs/screenshots/pen-edit.png) | ![注文編集画面](./docs/screenshots/order-edit.png) |
+| 商品編集画面                                           | 注文編集画面                                                   |
+| ------------------------------------------------------ | -------------------------------------------------------------- |
+| ![商品編集画面](./docs/screenshots/pen-edit.png)       | ![注文編集画面](./docs/screenshots/order-edit.png)             |
 | 商品情報を入力して、保存ボタンをクリックしてください。 | 顧客と商品、数量を入力して、登録ボタンをクリックしてください。 |
 
-| 商品新規登録画面 | 注文新規登録画面 |
-| ---- | ---- |
-| ![商品新規登録画面](./docs/screenshots/pen-create.png) | ![注文新規登録画面](./docs/screenshots/order-create.png) |
+| 商品新規登録画面                                       | 注文新規登録画面                                               |
+| ------------------------------------------------------ | -------------------------------------------------------------- |
+| ![商品新規登録画面](./docs/screenshots/pen-create.png) | ![注文新規登録画面](./docs/screenshots/order-create.png)       |
 | 商品情報を入力して、保存ボタンをクリックしてください。 | 顧客と商品、数量を入力して、登録ボタンをクリックしてください。 |
 
 ---
 
-## 7. 技術スタック
+## 8. 技術スタック
 
 -   Laravel 11.30.0
 -   Next.js 15.3.1 (App Router)
@@ -145,14 +146,23 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 -   ESLint 8.57.1
 -   Prettier 3.5.3
 -   MySQL 8.0
+-   Docker
 -   Git/GitHub
 -   GitHub Actions（CI/CD 自動化）
 -   GitHub Actions Secrets（機密情報管理）
 -   他: zod, React Hook Form, shadcn/ui, Lucide, Postman
 
+### テスト環境
+
+-   **バックエンド API**: PestPHP（Laravel 用 API テスト・ユニットテスト）
+-   **バックエンド E2E**: Laravel Dusk（サーバーサイドブラウザ自動化テスト）
+-   **フロントエンド**: Jest + React Testing Library（React コンポーネントテスト）
+-   **フロントエンド E2E**: Playwright（クライアントサイドブラウザ自動化テスト）
+-   **テストカバレッジ**: PestPHP・Jest Coverage Report 対応
+
 ---
 
-## 8. システム構成図
+## 9. システム構成図
 
 -   以下は、本アプリケーションの全体的なシステム構成を示した図です。
 -   Vercel でホストされたフロントエンド（Next.js）と、AWS EC2 上の Docker コンテナ群（Laravel + MySQL + Nginx）で構成されています。
@@ -161,7 +171,7 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
 
 ---
 
-## 9. ER 図
+## 10. ER 図
 
 -   このアプリケーションでは、以下のようなエンティティ関係図に基づいてデータベースを設計しています。
     -   customers・orders・pens は、注文フローの中核を担う 3 テーブルで構成
@@ -169,3 +179,9 @@ docker compose exec nextjs-backend-1 php artisan migrate --seed
     -   外部キー制約により、データ整合性を保っています
 
 ![architecture](./docs/order-management-schema.png)
+
+---
+
+## . License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
