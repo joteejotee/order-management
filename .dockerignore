@@ -25,4 +25,4 @@ docker-compose.prod.yml
 !docker/backend
 
 #=== フロントは本番でビルドしないため丸ごと除外 ===
-breeze_next_chikaraemon 
+!breeze_next_chikaraemon 

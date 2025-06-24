@@ -53,8 +53,8 @@ jobs:
             docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan config:clear
             docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan optimize:clear
             
-            # マイグレーションとシーディングを実行
-            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan migrate --force
+            # マイグレーションとシーディングを実行 (--fresh でテーブルを再作成)
+            docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan migrate:fresh --force
             docker-compose -f docker-compose.prod.yml exec -T nextjs-backend-1 php artisan db:seed --force
             
             # 残りのアプリケーションセットアップ

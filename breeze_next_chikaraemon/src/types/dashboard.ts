@@ -3,6 +3,8 @@ export interface Product {
   name: string;
   price: number;
   stock: number;
+  salesAmount?: number;
+  salesCount?: number;
 }
 
 export interface OrderStatusSummary {

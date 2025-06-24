@@ -2,6 +2,7 @@
 import * as React from 'react';
 import axios from '@/lib/axios'; // 共通のaxiosインスタンスを使用
 import { useTransition } from 'react';
+import { Spinner } from './ui/spinner';
 
 const LoginForm = () => {
   const [email, setEmail] = React.useState('');
@@ -16,20 +17,49 @@ const LoginForm = () => {
     startTransition(async () => {
       try {
         // CSRFトークンを取得
-        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRFトークンを取得中...');
+        await axios.get('/sanctum/csrf-cookie', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        });
+        console.log('CSRFトークンの取得成功');
 
         // ログイン処理
-        const loginResponse = await axios.post('/api/login', {
-          email,
-          password,
-          remember: false,
-        });
+        console.log('ログイン処理を開始...');
+        const loginResponse = await axios.post(
+          '/api/login',
+          {
+            email,
+            password,
+            remember: false,
+          },
+          {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+          },
+        );
 
         if (loginResponse.status === 200) {
+          console.log('ログイン成功');
           window.location.href = '/dashboard';
         }
       } catch (error) {
-        setError('ログインに失敗しました');
+        console.error('ログインエラー:', error);
+        if (axios.isAxiosError(error)) {
+          const errorMessage =
+            error.response?.data?.message ||
+            error.response?.statusText ||
+            `HTTPエラー: ${error.response?.status}`;
+          setError(`ログインに失敗しました: ${errorMessage}`);
+        } else {
+          setError('ログインに失敗しました: 不明なエラー');
+        }
       }
     });
   };
@@ -75,10 +105,11 @@ const LoginForm = () => {
         type="submit"
         disabled={isTransitioning}
         className={`${
-          isTransitioning ? 'opacity-50' : ''
-        } w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+          isTransitioning ? 'opacity-95' : ''
+        } w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
       >
-        {isTransitioning ? '処理中...' : 'ログイン'}
+        {isTransitioning && <Spinner size="sm" className="text-white" />}
+        {isTransitioning ? 'ログイン中...' : 'ログイン'}
       </button>
     </form>
   );

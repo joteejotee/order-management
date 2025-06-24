@@ -44,6 +44,7 @@ breeze_next_chikaraemon/tsconfig.tsbuildinfo
 
 # ログとキャッシュ
 *.log
+*.log.*
 /storage/logs/
 /logs/
 /docker/nginx/logs/

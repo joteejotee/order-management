@@ -18,7 +18,7 @@ class OrderStoreRequest extends FormRequest
     return [
       'customer_id' => 'required|integer',
       'pen_id' => 'required|integer',
-      'num' => 'required|integer|max:20|min:1',
+      'num' => 'required|integer|max:150|min:1',
     ];
   }
   public function attributes()
@@ -39,7 +39,7 @@ class OrderStoreRequest extends FormRequest
       'pen_id.integer' => ':attributeは数値で入力してください。',
       'num.integer' => ':attributeは数値で入力してください。',
       'num.min' => ':attributeは1以上としてください。',
-      'num.max' => ':attributeは20以下としてください。',
+      'num.max' => ':attributeは150以下としてください。',
     ];
   }
 }
